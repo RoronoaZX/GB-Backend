@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class BreadGroup extends Model
 {
     use HasFactory;
-    protected $fillable = ['recipe_id', 'bread_id'];
+    protected $fillable = ['branch_recipe_id', 'bread_id'];
 
 
     public function recipe()
     {
-        return $this->belongsTo(Recipe::class);
+        // return $this->belongsTo(Recipe::class);
+        return $this->belongsTo(BranchRecipe::class);
     }
 
     public function bread()

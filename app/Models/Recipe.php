@@ -11,19 +11,17 @@ class Recipe extends Model
     protected $fillable = [
         'name',
         'category',
-        'target',
-        'status'
     ];
 
-    public static function boot()
-    {
-        parent::boot();
+    // public static function boot()
+    // {
+    //     parent::boot();
 
-        static::deleting(function ($recipe) {
-            $recipe->breadGroups()->delete();
-            $recipe->ingredientGroups()->delete();
-        });
-    }
+    //     static::deleting(function ($recipe) {
+    //         $recipe->breadGroups()->delete();
+    //         $recipe->ingredientGroups()->delete();
+    //     });
+    // }
 
     public function breadGroups()
     {

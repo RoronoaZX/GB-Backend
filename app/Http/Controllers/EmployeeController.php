@@ -13,7 +13,7 @@ class EmployeeController extends Controller
      */
     public function index()
     {
-        $employees = Employee::orderBy('created_at', 'asc')
+        $employees = Employee::orderBy('created_at', 'desc')
             ->take(7)
             ->get();
 
@@ -40,14 +40,16 @@ class EmployeeController extends Controller
         $keyword = $request->input('keyword');
 
         // Search by firstname or lastname
-        $employees = Employee::where('firstname', 'like', "%$keyword%")
+        $employees = Employee::with('employmentType')
+            ->where('firstname', 'like', "%$keyword%")
             ->orWhere('lastname', 'like', "%$keyword%")
             ->take(7)
             ->get();
 
         // Check if employees are found
         if ($employees->isEmpty()) {
-            return response()->json([], 200); // Return an empty array if no results
+            // return response()->json([], 200); // Return an empty array if no results
+            $employees = Employee::orderBy('created_at', 'asc')->with('employmentType')->take(7)->get();
         }
 
         return response()->json($employees, 200);
@@ -103,28 +105,104 @@ class EmployeeController extends Controller
         ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Employee $employee)
+    public function updateEmployeeFullname(Request $request, $id)
     {
-        //
+        $validateEmployee = $request->validate([
+            'firstname' => 'required|string',
+            'middlename' => 'required|string',
+            'lastname' => 'required|string',
+        ]);
+        $employee = Employee::findOrFail($id);
+        $employee->firstname = $validateEmployee['firstname'];
+        $employee->middlename = $validateEmployee['middlename'];
+        $employee->lastname = $validateEmployee['lastname'];
+
+        $employee->save();
+
+        $employee->load('employmentType');
+
+
+        return response()->json([
+            'message' => 'Employee fullname updated successfully',
+            'employee' => $employee
+        ], 200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Employee $employee)
+    public function updateEmployeeEmploymentType(Request $request, $id)
     {
-        //
-    }
+        $validateEmployee = $request->validate([
+            'employment_type_id' => 'required|integer',
+        ]);
+        $employee = Employee::findOrFail($id);
+        $employee->employment_type_id = $validateEmployee['employment_type_id'];
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Employee $employee)
+
+        $employee->save();
+
+        $employee->load('employmentType');
+
+
+        return response()->json([
+            'message' => 'Employee fullname updated successfully',
+            'employee' => $employee
+        ], 200);
+    }
+    public function updateEmployeeAddress(Request $request, $id)
     {
-        //
+        $validateEmployee = $request->validate([
+            'address' => 'required|string',
+        ]);
+        $employee = Employee::findOrFail($id);
+        $employee->address = $validateEmployee['address'];
+
+
+        $employee->save();
+
+        $employee->load('employmentType');
+
+
+        return response()->json([
+            'message' => 'Employee fullname updated successfully',
+            'employee' => $employee
+        ], 200);
+    }
+    public function updateEmployeeBirthdate(Request $request, $id)
+    {
+        $validateEmployee = $request->validate([
+            'birthdate' => 'required|date',
+        ]);
+        $employee = Employee::findOrFail($id);
+        $employee->birthdate = $validateEmployee['birthdate'];
+
+
+        $employee->save();
+
+        $employee->load('employmentType');
+
+
+        return response()->json([
+            'message' => 'Employee fullname updated successfully',
+            'employee' => $employee
+        ], 200);
+    }
+    public function updateEmployeePhone(Request $request, $id)
+    {
+        $validateEmployee = $request->validate([
+            'phone' => 'required|string',
+        ]);
+        $employee = Employee::findOrFail($id);
+        $employee->phone = $validateEmployee['phone'];
+
+
+        $employee->save();
+
+        $employee->load('employmentType');
+
+
+        return response()->json([
+            'message' => 'Employee fullname updated successfully',
+            'employee' => $employee
+        ], 200);
     }
 
     /**

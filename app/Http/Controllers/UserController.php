@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
@@ -17,7 +18,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::with('employee')->orderBy('created_at', 'desc')->get();
+        $users = User::with('employee')->orderBy('created_at', 'desc')->take(12)->get();
 
         $users = $users->map(function($user){
             if ($user->employee) {
@@ -34,6 +35,41 @@ class UserController extends Controller
             unset($user->employee);
             return $user;
         });
+        return response()->json($users);
+    }
+
+    public function search(Request $request)
+    {
+        $search = $request->input('keyword'); // Get the search input
+
+        $users = User::with('employee')
+            ->when($search !== null, function ($query) use ($search) {
+                // Search by attributes in the Employee model
+                $query->whereHas('employee', function ($employeeQuery) use ($search) {
+                    $employeeQuery->where('firstname', 'like', "%{$search}%")
+                                  ->orWhere('lastname', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('created_at', 'desc')
+            ->take(12)
+            ->get();
+
+        // Map the results as in the original function
+        $users = $users->map(function($user){
+            if ($user->employee) {
+                $user->employee_id = $user->employee->id;
+                $user->firstname = $user->employee->firstname;
+                $user->middlename = $user->employee->middlename;
+                $user->lastname = $user->employee->lastname;
+                $user->birthdate = $user->employee->birthdate;
+                $user->phone = $user->employee->phone;
+                $user->address = $user->employee->address;
+                $user->position = $user->employee->position;
+            }
+            unset($user->employee);
+            return $user;
+        });
+
         return response()->json($users);
     }
 
@@ -218,6 +254,26 @@ class UserController extends Controller
         'message' => 'User profile and branch employee details updated successfully'
     ]);
 }
+
+public function updateEmail(Request $request, $id)
+{
+    $validatedData = $request->validate([
+        'email' => 'required|string|max:255'
+    ]);
+
+    $user = User::findOrFail($id);
+    $user->email = $validatedData['email'];
+    $user->save();
+
+    // /** @var User $user */
+    // $user = Auth::user(); // This tells Intelephense that $user is a User instance
+
+    // $user->email = $request->email;
+    // $user->save();
+
+    // return response()->json(['message' => 'Email updated successfully!'], 200);
+}
+
 
     /**
      * Remove the specified resource from storage.

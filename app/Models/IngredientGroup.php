@@ -9,11 +9,12 @@ class IngredientGroup extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['recipe_id', 'ingredient_id','quantity'];
+    protected $fillable = ['branch_recipe_id', 'ingredient_id','quantity'];
 
     public function recipe()
     {
-        return $this->belongsTo(Recipe::class);
+        // return $this->belongsTo(Recipe::class);
+        return $this->belongsTo(BranchRecipe::class);
     }
 
     public function ingredient()

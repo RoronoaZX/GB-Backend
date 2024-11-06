@@ -20,6 +20,10 @@ class Warehouse extends Model
     {
         return $this->hasMany(Employee::class);
     }
+    public function employees()
+    {
+        return $this->belongsTo(Employee::class, 'employee_id', 'id');
+    }
 
     public function branches() {
         return $this->hasMany(Branch::class);

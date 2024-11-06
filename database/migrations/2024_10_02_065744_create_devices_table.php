@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('devices', function (Blueprint $table) {
             $table->id();
-            $table->string('uuid', 255)->unique();
+            $table->string('uuid')->unique();
             $table->string('name')->nullable();
             $table->string('model')->nullable();
             $table->string('os_version')->nullable();

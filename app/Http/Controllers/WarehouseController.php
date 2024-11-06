@@ -9,7 +9,7 @@ class WarehouseController extends Controller
 {
     public function index()
     {
-        $warehouse = Warehouse::orderBy('created_at', 'desc')->get();
+        $warehouse = Warehouse::orderBy('created_at', 'desc')->with('employees')->get();
         return  $warehouse;
     }
 
@@ -44,8 +44,9 @@ class WarehouseController extends Controller
         ]);
 
         $warehouse = Warehouse::create($validateData);
+        $warehouseResponseData = $warehouse->fresh()->load('employees');
 
-        return response()->json($warehouse, 201);
+        return response()->json($warehouseResponseData, 201);
     }
 
 

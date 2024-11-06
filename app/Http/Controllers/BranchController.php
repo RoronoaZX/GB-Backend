@@ -10,7 +10,7 @@ class BranchController extends Controller
 {
     public function index()
     {
-        $branches = Branch::orderBy('created_at', 'desc')->with('warehouse')->get();
+        $branches = Branch::orderBy('created_at', 'desc')->with('warehouse', 'employees')->get();
 
         return response()->json($branches, 200);
     }
@@ -40,7 +40,8 @@ class BranchController extends Controller
         ]);
 
         $branch = Branch::create($validatedData);
-        return response()->json($branch, 201);
+        $branchResponseData = $branch->fresh()->load('employees');
+        return response()->json($branchResponseData, 201);
     }
 
     public function update(Request $request, $id)
@@ -56,7 +57,7 @@ class BranchController extends Controller
 
         $validatedData = $request->validate([
             'warehouse_id' => 'sometimes|required|exists:warehouses,id',
-            'person_incharge' => 'sometimes|required',
+            'employee_id' => 'sometimes|required',
             'name' => 'sometimes|required|unique:branches,name,' . $id,
             'location' => 'nullable',
             'phone' => 'nullable',
@@ -64,7 +65,7 @@ class BranchController extends Controller
         ]);
 
         $branch->update($validatedData);
-        $updated_branch = $branch->fresh();
+        $updated_branch = $branch->fresh()->load('warehouse', 'employees');
         return response()->json($updated_branch);
     }
 
