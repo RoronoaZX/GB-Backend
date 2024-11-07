@@ -33,7 +33,7 @@ class BranchController extends Controller
         $validatedData = $request->validate([
             'warehouse_id' => 'required|exists:warehouses,id',
             'employee_id' => 'required|exists:employees,id',
-            'name' => 'required||unique:branches',
+            'name' => 'required|unique:branches',
             'location' => 'nullable',
             'phone' => 'nullable',
             'status' => 'nullable',

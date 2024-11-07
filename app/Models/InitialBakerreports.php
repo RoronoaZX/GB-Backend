@@ -11,13 +11,14 @@ class InitialBakerreports extends Model
 
     protected $fillable = [
         'branch_id',
-        'recipe_id',
+        'branch_recipe_id',
         'user_id',
         'recipe_category',
         'status',
         'kilo',
         'short',
         'over',
+        'target',
         'actual_target',
 
     ];
@@ -32,9 +33,14 @@ class InitialBakerreports extends Model
             return $this->belongsTo(User::class)->with('employee');
         }
 
-        public function recipe()
+        // public function recipe()
+        // {
+        //     return $this->belongsTo(Recipe::class);
+        // }
+
+        public function branchRecipe()
         {
-            return $this->belongsTo(Recipe::class);
+            return $this->belongsTo(BranchRecipe::class)->with('recipe');
         }
 
         public function breadBakersReports()

@@ -14,8 +14,9 @@ class UsersTableSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
+        User::factory()->create([
             'name' => 'John Doe',
+            'employee_id' => '1',
             'email' => 'johndoe@example.com',
             'password' => Hash::make('password'),
             'birthdate' => '1990-01-01',
@@ -23,7 +24,7 @@ class UsersTableSeeder extends Seeder
             'sex' => 'Male',
             'status' => 'Current',
             'phone' => '1234567890',
-            'role' => 'Admin',
+            'role' => 'Super Admin',
         ]);
     }
 }

@@ -33,9 +33,26 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $product = Product::create($request->all());
+        $validatedData = $request->validate([
+            'name' => 'required|string',
+            'category' => 'required|string',
+        ]);
 
-        return response()->json($product);
+        $existingProduct = Product::where('name', $validatedData['name'])->first();
+        if ($existingProduct) {
+            return response()->json([
+                'message' => 'The product already exists.'
+            ]);
+        }
+        $product = Product::create([
+            'name' => $validatedData['name'],
+            'category' => $validatedData['category']
+        ]);
+
+        return response()->json([
+            'message' => "Product saved successfully",
+            $product
+        ], 201);
     }
 
     /**

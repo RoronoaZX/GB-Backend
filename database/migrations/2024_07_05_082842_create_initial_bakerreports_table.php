@@ -17,13 +17,14 @@ return new class extends Migration
             $table->foreign('branch_id')->references('id')->on('branches');
             $table->bigInteger('user_id')->unsigned();
             $table->foreign('user_id')->references('id')->on('users');
-            $table->bigInteger('recipe_id')->unsigned();
-            $table->foreign('recipe_id')->references('id')->on('recipes');
+            $table->bigInteger('branch_recipe_id')->unsigned();
+            $table->foreign('branch_recipe_id')->references('id')->on('branch_recipes');
             $table->string('recipe_category');
             $table->string('status');
             $table->integer('kilo');
             $table->integer('short');
             $table->integer('over');
+            $table->integer('target');
             $table->integer('actual_target');
             $table->timestamps();
         });

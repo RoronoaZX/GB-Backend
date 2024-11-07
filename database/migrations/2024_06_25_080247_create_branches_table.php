@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('warehouse_id')->unsigned();
             $table->foreign('warehouse_id')->references('id')->on('warehouses');
-            $table->string('person_incharge');
+            $table->foreign('employee_id')->references('id')->on('employees');
             $table->string('name', 191)->unique();
             $table->string('location')->nullable();
             $table->string('phone')->nullable();

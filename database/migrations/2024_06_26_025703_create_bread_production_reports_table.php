@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('branch_id')->references('id')->on('branches');
             $table->foreignId('user_id')->references('id')->on('users');
-            $table->foreignId('recipe_id')->references('id')->on('recipes');
+            $table->foreignId('branch_recipe-id')->references('id')->on('branch_recipes');
             $table->foreignId('initial_bakerreports_id')->references('id')->on('initial_bakerreports');
             $table->foreignId('bread_id')->references('id')->on('products');
             $table->integer('bread_new_production')->nullable();

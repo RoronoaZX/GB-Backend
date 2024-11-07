@@ -116,6 +116,7 @@ Route::put('update-user-profile/{userId}', [ApiController::class, 'updateUser'])
 Route::put('update-name/{id}', [RecipeController::class, 'updateName']);
 Route::put('update-target/{id}', [BranchRecipeController::class, 'updateTarget']);
 Route::put('update-status/{id}', [RecipeController::class, 'updateStatus']);
+Route::put('branch-update-status/{id}', [BranchRecipeController::class, 'branchUpdateStatus']);
 Route::put('update-branch-products/{id}', [BranchProductController::class, 'updatePrice' ]);
 Route::put('update-branch-products-total-quantity/{id}', [BranchProductController::class, 'updateTotatQuatity' ]);
 Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportController::class, 'updateStocks' ]);
@@ -127,6 +128,7 @@ Route::get('branch/{userId}/bakerReport',[ InitialBakerreportsController::class,
 Route::get('ingredients',[ RawMaterialController::class, 'fetchRawMaterialsIngredients']);
 Route::get('bread-products', [ProductController::class, 'fetchBreadProducts']);
 Route::get('search-recipes',[ RecipeController::class, 'searchRecipe']);
+Route::get('branch-recipe-search',[ BranchRecipeController::class, 'branchSearchRecipe']);
 Route::get('branches/{branchId}/recipes', [BranchRecipeController::class, 'getBranchRecipe']);
 Route::get('branches/{branchId}/products', [BranchProductController::class, 'getProducts']);
 Route::get('branches/{branchId}/production-report', [BranchReportController::class, 'fetchBranchReport']);

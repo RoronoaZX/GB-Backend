@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('bread_groups', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('recipe_id');
+            $table->unsignedBigInteger('branch_recipe_id');
             $table->unsignedBigInteger('bread_id');
-            $table->foreign('recipe_id')->references('id')->on('recipes')->onDelete('cascade');
+            $table->foreign('branch_recipe_id')->references('id')->on('branch_recipes')->onDelete('cascade');
             $table->foreign('bread_id')->references('id')->on('products')->onDelete('cascade');
             $table->timestamps();
         });
