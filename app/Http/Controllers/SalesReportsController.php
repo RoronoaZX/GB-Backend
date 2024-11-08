@@ -32,12 +32,12 @@ class SalesReportsController extends Controller
             'over_total' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
             'credit_total' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
             'breadReports' => 'required|array',
-            'selectaReports' => 'required|array',
-            'softdrinksReports' => 'required|array',
-            'expensesReports' => 'required|array',
+            'selectaReports' => 'nullable|array',
+            'softdrinksReports' => 'nullable|array',
+            'expensesReports' => 'nullable|array',
             'denominationReports' => 'required|array',
-            'creditReports' => 'required|array',
-            'creditReports.*.credits' => 'required|array',
+            'creditReports' => 'nullable|array',
+            'creditReports.*.credits' => 'nullable|array',
 
         ]);
 
