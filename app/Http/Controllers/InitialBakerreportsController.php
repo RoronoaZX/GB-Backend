@@ -55,7 +55,7 @@ public function getInitialReportsData()
             if (strtolower($report->recipe_category) === 'dough') {
                 $report->load(['branch','user','branchRecipe','ingredientBakersReports', 'breadBakersReports']);
             } elseif (strtolower($report->recipe_category) === 'filling') {
-                $report->load(['branch','user','recipe','ingredientBakersReports', 'fillingBakersReports']);
+                $report->load(['branch','user','branchRecipe','ingredientBakersReports', 'fillingBakersReports']);
             }
         }
 
