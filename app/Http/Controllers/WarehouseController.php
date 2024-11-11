@@ -38,11 +38,11 @@ class WarehouseController extends Controller
         $validateData = $request->validate([
             'employee_id' => 'required|exists:employees,id',
             'name' => 'required',
-            'location' => 'nullable',
-            'phone' => 'nullable',
-            'status' => 'nullable',
+            'location' => 'required',
+            'phone' => 'required',
+            'status' => 'required',
         ]);
-        // |unique:warehouses
+        // ||unique:warehouses
 
         $existingWarehouse = Warehouse::where('name', $validateData['name'])
                                     ->where('location', $validateData['location'])
@@ -59,13 +59,14 @@ class WarehouseController extends Controller
             'location' => $validateData['location'],
             'phone' => $validateData['phone'],
             'status' => $validateData['status'],
+
         ]);
 
-        $warehouseResponseData = $warehouse->fresh()->load('employees');
+        // $warehouseResponseData = $warehouse->fresh()->load('employees');
 
         return response()->json([
-            'message' => 'Warehouse save successfully',
-            'warehouse' => $warehouseResponseData
+            'message' => 'Warehouse saved successfully',
+            'warehouse' => $warehouse
         ], 201);
     }
 
