@@ -134,6 +134,15 @@ class SalesReportsController extends Controller
         }
     }
 
+    public function fetchBranchSalesReport($branchId)
+    {
+        $reports = SalesReports::where('branch_id', $branchId)
+                ->with(['branch', 'user', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+        return response()->json($reports);
+    }
 
     public function show(SalesReports $salesReports)
     {

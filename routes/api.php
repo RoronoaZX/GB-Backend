@@ -121,6 +121,7 @@ Route::put('update-branch-products/{id}', [BranchProductController::class, 'upda
 Route::put('update-branch-products-total-quantity/{id}', [BranchProductController::class, 'updateTotatQuatity' ]);
 Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportController::class, 'updateStocks' ]);
 
+Route::get('branch/{branchId}/salesReport', [SalesReportsController::class, 'fetchBranchSalesReport']);
 Route::get('get-bread-production', [InitialBakerreportsController::class, 'getInitialReportsData']);
 Route::get('branch/{branchId}/rawMaterials',[ BranchRawMaterialsReportController::class, 'getRawMaterials']);
 Route::get('branch/{branchId}/bakerDoughReport',[ InitialBakerreportsController::class, 'fetchDoughReports']);

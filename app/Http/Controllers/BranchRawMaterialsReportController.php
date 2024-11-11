@@ -46,7 +46,7 @@ class BranchRawMaterialsReportController extends Controller
     {
         $validatedData = $request->validate([
             'branch_id' => 'required|exists:branches,id',
-            'ingredients_id' => 'required|exists:products,id',
+            'ingredients_id' => 'required|exists:ingredients,id',
             'total_quantity' => 'required|numeric',
         ]);
 
