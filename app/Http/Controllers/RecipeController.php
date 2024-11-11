@@ -89,12 +89,26 @@ class RecipeController extends Controller
             // 'ingredients.*.quantity' => 'required|integer',
         ]);
 
-        $recipe = Recipe::create($validatedData);
+        $existingRecipe = Recipe::where('name', $validatedData['name'])->first();
+
+        if ($existingRecipe) {
+            return response()->json([
+                "message" => "Recipe already exist"
+            ]);
+        }
+
+        $recipe = Recipe::create([
+            'name' => $validatedData['name'],
+            'category' => $validatedData['category'],
+        ]);
 
         // $recipe->ingredientGroups()->createMany($validatedData['ingredients']);
         // $recipe->breadGroups()->createMany($validatedData['breads']);
 
-        return response()->json($recipe);
+        return response()->json([
+            'message' => 'Recipe saved successfully',
+            'recipe' => $recipe
+        ], 201);
     }
 
     /**

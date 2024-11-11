@@ -30,9 +30,35 @@ class RawMaterialController extends Controller
 
     public function store(Request $request)
     {
-        $raw_material = RawMaterial::create($request->all());
+        $validateData = $request->validate([
+            'name' => 'required',
+            'code' => 'required',
+            'category' => 'required',
+            'unit' => 'required',
+        ]);
 
-        return response()->json($raw_material);
+         // Check if a raw material with the same name and category already exists
+        $existingRawMaterial = RawMaterial::where('name', $validateData['name'])
+        ->where('code', $validateData['code'])
+        ->first();
+
+        if ($existingRawMaterial) {
+            return response()->json([
+                'message' => 'The RawMaterials name or code already exists.'
+            ]);
+        }
+
+        $rawMaterials = RawMaterial::create([
+            'name' => $validateData['name'],
+            'code' => $validateData['code'],
+            'category' => $validateData['category'],
+            'unit' => $validateData['unit'],
+        ]);
+
+        return response()->json([
+            'message' => 'Raw Materials saved successfully',
+            'rawMaterials' => $rawMaterials
+        ], 201);
     }
 
     public function update(Request $request, $id)

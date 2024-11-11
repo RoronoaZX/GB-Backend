@@ -37,16 +37,35 @@ class WarehouseController extends Controller
     {
         $validateData = $request->validate([
             'employee_id' => 'required|exists:employees,id',
-            'name' => 'required||unique:warehouses',
+            'name' => 'required|unique:warehouses',
             'location' => 'nullable',
             'phone' => 'nullable',
             'status' => 'nullable',
         ]);
 
-        $warehouse = Warehouse::create($validateData);
+        $existingWarehouse = Warehouse::where('name', $validateData['name'])
+                                    ->where('location', $validateData['location'])
+                                    ->first();
+        if ($existingWarehouse) {
+            return response()->json([
+                'message' => 'Warehouse already exist'
+            ]);
+        }
+
+        $warehouse = Warehouse::create([
+            'employee_id' => $validateData['employee_id'],
+            'name' => $validateData['name'],
+            'location' => $validateData['location'],
+            'phone' => $validateData['phone'],
+            'status' => $validateData['status'],
+        ]);
+
         $warehouseResponseData = $warehouse->fresh()->load('employees');
 
-        return response()->json($warehouseResponseData, 201);
+        return response()->json([
+            'message' => 'Warehouse save successfully',
+            'warehouse' => $warehouseResponseData
+        ], 201);
     }
 
 
