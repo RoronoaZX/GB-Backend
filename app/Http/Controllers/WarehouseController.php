@@ -37,11 +37,12 @@ class WarehouseController extends Controller
     {
         $validateData = $request->validate([
             'employee_id' => 'required|exists:employees,id',
-            'name' => 'required|unique:warehouses',
+            'name' => 'required',
             'location' => 'nullable',
             'phone' => 'nullable',
             'status' => 'nullable',
         ]);
+        // |unique:warehouses
 
         $existingWarehouse = Warehouse::where('name', $validateData['name'])
                                     ->where('location', $validateData['location'])
