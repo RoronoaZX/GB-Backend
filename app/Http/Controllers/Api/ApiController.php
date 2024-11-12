@@ -161,7 +161,13 @@ public function login(Request $request)
             'message' => 'User login successful',
             'token' => $user->createToken('API TOKEN')->plainTextToken,
             'role' => $role,
-            'device' => $device  // Include device data in response
+            'device' => [
+                'uuid' => $device->uuid,
+                'name' => $device->name,
+                'model' => $device->model,
+                'os_version' => $device->os_version,
+                // Add other device fields you want to include
+            ] // Include device data in response
         ], 200);
 
     } catch (\Throwable $th) {
@@ -214,18 +220,47 @@ public function login(Request $request)
     //     }
     // }
 
+
     public function profile()
-    {
-        // $user = auth()->user();
-        $userData = User::where('id',auth()->user()->id)->with('employee.branchEmployee')->first();
-        // $userData = $user->load('branchEmployee');
-        return response()->json([
-            'status' => true,
-            'message' => 'User login successfully',
-            'data' => $userData,
-            'id' => auth()->user()->id
-         ], 200);
-    }
+{
+    // Get the authenticated user
+    $user = auth()->user();
+
+    // Retrieve user data with employee and branch employee information
+    $userData = User::where('id', $user->id)->with('employee.branchEmployee')->first();
+
+    // Retrieve device information based on uuid if it exists
+    $device = Device::where('uuid', $user->uuid)->first(); // Adjust if `uuid` is stored elsewhere
+
+    return response()->json([
+        'status' => true,
+        'message' => 'User profile retrieved successfully',
+        'data' => [
+            'user' => $userData,
+            'device' => $device ? [
+                'uuid' => $device->uuid,
+                'name' => $device->name,
+                'model' => $device->model,
+                'os_version' => $device->os_version,
+                // Add other device fields as needed
+            ] : null // Return null if device is not found
+        ],
+        'id' => $user->id
+    ], 200);
+}
+
+    // public function profile()
+    // {
+    //     // $user = auth()->user();
+    //     $userData = User::where('id',auth()->user()->id)->with('employee.branchEmployee')->first();
+    //     // $userData = $user->load('branchEmployee');
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'User login successfully',
+    //         'data' => $userData,
+    //         'id' => auth()->user()->id
+    //      ], 200);
+    // }
 
     public function logout()
     {
