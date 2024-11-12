@@ -13,7 +13,7 @@ class DeviceController extends Controller
      */
     public function index()
     {
-        $device = Device::orderBy('created_at', 'desc')->get();
+        $device = Device::with('branch')->orderBy('created_at', 'desc')->get();
         return $device;
     }
 
@@ -30,6 +30,7 @@ class DeviceController extends Controller
     public function store(Request $request)
     {
         $validateData = $request->validate([
+            'branch_id' => 'required',
             'uuid' => "required|unique:devices",
             'name' => "required|string|max:255",
             'model' => "required|string|max:255",

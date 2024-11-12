@@ -13,11 +13,12 @@ return new class extends Migration
     {
         Schema::create('devices', function (Blueprint $table) {
             $table->id();
+            $table->bigInteger('branch_id')->unsigned();
+            $table->foreign('branch_id')->references('id')->on('branches');
             $table->string('uuid')->unique();
             $table->string('name')->nullable();
             $table->string('model')->nullable();
             $table->string('os_version')->nullable();
-            $table->string('designation')->nullable();
             $table->timestamps();
         });
     }

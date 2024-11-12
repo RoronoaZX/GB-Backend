@@ -22,6 +22,22 @@ class BranchController extends Controller
         return response()->json($branch );
     }
 
+    public function searchBranch(Request $request)
+    {
+        $keyword = $request->input('keyword');
+
+        $branch = Branch::where('name', 'like', "%$keyword%")
+                        ->orderBy('created_at', 'desc')
+                        ->take(7)
+                        ->get();
+
+        if ($branch->isEmpty()) {
+            $branch = Branch::orderBy('created_at', 'desc')->take(7)->get();
+        }
+
+        return response()->json($branch, 200);
+    }
+
     public function fetchBranchWithEmployee()
     {
         $brancWithEmployee = Branch::with('branchEmployee')->orderBy('name', 'asc')->get();

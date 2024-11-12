@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\BranchEmployee;
+use App\Models\Device;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -118,47 +119,100 @@ class ApiController extends Controller
     }
 }
 
+public function login(Request $request)
+{
+    try {
+        $validateUser = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required',
+            'uuid' => 'required' // Validate uuid as required
+        ]);
 
-    public function login(Request $request)
-    {
-        try {
-            $validateUser = Validator::make($request->all(),
-            [
-               'email' => 'required|email',
-               'password' => 'required',
-
-            ]);
-
-            if ($validateUser->fails()) {
-                return response()->json([
-                    'status'=> false,
-                    'message'=> 'validation error',
-                    'errors'=> $validateUser->errors()
-                ], 422);
-             }
-
-             if(!Auth::attempt($request->only(['email', 'password']))) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Incorrect email & password'
-                ], 500);
-             }
-             $user = User::where('email', $request->email)->first();
-             $role = $user->role;
-             return response()->json([
-                'status' => true,
-                'message' => 'User login successfully',
-                'token' => $user->createToken('API TOKEN')->plainTextToken,
-                'role' => $role
-             ], 200);
-
-        } catch (\Throwable $th) {
+        if ($validateUser->fails()) {
             return response()->json([
-                'status'=> false,
-                'message'=> $th->getMessage(),
-            ], 500);
+                'status' => false,
+                'message' => 'Validation error',
+                'errors' => $validateUser->errors()
+            ], 422);
         }
+
+        // Check if UUID exists in the device table
+        $device = Device::where('uuid', $request->uuid)->first();
+        if (!$device) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Device not registered'
+            ], 404);
+        }
+
+        // Attempt to authenticate the user
+        if (!Auth::attempt($request->only(['email', 'password']))) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Incorrect email or password'
+            ], 401);
+        }
+
+        $user = User::where('email', $request->email)->first();
+        $role = $user->role;
+
+        return response()->json([
+            'status' => true,
+            'message' => 'User login successful',
+            'token' => $user->createToken('API TOKEN')->plainTextToken,
+            'role' => $role,
+            'device' => $device  // Include device data in response
+        ], 200);
+
+    } catch (\Throwable $th) {
+        return response()->json([
+            'status' => false,
+            'message' => $th->getMessage(),
+        ], 500);
     }
+}
+
+
+    // public function login(Request $request)
+    // {
+    //     try {
+    //         $validateUser = Validator::make($request->all(),
+    //         [
+    //            'email' => 'required|email',
+    //            'password' => 'required',
+
+    //         ]);
+
+    //         if ($validateUser->fails()) {
+    //             return response()->json([
+    //                 'status'=> false,
+    //                 'message'=> 'validation error',
+    //                 'errors'=> $validateUser->errors()
+    //             ], 422);
+    //          }
+
+    //          if(!Auth::attempt($request->only(['email', 'password']))) {
+    //             return response()->json([
+    //                 'status' => false,
+    //                 'message' => 'Incorrect email & password'
+    //             ], 500);
+    //          }
+    //          $user = User::where('email', $request->email)->first();
+    //          $role = $user->role;
+    //          return response()->json([
+    //             'status' => true,
+    //             'message' => 'User login successfully',
+    //             'token' => $user->createToken('API TOKEN')->plainTextToken,
+    //             'role' => $role
+    //          ], 200);
+
+    //     } catch (\Throwable $th) {
+    //         return response()->json([
+    //             'status'=> false,
+    //             'message'=> $th->getMessage(),
+    //         ], 500);
+    //     }
+    // }
 
     public function profile()
     {

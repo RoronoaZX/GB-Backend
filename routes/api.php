@@ -100,6 +100,7 @@ Route::post('search', [UserController::class, 'search' ]);
 Route::post('search-user-with-branchID', [BranchEmployeeController::class, 'searchUserWithBranch' ]);
 Route::post('search-branch-employee', [BranchEmployeeController::class, 'searchBranchEmployee' ]);
 Route::post('search-products', [BranchProductController::class, 'searchProducts']);
+Route::post('search-branch',[ BranchController::class, 'searchBranch']);
 Route::post('search-employees', [EmployeeController::class, 'searchEmployees']);
 Route::post('searchEmployeesWithDesignation', [EmployeeController::class, 'searchEmployeesWithDesignation']);
 Route::post('dtr-data', [DailyTimeRecordController::class, 'getDTRData']);
@@ -128,6 +129,7 @@ Route::get('branch/{branchId}/bakerDoughReport',[ InitialBakerreportsController:
 Route::get('branch/{userId}/bakerReport',[ InitialBakerreportsController::class, 'getReportsByUserId']);
 Route::get('ingredients',[ RawMaterialController::class, 'fetchRawMaterialsIngredients']);
 Route::get('bread-products', [ProductController::class, 'fetchBreadProducts']);
+Route::get('search-branch',[ BranchController::class, 'searchBranch']);
 Route::get('search-recipes',[ RecipeController::class, 'searchRecipe']);
 Route::get('branch-recipe-search',[ BranchRecipeController::class, 'branchSearchRecipe']);
 Route::get('branches/{branchId}/recipes', [BranchRecipeController::class, 'getBranchRecipe']);
