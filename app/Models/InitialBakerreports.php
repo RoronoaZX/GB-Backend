@@ -40,7 +40,7 @@ class InitialBakerreports extends Model
 
         public function branchRecipe()
         {
-            return $this->belongsTo(BranchRecipe::class)->with('recipe');
+            return $this->belongsTo(BranchRecipe::class, 'recipe_id', 'id')->with('recipe');
         }
         // public function branchRecipe()
         // {
