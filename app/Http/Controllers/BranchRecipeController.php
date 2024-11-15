@@ -23,7 +23,7 @@ class BranchRecipeController extends Controller
         $formattedBranchRecipes = $branchRecipe->map(function($branchRecipe) {
             return [
                 'id' => $branchRecipe->id,
-                'name' => $branchRecipe->recipe->name,
+                'name' => $branchRecipe->recipe->id,
                 'category' => $branchRecipe->recipe->category,
                 'target' => $branchRecipe->target,
                 'status' => $branchRecipe->status,
