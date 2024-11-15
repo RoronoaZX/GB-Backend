@@ -237,7 +237,7 @@ public function login(Request $request)
         'status' => true,
         'message' => 'User profile retrieved successfully',
         'data' => [
-            'user' => $userData,
+         $userData,
             'device' => $device ? [
                 'branch_id' => $device->branch_id,
                 'uuid' => $device->uuid,
