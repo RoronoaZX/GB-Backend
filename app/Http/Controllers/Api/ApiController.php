@@ -238,6 +238,7 @@ public function login(Request $request)
         'data' => [
             'user' => $userData,
             'device' => $device ? [
+                'branch_id' => $device->branch_id,
                 'uuid' => $device->uuid,
                 'name' => $device->name,
                 'model' => $device->model,
