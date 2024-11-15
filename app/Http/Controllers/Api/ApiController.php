@@ -236,17 +236,15 @@ public function login(Request $request)
     return response()->json([
         'status' => true,
         'message' => 'User profile retrieved successfully',
-        'data' => [
-         $userData,
-            'device' => $device ? [
+        'data' =>$userData,
+        'device' => $device ? [
                 'branch_id' => $device->branch_id,
                 'uuid' => $device->uuid,
                 'name' => $device->name,
                 'model' => $device->model,
                 'os_version' => $device->os_version,
                 // Add other device fields as needed
-            ] : null // Return null if device is not found
-        ],
+            ] : null, // Return null if device is not found
         'id' => $user->id
     ], 200);
 }
