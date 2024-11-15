@@ -24,9 +24,9 @@ class InitialBakerreportsController extends Controller
     // Loop through each report to load relationships conditionally
     foreach ($reports as $report) {
         if (strtolower($report->recipe_category) === 'dough') {
-            $report->load(['branch','user','branchRecipe','ingredientBakersReports', 'breadBakersReports']);
+            $report->load(['branch','user','branchRecipe.recipe','ingredientBakersReports', 'breadBakersReports']);
         } elseif (strtolower($report->recipe_category) === 'filling') {
-            $report->load(['branch','user','recipe','ingredientBakersReports', 'fillingBakersReports']);
+            $report->load(['branch','user','branchRecipe.recipe','ingredientBakersReports', 'fillingBakersReports']);
         }
     }
 
@@ -53,9 +53,9 @@ public function getInitialReportsData()
         // Loop through each report to load relationships conditionally
         foreach ($reports as $report) {
             if (strtolower($report->recipe_category) === 'dough') {
-                $report->load(['branch','user','branchRecipe','ingredientBakersReports', 'breadBakersReports']);
+                $report->load(['branch','user','branchRecipe.recipe','ingredientBakersReports', 'breadBakersReports']);
             } elseif (strtolower($report->recipe_category) === 'filling') {
-                $report->load(['branch','user','branchRecipe','ingredientBakersReports', 'fillingBakersReports']);
+                $report->load(['branch','user','branchRecipe.recipe','ingredientBakersReports', 'fillingBakersReports']);
             }
         }
 
