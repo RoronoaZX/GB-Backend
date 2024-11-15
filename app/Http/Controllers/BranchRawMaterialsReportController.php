@@ -31,7 +31,7 @@ class BranchRawMaterialsReportController extends Controller
         $branchId = $request->input('branch_id');
 
         $results = BranchRawMaterialsReport::with('ingredients')
-                ->where('brach_id', $branchId)
+                ->where('branch_id', $branchId)
                 ->whereHas('ingredients', function ($query) use ($keyword){
                     $query->where('name', 'LIKE', '%' . $keyword . '%');
                 })
