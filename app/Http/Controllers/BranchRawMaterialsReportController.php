@@ -25,6 +25,19 @@ class BranchRawMaterialsReportController extends Controller
         return response()->json($branchRawMaterials, 200);
     }
 
+    public function searchBranchRawMaterials(Request $request)
+    {
+        $keyword = $request->input('keyword');
+        $branchId = $request->input('branch_id');
+
+        $results = BranchRawMaterialsReport::with('ingredients')
+                ->where('brach_id', $branchId)
+                ->whereHas('ingredients', function ($query) use ($keyword){
+                    $query->where('name', 'LIKE', '%' . $keyword . '%');
+                })
+                ->get();
+        return response()->joson($results);
+    }
 
     /**
      * Show the form for creating a new resource.

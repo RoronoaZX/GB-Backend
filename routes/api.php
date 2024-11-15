@@ -99,6 +99,7 @@ Route::post('search-user', [UserController::class, 'searchUser' ]);
 Route::post('search', [UserController::class, 'search' ]);
 Route::post('search-user-with-branchID', [BranchEmployeeController::class, 'searchUserWithBranch' ]);
 Route::post('search-branch-employee', [BranchEmployeeController::class, 'searchBranchEmployee' ]);
+Route::post('search-branch-rawMaterials', [BranchRawMaterialsReport::class, 'searchBranchRawMaterials' ]);
 Route::post('search-products', [BranchProductController::class, 'searchProducts']);
 Route::post('search-branch',[ BranchController::class, 'searchBranch']);
 Route::post('search-employees', [EmployeeController::class, 'searchEmployees']);
