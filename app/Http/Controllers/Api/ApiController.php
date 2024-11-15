@@ -162,6 +162,7 @@ public function login(Request $request)
             'token' => $user->createToken('API TOKEN')->plainTextToken,
             'role' => $role,
             'device' => [
+                'branch_id' => $device->branch_id,
                 'uuid' => $device->uuid,
                 'name' => $device->name,
                 'model' => $device->model,
