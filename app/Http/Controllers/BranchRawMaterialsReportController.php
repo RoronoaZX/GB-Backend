@@ -36,7 +36,7 @@ class BranchRawMaterialsReportController extends Controller
                     $query->where('name', 'LIKE', '%' . $keyword . '%');
                 })
                 ->get();
-        return response()->joson($results);
+        return response()->json($results);
     }
 
     /**
