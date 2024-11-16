@@ -12,6 +12,7 @@ use App\Http\Controllers\BranchProductController;
 use App\Http\Controllers\BranchRawMaterialsReportController;
 use App\Http\Controllers\BranchRecipeController;
 use App\Http\Controllers\BranchReportController;
+use App\Http\Controllers\CakeReportController;
 use App\Http\Controllers\CashAdvanceController;
 use App\Http\Controllers\DailyTimeRecordController;
 use App\Http\Controllers\DeviceController;
@@ -78,6 +79,7 @@ Route::apiResource('employee-benefit', EmployeeBenefitController::class);
 Route::apiResource('cash-advance', CashAdvanceController::class);
 Route::apiResource('uniform', UniformController::class);
 Route::apiResource('branch-recipe', BranchRecipeController::class);
+Route::apiResource('cake-report', CakeReportController::class);
 
 Route::post('search-allowance', [EmployeeAllowanceController::class, 'searchAllowance']);
 Route::post('search-benefit', [EmployeeBenefitController::class, 'searchBenefit']);
@@ -123,6 +125,7 @@ Route::put('update-branch-products/{id}', [BranchProductController::class, 'upda
 Route::put('update-branch-products-total-quantity/{id}', [BranchProductController::class, 'updateTotatQuatity' ]);
 Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportController::class, 'updateStocks' ]);
 
+Route::get('branch/{userId}/cake-report', [CakeReportController::class, 'getBranchCakeReport']);
 Route::get('branch/{branchId}/salesReport', [SalesReportsController::class, 'fetchBranchSalesReport']);
 Route::get('get-bread-production', [InitialBakerreportsController::class, 'getInitialReportsData']);
 Route::get('branch/{branchId}/rawMaterials',[ BranchRawMaterialsReportController::class, 'getRawMaterials']);

@@ -15,16 +15,26 @@ class UsersTableSeeder extends Seeder
     public function run(): void
     {
         User::factory()->create([
-            'name' => 'John Doe',
+            // 'name' => 'Cake Mak',
+            // 'employee_id' => '1',
+            // 'email' => 'johndoe@example.com',
+            // 'password' => Hash::make('password'),
+            // 'birthdate' => '1990-01-01',
+            // 'address' => '123 Example St, City',
+            // 'sex' => 'Male',
+            // 'status' => 'Current',
+            // 'phone' => '1234567890',
+            // 'role' => 'Super Admin',
+            // 'name' => 'Cake Mak',
             'employee_id' => '1',
-            'email' => 'johndoe@example.com',
+            'email' => 'cakemaker1@gmail.com',
             'password' => Hash::make('password'),
-            'birthdate' => '1990-01-01',
-            'address' => '123 Example St, City',
-            'sex' => 'Male',
-            'status' => 'Current',
-            'phone' => '1234567890',
-            'role' => 'Super Admin',
+            // 'birthdate' => '1990-01-01',
+            // 'address' => '123 Example St, City',
+            // 'sex' => 'Male',
+            // 'status' => 'Current',
+            // 'phone' => '1234567890',
+            'role' => 'Cake Maker',
         ]);
     }
 }
