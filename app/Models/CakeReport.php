@@ -14,6 +14,8 @@ class CakeReport extends Model
         'user_id',
         'name',
         'layers',
+        'pieces',
+        'confirmation_status',
         'price',
         'unit',
     ];
@@ -30,7 +32,7 @@ class CakeReport extends Model
 
     public function cakeIngredientReports()
     {
-        return $this->hasMany(CakeIngredientReports::class, 'cake_reports_id')->with('branchRawMaterialsReports');
+        return $this->hasMany(CakeIngredientReports::class, 'cake_reports_id')->with('branchRawMaterialsReports.ingredients');
     }
 
 }

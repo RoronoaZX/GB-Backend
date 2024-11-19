@@ -27,6 +27,48 @@ class CakeReportController extends Controller
         return response()->json($cakeReports);
     }
 
+    public function getPendingReport($branchId)
+    {
+        $cakeReports = CakeReport::where('branch_id', $branchId)
+                    ->where('confirmation_status', 'pending')
+                    ->orderBy('created_at', 'desc')
+                    ->with('user', 'branch')
+                    ->get();
+
+        return response()->json($cakeReports);
+    }
+
+    public function getCakeOnDisplayProduct($branchId)
+    {
+        $cakeProducts = CakeReport::where('branch_id', $branchId)
+                    ->where('sales_status', 'on display')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+        return response()->json([$cakeProducts]);
+    }
+
+    public function confirmReport($id)
+    {
+        $cakeReport = CakeReport::findOrFail($id);
+        if (strtolower($cakeReport->confirmation_status) === 'pending')
+        {
+           $cakeReport->confirmation_status = "confirmed";
+           $cakeReport->sales_status = "on display";
+           $cakeReport->save();
+           return response()->json([
+            'message' => 'Report has been confirmed successfully.',
+            'data' => $cakeReport
+        ], 200);
+        }
+
+        // If the report is not pending, return an error message
+        return response()->json([
+            'message' => 'Report is already confirmed or cannot be confirmed.',
+            'data' => $cakeReport
+        ], 400);
+    }
+
+
     /**
      * Store a newly created resource in storage.
      */
@@ -36,7 +78,9 @@ class CakeReportController extends Controller
             'branch_id' => 'required|integer',
             'user_id' => 'required|integer',
             'layers' => 'required|integer',
+            'pieces' => 'required|integer',
             'name' => 'required|string|max:255',
+            'confirmation_status' => 'required|string|max:255',
             'price' => 'required|string|regex:/^\d{1,3}(,\d{3})*(\.\d{2})?$/',
             'ingredients' => 'required|array',
             'ingredients.*.branch_raw_materials_reports_id' => 'required|integer',
@@ -50,6 +94,8 @@ class CakeReportController extends Controller
             'branch_id' => $validatedData['branch_id'],
             'user_id' => $validatedData['user_id'],
             'layers' => $validatedData['layers'],
+            'pieces' => $validatedData['pieces'],
+            'confirmation_status' => $validatedData['confirmation_status'],
             'name' => $validatedData['name'],
             'price' => $price,
         ]);

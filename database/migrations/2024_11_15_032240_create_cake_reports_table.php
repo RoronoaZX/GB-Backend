@@ -18,7 +18,10 @@ return new class extends Migration
             $table->bigInteger('user_id')->unsigned();
             $table->foreign('user_id')->references('id')->on('users');
             $table->string('name', 191);
+            $table->string('confirmation_status', 191);
+            $table->string('inventory_status', 191);
             $table->integer('layers');
+            $table->integer('pieces');
             $table->decimal('price', 10,2);
             $table->timestamps();
         });

@@ -109,6 +109,7 @@ Route::post('searchEmployeesWithDesignation', [EmployeeController::class, 'searc
 Route::post('dtr-data', [DailyTimeRecordController::class, 'getDTRData']);
 Route::post('search-drt', [DailyTimeRecordController::class, 'searchDTR']);
 Route::post('saveOvertime', [DailyTimeRecordController::class, 'saveOvertime']);
+Route::post('branch/{branchId}/cakeConfirmedReport', [CakeReportController::class, 'confirmReport']);
 
 Route::put('update-employee-birthdate/{id}', [EmployeeController::class, 'updateEmployeeBirthdate']);
 Route::put('update-employee-phone/{id}', [EmployeeController::class, 'updateEmployeePhone']);
@@ -125,6 +126,9 @@ Route::put('update-branch-products/{id}', [BranchProductController::class, 'upda
 Route::put('update-branch-products-total-quantity/{id}', [BranchProductController::class, 'updateTotatQuatity' ]);
 Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportController::class, 'updateStocks' ]);
 
+
+Route::get('branch/{branchId}/getCakeOnDisplayProduct', [CakeReportController::class, 'getCakeOnDisplayProduct']);
+Route::get('branch/{branchId}/cakePendingReport', [CakeReportController::class, 'getPendingReport']);
 Route::get('branch/{userId}/cake-report', [CakeReportController::class, 'getBranchCakeReport']);
 Route::get('branch/{branchId}/salesReport', [SalesReportsController::class, 'fetchBranchSalesReport']);
 Route::get('get-bread-production', [InitialBakerreportsController::class, 'getInitialReportsData']);
