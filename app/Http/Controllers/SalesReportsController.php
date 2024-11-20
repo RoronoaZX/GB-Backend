@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\BranchEmployee;
 use App\Models\BranchProduct;
+use App\Models\CakeReport;
+use App\Models\CakeSalesReport;
 use App\Models\SalesReports;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -34,6 +36,7 @@ class SalesReportsController extends Controller
             'breadReports' => 'required|array',
             'selectaReports' => 'nullable|array',
             'softdrinksReports' => 'nullable|array',
+            'cakeReports' => 'nullable|array',
             'expensesReports' => 'nullable|array',
             'denominationReports' => 'required|array',
             'creditReports' => 'nullable|array',
@@ -85,6 +88,33 @@ class SalesReportsController extends Controller
             $branchProduct->save();
         }
         }
+
+        // Store Cake Reports
+        foreach ($request->cakeReports as $cakeReport) {
+            // Create Cake Report record
+            $salesReport->cakeSalesReports()->create($cakeReport);
+
+            // Find the Cake entry using its ID and update its sales_status
+            $existingCake = CakeReport::find($cakeReport['cake_report_id']); // Assuming Cake is an Eloquent model for the Cake table
+
+            if ($existingCake) {
+                // Update the sales_status
+                $existingCake->sales_status = $cakeReport['sales_status'];
+                $existingCake->save();
+
+                // Save data to the Cake Sales Report table
+                $salesReport->cakeSalesReports()->create([
+                    'sales_report_id' => $salesReport->id, // This is the ID of the newly created SalesReports batch
+                    'cake_report_id' => $cakeReport['cake_report_id'], // Provided by frontend
+                ]);
+            } else {
+                // Handle case where Cake report ID is not found
+                return response()->json([
+                    'error' => "Cake report with ID {$cakeReport['cake_report_id']} not found."
+                ], 404);
+            }
+        }
+
 
         // Store Softdrinks Reports
         foreach ($request->softdrinksReports as $softdrinksReport) {

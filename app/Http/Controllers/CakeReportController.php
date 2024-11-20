@@ -44,7 +44,7 @@ class CakeReportController extends Controller
                     ->where('sales_status', 'on display')
                     ->orderBy('created_at', 'desc')
                     ->get();
-        return response()->json([$cakeProducts]);
+        return response()->json($cakeProducts);
     }
 
     public function confirmReport($id)
@@ -78,7 +78,7 @@ class CakeReportController extends Controller
             'branch_id' => 'required|integer',
             'user_id' => 'required|integer',
             'layers' => 'required|integer',
-            'pieces' => 'required|integer',
+            // 'pieces' => 'required|integer',
             'name' => 'required|string|max:255',
             'confirmation_status' => 'required|string|max:255',
             'price' => 'required|string|regex:/^\d{1,3}(,\d{3})*(\.\d{2})?$/',
@@ -94,7 +94,7 @@ class CakeReportController extends Controller
             'branch_id' => $validatedData['branch_id'],
             'user_id' => $validatedData['user_id'],
             'layers' => $validatedData['layers'],
-            'pieces' => $validatedData['pieces'],
+            // 'pieces' => $validatedData['pieces'],
             'confirmation_status' => $validatedData['confirmation_status'],
             'name' => $validatedData['name'],
             'price' => $price,
