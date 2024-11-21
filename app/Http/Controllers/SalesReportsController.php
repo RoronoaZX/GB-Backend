@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Branch;
 use App\Models\BranchEmployee;
 use App\Models\BranchProduct;
 use App\Models\CakeReport;
@@ -36,6 +37,7 @@ class SalesReportsController extends Controller
             'breadReports' => 'required|array',
             'selectaReports' => 'nullable|array',
             'softdrinksReports' => 'nullable|array',
+            'otherProductsReports' => 'nullable|array',
             'cakeReports' => 'nullable|array',
             'expensesReports' => 'nullable|array',
             'denominationReports' => 'required|array',
@@ -129,6 +131,22 @@ class SalesReportsController extends Controller
             $branchProduct->total_quantity = $softdrinksReport['remaining'];
             $branchProduct->save();
         }
+        }
+
+        // Store  Other Products
+
+        foreach ($request->otherProductsReports as $otherProductsReports) {
+            $salesReport->otherProductsReports()->create($otherProductsReports);
+
+            $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
+                    ->where('product_id', $otherProductsReports['product_id'])
+                    ->first();
+
+            if ($branchProduct) {
+                $branchProduct->beginnings = $otherProductsReports['remaining'];
+                $branchProduct->total_quantity = $otherProductsReports['remaining'];
+                $branchProduct->save();
+            }
         }
 
         // Store Expenses Reports

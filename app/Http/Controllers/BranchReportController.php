@@ -109,7 +109,7 @@ class BranchReportController extends Controller
                     $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
                     return $localTime->hour < 12;
                 })
-                ->load(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports']);
+                ->load(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports']);
 
             $pmSalesReports = SalesReports::where('branch_id', $branchId)
                 ->whereDate(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), $carbonDate)
@@ -118,7 +118,7 @@ class BranchReportController extends Controller
                     $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
                     return $localTime->hour >= 12;
                 })
-                ->load(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports']);
+                ->load(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports']);
 
             // Fetch Baker Reports for AM and PM
             $amBakerReports = InitialBakerreports::where('branch_id', $branchId)

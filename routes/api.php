@@ -126,7 +126,6 @@ Route::put('update-branch-products/{id}', [BranchProductController::class, 'upda
 Route::put('update-branch-products-total-quantity/{id}', [BranchProductController::class, 'updateTotatQuatity' ]);
 Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportController::class, 'updateStocks' ]);
 
-
 Route::get('branch/{branchId}/getCakeOnDisplayProduct', [CakeReportController::class, 'getCakeOnDisplayProduct']);
 Route::get('branch/{branchId}/cakePendingReport', [CakeReportController::class, 'getPendingReport']);
 Route::get('branch/{userId}/cake-report', [CakeReportController::class, 'getBranchCakeReport']);

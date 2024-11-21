@@ -45,6 +45,10 @@ class SalesReports extends Model
     {
         return $this->hasMany(SoftdrinksSalesReport::class, 'sales_report_id')->with('softdrinks');
     }
+    public function otherProductsReports()
+    {
+        return $this->hasMany(OtherProducts::class, 'sales_report_id')->with('otherProducts');
+    }
 
     public function cakeSalesReports()
     {
