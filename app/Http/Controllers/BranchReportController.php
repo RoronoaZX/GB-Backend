@@ -85,6 +85,12 @@ class BranchReportController extends Controller
                     ->select(DB::raw('DATE(CONVERT_TZ(created_at, "+00:00", "+08:00")) as date'))
                     ->where('branch_id', $branchId)
             )
+            ->union(
+                DB::table('cake_sales_reports')
+                    ->join('sales_reports', 'cake_sales_reports.sales_report_id', '=', 'sales_reports.id')
+                    ->select(DB::raw('DATE(CONVERT_TZ(cake_sales_reports.created_at, "+00:00", "+08:00")) as date'))
+                    ->where('sales_reports.branch_id', $branchId)
+            )
             ->groupBy('date')
             ->orderBy('date', 'desc')
             ->pluck('date');
@@ -103,7 +109,7 @@ class BranchReportController extends Controller
                     $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
                     return $localTime->hour < 12;
                 })
-                ->load(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports']);
+                ->load(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports']);
 
             $pmSalesReports = SalesReports::where('branch_id', $branchId)
                 ->whereDate(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), $carbonDate)
@@ -112,7 +118,7 @@ class BranchReportController extends Controller
                     $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
                     return $localTime->hour >= 12;
                 })
-                ->load(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports']);
+                ->load(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports']);
 
             // Fetch Baker Reports for AM and PM
             $amBakerReports = InitialBakerreports::where('branch_id', $branchId)

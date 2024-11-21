@@ -92,7 +92,7 @@ class SalesReportsController extends Controller
         // Store Cake Reports
         foreach ($request->cakeReports as $cakeReport) {
             // Create Cake Report record
-            $salesReport->cakeSalesReports()->create($cakeReport);
+            // $salesReport->cakeSalesReports()->create($cakeReport);
 
             // Find the Cake entry using its ID and update its sales_status
             $existingCake = CakeReport::find($cakeReport['cake_report_id']); // Assuming Cake is an Eloquent model for the Cake table

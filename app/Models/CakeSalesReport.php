@@ -28,6 +28,6 @@ class CakeSalesReport extends Model
      */
     public function cakeReport()
     {
-        return $this->belongsTo(CakeReport::class, 'cake_report_id');
+        return $this->belongsTo(CakeReport::class, 'cake_report_id')->with('user');
     }
 }
