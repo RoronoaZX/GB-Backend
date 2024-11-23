@@ -55,7 +55,7 @@ class BranchRecipeController extends Controller
             'breads.*.bread_id' => 'required|integer|exists:products,id',
             'ingredients' => 'required|array',
             'ingredients.*.ingredient_id' => 'required|integer|exists:raw_materials,id',
-            'ingredients.*.quantity' => 'required|integer',
+            'ingredients.*.quantity' => 'required',
         ]);
 
         $existingBranchRecipe = BranchRecipe::where('branch_id', $validatedData['branch_id'])->where('recipe_id', $validatedData['recipe_id'])->first();
