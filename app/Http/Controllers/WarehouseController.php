@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Branch;
+use App\Models\BranchRawMaterialsReport;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
 
@@ -13,6 +15,90 @@ class WarehouseController extends Controller
         return  $warehouse;
     }
 
+    public function getWarehouse($warehouseId)
+    {
+        $warehouse = Warehouse::find($warehouseId);
+
+        if (!$warehouse) {
+            return response()->json([
+                'message' => 'Warehouse not found'
+            ], 404);
+        }
+
+        return response()->json($warehouse, 200);
+    }
+
+    public function getWarehouseBranchReport($warehouseId)
+    {
+        // Fetch all reports for branches within the given warehouse
+        $reports = BranchRawMaterialsReport::query()
+            ->whereHas('branch', function ($query) use ($warehouseId) {
+                $query->where('warehouse_id', $warehouseId);
+            })
+            ->with('branch', 'ingredients') // Eager load branch details
+            ->get();
+
+        // Group the reports by branch_id
+        $groupedReports = $reports->groupBy(function ($report) {
+            return $report->branch_id;
+        })->map(function ($reports, $branchId) {
+            return [
+                'branch_id' => $branchId,
+                'branch_name' => $reports->first()->branch->name, // Assuming `name` exists
+                'reports' => $reports->map(function ($report) {
+                    return [
+                        'id' => $report->id,
+                        'report_date' => $report->created_at,
+                        'raw_material' =>  [
+                            'id' => $report->ingredients_id,
+                            'name' => $report->ingredients->name, // Assuming `name` exists in the ingredient table
+                        ],
+                        'quantity' => $report->total_quantity,
+                        // Add other fields as needed
+                    ];
+                }),
+            ];
+        })->values();
+
+        return response()->json($groupedReports);
+    }
+
+
+    // public function getWarehouseBranchReport($warehouseId)
+    // {
+    //     $report = BranchRawMaterialsReport::query()
+    //             ->whereHas('branch', function ($query) use ($warehouseId) {
+    //                 $query->where('warehouse_id', $warehouseId);
+    //             })
+    //             ->with('branch')
+    //             ->get();
+
+    // return response()->json(['data',$report]);
+
+    // }
+
+//     public function getWarehouseBranchReport($warehouseId)
+// {
+//     // Fetch all branches and their reports for the given warehouse
+//     $branchesWithReports = Branch::where('warehouse_id', $warehouseId)
+//         ->with('branchRawMaterialsReport') // Ensure the relationship is loaded
+//         ->get();
+
+//     // Format the data to group reports by branch
+//     $groupedData = $branchesWithReports->map(function ($branch) {
+//         return [
+//             'branch_id' => $branch->id,
+//             'branch_name' => $branch->name,
+//             'reports' => $branch->branchRawMaterialsReports, // Reports for this branch
+//         ];
+//     });
+
+//     // Return the grouped data
+//     return response()->json([
+//         'success' => true,
+//         'data' => $groupedData,
+//     ]);
+// }
 
     public function searchWarehouse(Request $request)
     {

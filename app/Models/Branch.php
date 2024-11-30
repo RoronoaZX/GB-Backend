@@ -49,8 +49,14 @@ class Branch extends Model
     {
         return $this->hasMany(Employee::class, 'employee_id', 'id');
     }
+
     public function employees()
     {
         return $this->belongsTo(Employee::class, 'employee_id', 'id');
+    }
+
+    public function branchRawMaterialsReport()
+    {
+        return $this->hasMany(BranchRawMaterialsReport::class);
     }
 }
