@@ -52,6 +52,9 @@ class WarehouseController extends Controller
                         'raw_material' =>  [
                             'id' => $report->ingredients_id,
                             'name' => $report->ingredients->name, // Assuming `name` exists in the ingredient table
+                            'code' => $report->ingredients->code,
+                            'unit' => $report->ingredients->unit,
+                            'category' => $report->ingredients->category
                         ],
                         'quantity' => $report->total_quantity,
                         // Add other fields as needed

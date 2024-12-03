@@ -17,25 +17,24 @@ class WarehouseEmployeeController extends Controller
         //
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'warehouse_id' => 'required|exists:warehouses,id',
+            'time_shift' => 'required|date_format:h:i A',
+        ]);
+
+        $warehouseEmployee = WarehouseEmployee::create([
+            'warehouse_id' => $request->warehouse_id,
+            'employee_id' => $request->employee_id,
+            'time_shift' => date('H:i:s', strtotime( $request->time_shift))
+        ]);
+
+        return response()->json([
+            'message' => 'Warehouse employee designation created successfully.',
+            'warehouseEmployee' => $warehouseEmployee
+        ], 201);
     }
 
     /**

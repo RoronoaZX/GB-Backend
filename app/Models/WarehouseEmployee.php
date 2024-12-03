@@ -12,8 +12,8 @@ class WarehouseEmployee extends Model
 
     protected $fillable = [
         'warehouse_id',
-        'user_id',
-        'raw_materials_id'
+        'employee_id',
+        'time_shift'
     ];
 
     public function warehouse()

@@ -31,6 +31,11 @@ class Employee extends Model
         return $this->hasOne(BranchEmployee::class, 'employee_id','id');
     }
 
+    public function warehouseEmployee()
+    {
+        return $this->hasOne(WarehouseEmployee::class, 'employee_id','id');
+    }
+
     public function salesReports()
     {
         return $this->hasMany(SalesReports::class);

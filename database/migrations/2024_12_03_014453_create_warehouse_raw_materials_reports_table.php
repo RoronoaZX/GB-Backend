@@ -8,17 +8,15 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
-    public function up()
+    public function up(): void
     {
-        Schema::create('branch_raw_materials_reports', function (Blueprint $table) {
+        Schema::create('warehouse_raw_materials_reports', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('branch_id')->references('id')->on('branches');
+            $table->foreignId('warehouse_id')->references('id')->on('warehouses');
             // $table->foreignId('recipe_id')->references('id')->on('recipes');
             // $table->foreignId('baker_report_id')->references('id')->on('baker_reports');
-            $table->foreignId('ingredients_id')->references('id')->on('raw_materials');
+            $table->foreignId('raw_material_id')->references('id')->on('raw_materials');
             $table->integer('total_quantity')->nullable();
             $table->timestamps();
         });
@@ -26,11 +24,9 @@ return new class extends Migration
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
-    public function down()
+    public function down(): void
     {
-        Schema::dropIfExists('branch_raw_materials_reports');
+        Schema::dropIfExists('warehouse_raw_materials_reports');
     }
 };

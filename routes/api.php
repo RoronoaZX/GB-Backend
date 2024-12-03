@@ -26,11 +26,14 @@ use App\Http\Controllers\InitialBakerreportsController;
 use App\Http\Controllers\SalesReportsController;
 use App\Http\Controllers\SupervisorController;
 use App\Http\Controllers\UniformController;
+use App\Http\Controllers\WarehouseEmployeeController;
+use App\Http\Controllers\WarehouseRawMaterialsReportController;
 use App\Models\Branch;
 use App\Models\BranchRawMaterialsReport;
 use App\Models\BranchRecipe;
 use App\Models\CashAdvance;
 use App\Models\DailyTimeRecord;
+use App\Models\WarehouseEmployee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -80,6 +83,8 @@ Route::apiResource('cash-advance', CashAdvanceController::class);
 Route::apiResource('uniform', UniformController::class);
 Route::apiResource('branch-recipe', BranchRecipeController::class);
 Route::apiResource('cake-report', CakeReportController::class);
+Route::apiResource('warehouse-employee', WarehouseEmployeeController::class);
+Route::apiResource('warehouse-raw-materials-report', WarehouseRawMaterialsReportController::class);
 
 Route::post('search-allowance', [EmployeeAllowanceController::class, 'searchAllowance']);
 Route::post('search-benefit', [EmployeeBenefitController::class, 'searchBenefit']);
@@ -102,6 +107,7 @@ Route::post('search', [UserController::class, 'search' ]);
 Route::post('search-user-with-branchID', [BranchEmployeeController::class, 'searchUserWithBranch' ]);
 Route::post('search-branch-employee', [BranchEmployeeController::class, 'searchBranchEmployee' ]);
 Route::post('search-branch-rawMaterials', [BranchRawMaterialsReportController::class, 'searchBranchRawMaterials' ]);
+Route::post('search-warehouse-rawMaterials', [WarehouseRawMaterialsReportController::class, 'searchWarehouseRawMaterials' ]);
 Route::post('search-products', [BranchProductController::class, 'searchProducts']);
 Route::post('search-branch',[ BranchController::class, 'searchBranch']);
 Route::post('search-employees', [EmployeeController::class, 'searchEmployees']);
@@ -125,6 +131,7 @@ Route::put('branch-update-status/{id}', [BranchRecipeController::class, 'branchU
 Route::put('update-branch-products/{id}', [BranchProductController::class, 'updatePrice' ]);
 Route::put('update-branch-products-total-quantity/{id}', [BranchProductController::class, 'updateTotatQuatity' ]);
 Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportController::class, 'updateStocks' ]);
+Route::put('update-warehouse-rawMaterials/{id}', [WarehouseRawMaterialsReportController::class, 'updateStocks' ]);
 
 Route::get('warehouse/{warehouseId}', [WarehouseController::class, 'getWarehouse']);
 Route::get('warehouse/{warehouseId}/warehouseBranchReports', [WarehouseController::class, 'getWarehouseBranchReport']);
@@ -134,6 +141,7 @@ Route::get('branch/{userId}/cake-report', [CakeReportController::class, 'getBran
 Route::get('branch/{branchId}/salesReport', [SalesReportsController::class, 'fetchBranchSalesReport']);
 Route::get('get-bread-production', [InitialBakerreportsController::class, 'getInitialReportsData']);
 Route::get('branch/{branchId}/rawMaterials',[ BranchRawMaterialsReportController::class, 'getRawMaterials']);
+Route::get('warehouse/{warehouseId}/rawMaterials',[ WarehouseRawMaterialsReportController::class, 'getRawMaterials']);
 Route::get('branch/{branchId}/bakerDoughReport',[ InitialBakerreportsController::class, 'fetchDoughReports']);
 Route::get('branch/{userId}/bakerReport',[ InitialBakerreportsController::class, 'getReportsByUserId']);
 Route::get('ingredients',[ RawMaterialController::class, 'fetchRawMaterialsIngredients']);
