@@ -21,7 +21,89 @@ class BranchProductController extends Controller
         return response()->json($branchProducts, 200);
     }
 
+    public function fetchBranchProducts(Request $request)
+    {
+        $validated = $request->validate([
+            'branches_id' => 'required|integer',
+            'category' => 'nullable|string',
+        ]);
 
+        $products = BranchProduct::where('branches_id', $validated['branches_id'])
+            ->when($validated['category'], function ($query, $category) {
+                $query->where('category', $category);
+            })
+            ->with('product') // Load the product relationship
+            ->get()
+            ->pluck('product'); // Extract only the product data
+
+        return response()->json($products);
+    }
+
+
+//     public function fetchBranchProducts(Request $request)
+// {
+//     $validated = $request->validate([
+//         'branches_id' => 'required|integer',
+//         'category' => 'nullable|string',
+//     ]);
+
+//     $products = BranchProduct::where('branches_id', $validated['branches_id'])
+//         ->when($validated['category'], function ($query, $category) {
+//             $query->where('category', $category);
+//         })
+//         ->with(['product'])
+//         ->get()
+//         ->pluck('product'); // Extract only the product data
+
+//     return response()->json([
+//         'message' => 'Products retrieved successfully.',
+//         'data' => $products,
+//     ]);
+// }
+
+
+    // public function fetchBranchProducts(Request $request)
+    // {
+    //     $validated = $request->validate([
+    //         'branches_id' => 'required|integer',
+    //         'category' => 'nullable|string',
+    //     ]);
+
+    //     $products = BranchProduct::where('branches_id', $validated['branches_id'])
+    //         ->when($validated['category'], function ($query, $category) {
+    //             $query->where('category', $category);
+    //         })
+    //         ->with(['product', 'branch'])
+    //         ->get();
+
+    //     return response()->json([
+    //         'message' => 'Products retrieved successfully.',
+    //         'data' => $products,
+    //     ]);
+    // }
+
+    public function searchBranchProducts(Request $request)
+    {
+        $validated = $request->validate([
+            'branches_id' => 'required|integer',
+            'query' => 'nullable|string',
+            'category' => 'nullable|string',
+        ]);
+
+        $products = BranchProduct::where('branches_id', $validated['branches_id'])
+            ->when($validated['category'], function ($query, $category) {
+                $query->where('category', $category);
+            })
+            ->when($validated['query'], function ($query, $search) {
+                $query->whereHas('product', function ($subQuery) use ($search) {
+                    $subQuery->where('name', 'like', "%{$search}%");
+                });
+            })
+            ->with(['product', 'branch'])
+            ->get();
+
+        return response()->json($products);
+    }
 
 
     public function store(Request $request)
