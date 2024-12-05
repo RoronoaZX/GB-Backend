@@ -28,13 +28,20 @@ class BranchProductController extends Controller
             'category' => 'nullable|string',
         ]);
 
-        $products = BranchProduct::where('branches_id', $validated['branches_id'])
-            ->when($validated['category'], function ($query, $category) {
-                $query->where('category', $category);
-            })
-            ->with('product') // Load the product relationship
-            ->get()
-            ->pluck('product'); // Extract only the product data
+
+    $products = BranchProduct::where('branches_id', $validated['branches_id'])
+    ->when($validated['category'], function ($query, $category) {
+        $query->where('category', $category);
+    })
+    ->with('product') // Load the product relationship
+    ->get()
+    ->map(function ($branchProduct) {
+        $product = $branchProduct->product;
+        if ($product) {
+            $product->price = $branchProduct->price; // Add price to the product object
+        }
+        return $product;
+    });
 
         return response()->json($products);
     }

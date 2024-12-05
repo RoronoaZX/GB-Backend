@@ -9,20 +9,20 @@ class SelectaAddedStock extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'branches_id',
+        'selecta_stocks_report_id',
         'product_id',
         'price',
         'added_stocks',
-        'status',
     ];
-
-    public function branch()
-    {
-        return $this->belongsTo(Branch::class, 'branches_id');
-    }
 
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id');
     }
+
+    public function selectaStocksReport()
+    {
+        return $this->belongsTo(SelectaStocksReport::class, 'selecta_stocks_report_id');
+    }
+
 }

@@ -26,6 +26,7 @@ use App\Http\Controllers\InitialBakerreportsController;
 use App\Http\Controllers\SalesReportsController;
 use App\Http\Controllers\SelectaAddedStockController;
 use App\Http\Controllers\SelectaStockAddedController;
+use App\Http\Controllers\SelectaStocksReportController;
 use App\Http\Controllers\SupervisorController;
 use App\Http\Controllers\UniformController;
 use App\Http\Controllers\WarehouseEmployeeController;
@@ -88,6 +89,7 @@ Route::apiResource('cake-report', CakeReportController::class);
 Route::apiResource('warehouse-employee', WarehouseEmployeeController::class);
 Route::apiResource('warehouse-raw-materials-report', WarehouseRawMaterialsReportController::class);
 Route::apiResource('selecta-stocks-added', SelectaAddedStockController::class);
+Route::apiResource('selecta-stocks-report', SelectaStocksReportController::class);
 
 Route::post('search-allowance', [EmployeeAllowanceController::class, 'searchAllowance']);
 Route::post('search-benefit', [EmployeeBenefitController::class, 'searchBenefit']);
@@ -102,6 +104,7 @@ Route::post('break', [DailyTimeRecordController::class, 'break']);
 Route::post('checkLunchBreakStatus', [DailyTimeRecordController::class, 'checkLunchBreakStatus']);
 Route::post('lunchBreak', [DailyTimeRecordController::class, 'lunchBreak']);
 Route::post('checkDevice', [DeviceController::class, 'checkDevice']);
+Route::post('confirm-selecta-report/{id}', [SelectaStocksReportController::class, 'confirmReport']);
 Route::post('confirm-initial-baker-report/{id}', [InitialBakerreportsController::class, 'confirmReport']);
 Route::post('decline-initial-baker-report/{id}', [InitialBakerreportsController::class, 'declineReport']);
 Route::post('search-branches-by-id', [BranchProductController::class, 'searchBranchId' ]);
@@ -138,7 +141,8 @@ Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportControlle
 Route::put('update-warehouse-rawMaterials/{id}', [WarehouseRawMaterialsReportController::class, 'updateStocks' ]);
 
 Route::get('fetch-selecta-products', [BranchProductController::class, 'fetchBranchProducts' ]);
-Route::get('/selecta-added-stocks/{branchId}/pending-reports', [SelectaAddedStockController::class, 'fetchPendingReports']);
+Route::get('/selecta-added-stocks/{branchId}/pending-reports', [SelectaStocksReportController::class, 'getPendingReports']);
+Route::get('/selecta-added-stocks/{branchId}/confirmed-reports', [SelectaStocksReportController::class, 'getConfirmedReport']);
 Route::get('warehouse/{warehouseId}', [WarehouseController::class, 'getWarehouse']);
 Route::get('warehouse/{warehouseId}/warehouseBranchReports', [WarehouseController::class, 'getWarehouseBranchReport']);
 Route::get('branch/{branchId}/getCakeOnDisplayProduct', [CakeReportController::class, 'getCakeOnDisplayProduct']);

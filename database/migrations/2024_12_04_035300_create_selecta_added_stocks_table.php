@@ -13,11 +13,10 @@ return new class extends Migration
     {
         Schema::create('selecta_added_stocks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('branches_id')->references('id')->on('branches');
+            $table->foreignId('selecta_stocks_report_id')->references('id')->on('selecta_stocks_reports');
             $table->foreignId('products_id')->references('id')->on('products');
             $table->decimal('price', 10,2)->nullable();
             $table->integer('added_stocks')->nullable();
-            $table->string('status', 255)->nullable();
             $table->timestamps();
         });
     }
