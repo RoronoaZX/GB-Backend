@@ -15,8 +15,32 @@ class SelectaStocksReportController extends Controller
      */
     public function index()
     {
-        //
+        $selectaStocksReports = SelectaStocksReport::with(['branch', 'employee'])->get();
+
+        return response()->json($selectaStocksReports);
     }
+
+    public function getBranchSelectaReports($branchId)
+    {
+        try {
+            // Fetch reports for the specific branch, eager-loading necessary relationships
+            $selectaStocksReports = SelectaStocksReport::with(['employee', 'branch', 'selectaAddedStocks'])
+                ->where('branches_id', $branchId) // Filter by branch ID
+                ->orderBy('created_at', 'desc') // Order by the creation date
+                ->get();
+
+            // Return a successful response
+            return response()->json($selectaStocksReports);
+        } catch (\Exception $e) {
+            // Handle and return an error response
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch reports. ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
     public function getPendingReports($branchId, Request $request)
     {
         // Validate the category parameter, if provided
@@ -39,6 +63,62 @@ class SelectaStocksReportController extends Controller
 
         // Return the response with the filtered reports and their associated added stocks
         return response()->json($selectaStocksReports);
+    }
+
+
+    public function declineReport(Request $request, $id)
+    {
+        // Validate the input
+        $request->validate([
+            'remark' => 'required|string|max:255',
+        ]);
+
+        try {
+            // Find the report by ID
+            $selectaStocksReports = SelectaStocksReport::findOrFail($id);
+
+            // Update the report's status and save the remark
+            $selectaStocksReports->status = 'declined';
+            $selectaStocksReports->remark = $request->input('remark');
+            $selectaStocksReports->save();
+            // $selectaStocksReports->declined_at = now(); // Optional: Add a timestamp for when it was declined
+
+            // Return success response
+            return response()->json([
+                'message' => 'Report declined successfully.',
+                'report' => $selectaStocksReports,
+            ], 200);
+        } catch (\Exception $e) {
+            // Handle errors
+            return response()->json([
+                'message' => 'Failed to decline report.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function getConfirmedReport($branchId, Request $request)
+    {
+        $validateData = $request->validate([
+            'status' => 'nullable|string'
+        ]);
+
+        // Set category to 'pending' by default, if not provided
+        $status = $request->query('status', 'confirmed');
+
+        // Fetch the SelectaStocksReport with the related SelectaAddedStock and filter by category and branch_id
+        $selectaStocksReports = SelectaStocksReport::where('branches_id', $branchId)
+            ->where('status', $status) // Assuming 'status' is the column representing 'pending' or other states
+            ->with(['branch','employee',
+                'selectaAddedStocks' => function ($query) {
+                    $query->where('added_stocks', '>', 0); // Optional: Only fetch added stocks greater than 0
+                }
+            ])
+            ->get();
+
+        // Return the response with the filtered reports and their associated added stocks
+        return response()->json($selectaStocksReports);
+
     }
 
     public function confirmReport($id)
@@ -89,14 +169,15 @@ class SelectaStocksReportController extends Controller
         }
     }
 
-    public function getConfirmedReport($branchId, Request $request)
+
+    public function getDeclinedReport($branchId, Request $request)
     {
         $validateData = $request->validate([
             'status' => 'nullable|string'
         ]);
 
         // Set category to 'pending' by default, if not provided
-        $status = $request->query('status', 'confirmed');
+        $status = $request->query('status', 'declined');
 
         // Fetch the SelectaStocksReport with the related SelectaAddedStock and filter by category and branch_id
         $selectaStocksReports = SelectaStocksReport::where('branches_id', $branchId)
@@ -112,9 +193,6 @@ class SelectaStocksReportController extends Controller
         return response()->json($selectaStocksReports);
 
     }
-
-
-
     /**
      * Store a newly created resource in storage.
      */

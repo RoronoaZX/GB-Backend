@@ -123,6 +123,7 @@ Route::post('dtr-data', [DailyTimeRecordController::class, 'getDTRData']);
 Route::post('search-drt', [DailyTimeRecordController::class, 'searchDTR']);
 Route::post('saveOvertime', [DailyTimeRecordController::class, 'saveOvertime']);
 Route::post('branch/{branchId}/cakeConfirmedReport', [CakeReportController::class, 'confirmReport']);
+Route::post('reports/{id}/decline-reports', [SelectaStocksReportController::class, 'declineReport']);
 
 Route::put('update-employee-birthdate/{id}', [EmployeeController::class, 'updateEmployeeBirthdate']);
 Route::put('update-employee-phone/{id}', [EmployeeController::class, 'updateEmployeePhone']);
@@ -141,8 +142,10 @@ Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportControlle
 Route::put('update-warehouse-rawMaterials/{id}', [WarehouseRawMaterialsReportController::class, 'updateStocks' ]);
 
 Route::get('fetch-selecta-products', [BranchProductController::class, 'fetchBranchProducts' ]);
-Route::get('/selecta-added-stocks/{branchId}/pending-reports', [SelectaStocksReportController::class, 'getPendingReports']);
-Route::get('/selecta-added-stocks/{branchId}/confirmed-reports', [SelectaStocksReportController::class, 'getConfirmedReport']);
+Route::get('selecta-added-stocks/{branchId}/pending-reports', [SelectaStocksReportController::class, 'getPendingReports']);
+Route::get('selecta-added-stocks/{branchId}/confirmed-reports', [SelectaStocksReportController::class, 'getConfirmedReport']);
+Route::get('selecta-added-stocks/{branchId}/declined-reports', [SelectaStocksReportController::class, 'getDeclinedReport']);
+Route::get('selecta-added-stocks/{branchId}', [SelectaStocksReportController::class, 'getBranchSelectaReports']);
 Route::get('warehouse/{warehouseId}', [WarehouseController::class, 'getWarehouse']);
 Route::get('warehouse/{warehouseId}/warehouseBranchReports', [WarehouseController::class, 'getWarehouseBranchReport']);
 Route::get('branch/{branchId}/getCakeOnDisplayProduct', [CakeReportController::class, 'getCakeOnDisplayProduct']);

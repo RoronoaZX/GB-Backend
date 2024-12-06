@@ -12,7 +12,8 @@ class SelectaStocksReport extends Model
     protected $fillable = [
         'branches_id',
         'employee_id',
-        'status'
+        'status',
+        'remark',
     ];
 
     public function branch()
