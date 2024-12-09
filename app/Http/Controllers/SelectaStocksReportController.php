@@ -20,14 +20,17 @@ class SelectaStocksReportController extends Controller
         return response()->json($selectaStocksReports);
     }
 
-    public function getBranchSelectaReports($branchId)
+    public function getBranchSelectaReports(Request $request, $branchId)
     {
         try {
+              // Get the per_page parameter from the request or use a default value (e.g., 10)
+            $perPage = $request->get('per_page', 5);
+
             // Fetch reports for the specific branch, eager-loading necessary relationships
             $selectaStocksReports = SelectaStocksReport::with(['employee', 'branch', 'selectaAddedStocks'])
                 ->where('branches_id', $branchId) // Filter by branch ID
                 ->orderBy('created_at', 'desc') // Order by the creation date
-                ->get();
+                ->paginate($perPage);
 
             // Return a successful response
             return response()->json($selectaStocksReports);

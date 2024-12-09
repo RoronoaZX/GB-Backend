@@ -19,7 +19,12 @@ class WarehouseRawMaterialsReportController extends Controller
 
     public function getRawMaterials($warehouseId)
     {
-        $warehouseRawMaterials = WarehouseRawMaterialsReport::where('warehouse_id', $warehouseId)->with(['warehouse', 'rawMaterials'])->get();
+        $warehouseRawMaterials = WarehouseRawMaterialsReport::where('warehouse_id', $warehouseId)->with(['warehouse', 'rawMaterials'])->get()
+                            ->map(function ($warehouseRawMaterials) {
+                                $rawMaterials = $warehouseRawMaterials->rawMaterials;
+
+                                return $rawMaterials;
+                            });
 
         return response()->json($warehouseRawMaterials, 200);
     }
