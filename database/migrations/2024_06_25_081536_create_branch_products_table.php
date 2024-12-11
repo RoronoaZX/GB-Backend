@@ -18,7 +18,7 @@ return new class extends Migration
             $table->bigInteger('branches_id')->unsigned();
             $table->foreign('branches_id')->references('id')->on('branches');
             $table->string('category')->nullable();
-            $table->integer('price')->nullable();
+            $table->decimal('price', 10,2)->nullable();
             $table->integer('beginnings')->nullable();
             $table->integer('new_production')->default(0);
             $table->integer('total_quantity')->nullable();

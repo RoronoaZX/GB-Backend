@@ -49,7 +49,7 @@ class BranchRecipeController extends Controller
         $validatedData = $request->validate([
             'branch_id' => 'required|integer',
             'recipe_id' => 'required|integer',
-            'target' => 'required|integer',
+            'target' => 'required|numeric',
             'status' => 'required|string|max:30',
             'breads' => 'required|array',
             'breads.*.bread_id' => 'required|integer|exists:products,id',
@@ -79,7 +79,7 @@ class BranchRecipeController extends Controller
     public function updateTarget(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'target' => 'required|integer',
+            'target' => 'required|numeric',
         ]);
 
         $recipe = BranchRecipe::findOrFail($id);
