@@ -147,10 +147,6 @@ class BranchProductController extends Controller
         ], 201);
     }
 
-    public function show(BranchProduct $branchesProduct)
-    {
-        //
-    }
 
     public function updatePrice(Request $request, $id)
     {
@@ -172,6 +168,17 @@ class BranchProductController extends Controller
         ]);
         $branchProduct = BranchProduct::findOrFail($id);
         $branchProduct->total_quantity = $validatedData['total_quantity'];
+        $branchProduct->save();
+
+        return response()->json(['message' => 'Total Quantity updated successfully', 'total quantity' => $branchProduct]);
+    }
+    public function updateBeginnings(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'beginnings' => 'required|integer'
+        ]);
+        $branchProduct = BranchProduct::findOrFail($id);
+        $branchProduct->beginnings = $validatedData['beginnings'];
         $branchProduct->save();
 
         return response()->json(['message' => 'Total Quantity updated successfully', 'total quantity' => $branchProduct]);

@@ -138,6 +138,7 @@ Route::put('update-status/{id}', [RecipeController::class, 'updateStatus']);
 Route::put('branch-update-status/{id}', [BranchRecipeController::class, 'branchUpdateStatus']);
 Route::put('update-branch-products/{id}', [BranchProductController::class, 'updatePrice' ]);
 Route::put('update-branch-products-total-quantity/{id}', [BranchProductController::class, 'updateTotatQuatity' ]);
+Route::put('update-branch-products-beginnings/{id}', [BranchProductController::class, 'updateBeginnings' ]);
 Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportController::class, 'updateStocks' ]);
 Route::put('update-warehouse-rawMaterials/{id}', [WarehouseRawMaterialsReportController::class, 'updateStocks' ]);
 
