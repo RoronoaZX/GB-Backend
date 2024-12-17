@@ -26,6 +26,7 @@ return new class extends Migration
             $table->integer('over');
             $table->integer('target');
             $table->integer('actual_target');
+            $table->string('remark', 255)->nullable();
             $table->timestamps();
         });
     }

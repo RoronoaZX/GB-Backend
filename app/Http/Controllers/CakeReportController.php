@@ -68,6 +68,25 @@ class CakeReportController extends Controller
         ], 400);
     }
 
+    public function declineReport(Request $request, $id)
+    {
+        $request->validate([
+            'remark' => 'required|string|max:255'
+        ]);
+
+        $cakeReport = CakeReport::findOrFail($id);
+
+        if ($cakeReport->confirmation_status === 'pending') {
+            $cakeReport->confirmation_status = 'declined';
+            $cakeReport->sales_status = 'declined';
+            $cakeReport->remark = $request->remark;
+            $cakeReport->save();
+
+            return response()->json(['message' => "Report declined successfully"], 200);
+        }
+        return response()->json(['message' => "Invalid report or status"], 400);
+    }
+
 
     /**
      * Store a newly created resource in storage.

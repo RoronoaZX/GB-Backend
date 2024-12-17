@@ -20,6 +20,7 @@ class InitialBakerreports extends Model
         'over',
         'target',
         'actual_target',
+        'remark'
 
     ];
 

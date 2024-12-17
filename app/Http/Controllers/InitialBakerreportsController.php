@@ -88,7 +88,7 @@ public function getInitialReportsData()
                 'kilo' => 'required|integer',
                 'over' => 'required|integer',
                 'short' => 'required|integer',
-                'target' => 'required|integer',
+                'target' => 'required|numeric',
                 'actual_target' => 'required|integer',
                 'breads' => 'required|array',
                 'breads.*.bread_id' => 'required|integer',
@@ -206,7 +206,7 @@ public function getInitialReportsData()
             $initialReport->status = 'confirmed';
             $initialReport->save();
 
-            return response()->json(['message' => 'Report confirmed and inventory updated successfully']);
+            return response()->json(['message' => 'Report confirmed and inventory updated successfully'], 200);
         }
 
         return response()->json(['message' => 'Invalid report or status'], 400);
@@ -215,10 +215,15 @@ public function getInitialReportsData()
 
     public function declineReport(Request $request, $id)
     {
+        $request->validate([
+            'remark' => 'required|string|max:255'
+        ]);
+
         $initialReport = InitialBakerreports::findOrFail($id);
 
         if ($initialReport->status === 'pending') {
             $initialReport->status = 'declined';
+            $initialReport->remark = $request->remark;
             $initialReport->save();
 
             return response()->json(['message' => 'Report declined successfully']);

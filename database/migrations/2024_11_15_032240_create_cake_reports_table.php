@@ -23,6 +23,7 @@ return new class extends Migration
             $table->integer('layers');
             $table->integer('pieces');
             $table->decimal('price', 10,2);
+            $table->string('remark', 225);
             $table->timestamps();
         });
     }

@@ -123,6 +123,7 @@ Route::post('dtr-data', [DailyTimeRecordController::class, 'getDTRData']);
 Route::post('search-drt', [DailyTimeRecordController::class, 'searchDTR']);
 Route::post('saveOvertime', [DailyTimeRecordController::class, 'saveOvertime']);
 Route::post('branch/{branchId}/cakeConfirmedReport', [CakeReportController::class, 'confirmReport']);
+Route::post('decline-cake-maker-report/{id}', [CakeReportController::class, 'declineReport']);
 Route::post('reports/{id}/decline-reports', [SelectaStocksReportController::class, 'declineReport']);
 
 Route::put('update-employee-birthdate/{id}', [EmployeeController::class, 'updateEmployeeBirthdate']);
