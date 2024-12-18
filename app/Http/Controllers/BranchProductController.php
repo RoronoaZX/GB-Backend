@@ -21,7 +21,7 @@ class BranchProductController extends Controller
         return response()->json($branchProducts, 200);
     }
 
-    public function fetchBranchProducts(Request $request)
+    public function fetchBranchSelectaProducts(Request $request)
     {
         $validated = $request->validate([
             'branches_id' => 'required|integer',
@@ -46,6 +46,30 @@ class BranchProductController extends Controller
         return response()->json($products);
     }
 
+    public function fetchBranchSoftdrinksProducts(Request $request)
+    {
+        $validated = $request->validate([
+            'branches_id' => 'required|integer',
+            'category' => 'nullable|string',
+        ]);
+
+
+    $products = BranchProduct::where('branches_id', $validated['branches_id'])
+    ->when($validated['category'], function ($query, $category) {
+        $query->where('category', $category);
+    })
+    ->with('product') // Load the product relationship
+    ->get()
+    ->map(function ($branchProduct) {
+        $product = $branchProduct->product;
+        if ($product) {
+            $product->price = $branchProduct->price; // Add price to the product object
+        }
+        return $product;
+    });
+
+        return response()->json($products);
+    }
 
 //     public function fetchBranchProducts(Request $request)
 // {
