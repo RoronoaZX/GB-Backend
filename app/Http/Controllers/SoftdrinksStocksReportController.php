@@ -175,7 +175,7 @@ class SoftdrinksStocksReportController extends Controller
         // Fetch the SelectaStocksReport with the related SelectaAddedStock and filter by category and branch_id
         $softdrinksStockReport = SoftdrinksStocksReport::where('branches_id', $branchId)
             ->where('status', $status)
-            ->with(['status', 'employee', 'softdrinksAddedStocks' => function($query){
+            ->with(['branch', 'employee', 'softdrinksAddedStocks' => function($query){
                 $query->where('added_stocks', '>', 0);
             }])
             ->get();
@@ -216,35 +216,4 @@ class SoftdrinksStocksReportController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(SoftdrinksStocksReport $softdrinksStocksReport)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(SoftdrinksStocksReport $softdrinksStocksReport)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, SoftdrinksStocksReport $softdrinksStocksReport)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(SoftdrinksStocksReport $softdrinksStocksReport)
-    {
-        //
-    }
 }

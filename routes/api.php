@@ -39,6 +39,7 @@ use App\Models\BranchRecipe;
 use App\Models\CashAdvance;
 use App\Models\DailyTimeRecord;
 use App\Models\SoftdrinksAddedStocks;
+use App\Models\SoftdrinksStocksReport;
 use App\Models\WarehouseEmployee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -131,6 +132,7 @@ Route::post('saveOvertime', [DailyTimeRecordController::class, 'saveOvertime']);
 Route::post('branch/{branchId}/cakeConfirmedReport', [CakeReportController::class, 'confirmReport']);
 Route::post('decline-cake-maker-report/{id}', [CakeReportController::class, 'declineReport']);
 Route::post('reports/{id}/decline-reports', [SelectaStocksReportController::class, 'declineReport']);
+Route::post('reports/{id}/decline-reports', [SoftdrinksStocksReportController::class, 'declineReport']);
 
 Route::put('update-employee-birthdate/{id}', [EmployeeController::class, 'updateEmployeeBirthdate']);
 Route::put('update-employee-phone/{id}', [EmployeeController::class, 'updateEmployeePhone']);
@@ -158,6 +160,7 @@ Route::get('selecta-added-stocks/{branchId}', [SelectaStocksReportController::cl
 Route::get('softdrinks-added-stocks/{branchId}', [SoftdrinksStocksReportController::class, 'getBranchSoftdrinksReports']);
 Route::get('softdrinks-added-stocks/{branchId}/pending-reports', [SoftdrinksStocksReportController::class, 'getPendingReports']);
 Route::get('softdrinks-added-stocks/{branchId}/confirmed-reports', [SoftdrinksStocksReportController::class, 'getConfirmedReport']);
+Route::get('softdrinks-added-stocks/{branchId}/declined-reports', [SoftdrinksStocksReportController::class, 'getDeclinedReport']);
 Route::get('warehouse/{warehouseId}', [WarehouseController::class, 'getWarehouse']);
 Route::get('warehouse/{warehouseId}/warehouseBranchReports', [WarehouseController::class, 'getWarehouseBranchReport']);
 Route::get('branch/{branchId}/getCakeOnDisplayProduct', [CakeReportController::class, 'getCakeOnDisplayProduct']);
