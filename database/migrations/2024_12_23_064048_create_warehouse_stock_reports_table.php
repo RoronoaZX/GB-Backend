@@ -8,27 +8,24 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
-    public function up()
+    public function up(): void
     {
-        Schema::create('warehouse_stocks_reports', function (Blueprint $table) {
+        Schema::create('warehouse_stock_reports', function (Blueprint $table) {
             $table->id();
             $table->foreignId('warehouse_id')->references('id')->on('warehouses');
-            $table->foreignId('raw_materials_id')->references('id')->on('raw_materials');
-            $table->integer('available_stocks');
+            $table->foreignId('employee_id')->references('id')->on('employees');
+            $table->string('suppliers_company_name', 255)->nullable();
+            $table->string('suppliers_name', 255)->nullable();
             $table->timestamps();
         });
     }
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
-    public function down()
+    public function down(): void
     {
-        Schema::dropIfExists('warehouse_stocks_reports');
+        Schema::dropIfExists('warehouse_stock_reports');
     }
 };
