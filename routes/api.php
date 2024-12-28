@@ -35,6 +35,7 @@ use App\Http\Controllers\SupervisorController;
 use App\Http\Controllers\UniformController;
 use App\Http\Controllers\WarehouseEmployeeController;
 use App\Http\Controllers\WarehouseRawMaterialsReportController;
+use App\Http\Controllers\WarehouseScalingReportController;
 use App\Http\Controllers\WarehouseStockReportsController;
 use App\Models\Branch;
 use App\Models\BranchRawMaterialsReport;
@@ -102,6 +103,7 @@ Route::apiResource('softdrinks-stocks-report', SoftdrinksStocksReportController:
 Route::apiResource('other-stocks-added', OtherAddedStocksController::class);
 Route::apiResource('other-stocks-report', OtherStocksReportController::class);
 Route::apiResource('warehouseRawMaterials-add-supply', WarehouseStockReportsController::class);
+Route::apiResource('warehouse-rawMaterials-report', WarehouseScalingReportController::class);
 
 Route::post('search-allowance', [EmployeeAllowanceController::class, 'searchAllowance']);
 Route::post('search-benefit', [EmployeeBenefitController::class, 'searchBenefit']);
