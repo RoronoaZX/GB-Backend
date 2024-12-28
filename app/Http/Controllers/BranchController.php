@@ -15,6 +15,12 @@ class BranchController extends Controller
         return response()->json($branches, 200);
     }
 
+    public function fetchBranchUnderWarehouse($warehouseId)
+    {
+        $branches = Branch::where('warehouse_id', $warehouseId)->orderBy('name', 'asc')->get();
+        return response()->json($branches, 200);
+    }
+
 
     public function show($id)
     {
