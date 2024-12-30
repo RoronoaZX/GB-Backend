@@ -185,6 +185,7 @@ Route::get('branch/{userId}/cake-report', [CakeReportController::class, 'getBran
 Route::get('branch/{branchId}/salesReport', [SalesReportsController::class, 'fetchBranchSalesReport']);
 Route::get('get-bread-production', [InitialBakerreportsController::class, 'getInitialReportsData']);
 Route::get('branch/{branchId}/rawMaterials',[ BranchRawMaterialsReportController::class, 'getRawMaterials']);
+Route::get('branch/{branchId}/ingredients',[ BranchRawMaterialsReportController::class, 'fetchRawMaterialsIngredients']);
 Route::get('warehouse/{warehouseId}/rawMaterials',[ WarehouseRawMaterialsReportController::class, 'getRawMaterials']);
 Route::get('branch/{branchId}/bakerDoughReport',[ InitialBakerreportsController::class, 'fetchDoughReports']);
 Route::get('branch/{userId}/bakerReport',[ InitialBakerreportsController::class, 'getReportsByUserId']);

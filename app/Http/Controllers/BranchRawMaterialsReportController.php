@@ -39,6 +39,38 @@ class BranchRawMaterialsReportController extends Controller
         return response()->json($results);
     }
 
+    public function fetchRawMaterialsIngredients(Request $request, $branchId)
+    {
+        // Validate the incoming request data
+        $validateData = $request->validate([
+            'category' => 'required|string',
+        ]);
+
+        // Fetch raw materials with ingredients for the specified branch and category
+        $branchRawMaterials = BranchRawMaterialsReport::where('branch_id', $branchId)
+            ->whereHas('ingredients', function ($query) use ($validateData) {
+                // Check category in the RawMaterial table
+                $query->where('category', $validateData['category']);
+            })
+            ->with('ingredients') // Eager load the related ingredient
+            ->get();
+
+        // Flatten the data to include raw material and ingredient details in each row
+        $flattenedData = $branchRawMaterials->map(function ($rawMaterial) {
+            return [
+                'raw_material_report_id' => $rawMaterial->id,
+                'branch_id' => $rawMaterial->branch_id,
+                'raw_material_id' => $rawMaterial->ingredients->id, // Access the ingredient's ID
+                'raw_material_name' => $rawMaterial->ingredients->name, // Access the ingredient's name
+                'ingredient_category' => $rawMaterial->ingredients->category, // Access the ingredient's category
+                'ingredient_quantity' => $rawMaterial->total_quantity, // If the quantity is in the report
+                'ingredient_unit' => $rawMaterial->ingredients->unit, // Access the ingredient's unit
+            ];
+        });
+
+        return response()->json($flattenedData);
+    }
+
     /**
      * Show the form for creating a new resource.
      *
