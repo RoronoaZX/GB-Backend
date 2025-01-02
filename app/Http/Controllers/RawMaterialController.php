@@ -45,15 +45,10 @@ class RawMaterialController extends Controller
         if ($existingRawMaterial) {
             return response()->json([
                 'message' => 'The RawMaterials name or code already exists.'
-            ]);
+            ], 409);
         }
 
-        $rawMaterials = RawMaterial::create([
-            'name' => $validateData['name'],
-            'code' => $validateData['code'],
-            'category' => $validateData['category'],
-            'unit' => $validateData['unit'],
-        ]);
+        $rawMaterials = RawMaterial::create($validateData);
 
         return response()->json([
             'message' => 'Raw Materials saved successfully',
