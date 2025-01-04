@@ -213,7 +213,7 @@ class BranchReportController extends Controller
                 ->filter(function ($report) {
                     $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
                     $hour = $localTime->hour;
-                    return $hour >= 6 && $hour < 22;
+                    return $hour >= 6 && $hour < 17;
                 })
                 ->load(['user', 'branch', 'breadBakersReports', 'ingredientBakersReports', 'fillingBakersReports', 'breadProductionReports', 'branchRecipe']);
 
@@ -234,7 +234,7 @@ class BranchReportController extends Controller
                 ->filter(function ($report) {
                     $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
                     $hour = $localTime->hour;
-                    return $hour >= 23 || $hour < 6;
+                    return $hour >= 18 || $hour < 6;
                 })
                 ->load(['user', 'branch', 'breadBakersReports', 'ingredientBakersReports', 'fillingBakersReports', 'breadProductionReports', 'branchRecipe']);
 
