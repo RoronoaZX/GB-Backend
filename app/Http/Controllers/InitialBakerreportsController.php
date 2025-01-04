@@ -95,7 +95,7 @@ public function getInitialReportsData()
                 'breads.*.bread_production' => 'required|integer',
                 'ingredients' => 'required|array',
                 'ingredients.*.ingredients_id' => 'required|integer',
-                'ingredients.*.quantity' => 'required|integer',
+                'ingredients.*.quantity' => 'required|numeric',
                 'ingredients.*.unit' => 'required|string|max:191',
             ]);
 
