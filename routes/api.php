@@ -197,6 +197,7 @@ Route::get('branch-recipe-search',[ BranchRecipeController::class, 'branchSearch
 Route::get('branches/{branchId}/recipes', [BranchRecipeController::class, 'getBranchRecipe']);
 Route::get('branches/{branchId}/products', [BranchProductController::class, 'getProducts']);
 Route::get('branches/{branchId}/production-report', [BranchReportController::class, 'fetchBranchReport']);
+Route::get('branches/{branchId}/branch-sales-report', [BranchReportController::class, 'fetchBranchSalesReport']);
 Route::get('user/{userId}', [UserController::class, 'fetchUserById']);
 Route::get('search-products', [ProductController::class, 'searchProducts']);
 Route::get('search-rawMaterials', [RawMaterialController::class, 'searchRawMaterials']);

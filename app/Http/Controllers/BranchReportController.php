@@ -262,6 +262,73 @@ class BranchReportController extends Controller
         }
     }
 
+    public function fetchBranchSalesReport($branchId)
+    {
+        $branch = Branch::find($branchId);
+        if (!$branch) {
+            return response()->json(['message' => 'Branch not found'], 404);
+        }
+
+         // Fetch unique dates from both SalesReports and InitialBakerreports in UTC and convert to local time zone
+         $dates = DB::table('sales_reports')
+            ->select(DB::raw('DATE(CONVERT_TZ(created_at, "+00:00", "+08:00")) as date'))
+            ->where('branch_id', $branchId)
+            ->groupBy('date')
+            ->orderBy('date', 'desc')
+            ->pluck('date');
+
+        $branchReports = [];
+
+        foreach ($dates as $date) {
+            $carbonDate = Carbon::createFromFormat('Y-m-d', $date, 'Asia/Manila');
+
+            // AM reports: 6:00 AM - 10:00 PM
+
+            // AM reports: 6:00 AM - 10:00 PM
+            $amSalesReports = SalesReports::where('branch_id', $branchId)
+                ->whereDate(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), $carbonDate)
+                ->get()
+                ->filter(function ($report) {
+                    $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
+                    $hour = $localTime->hour;
+                    return $hour >= 6 && $hour < 22;
+                })
+                ->load(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports']);
+
+                 // PM reports: 11:00 PM - 5:00 AM
+            $pmSalesReports = SalesReports::where('branch_id', $branchId)
+            ->whereDate(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), $carbonDate)
+            ->get()
+            ->filter(function ($report) {
+                $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
+                $hour = $localTime->hour;
+                return $hour >= 23 || $hour < 6;
+            })
+            ->load(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports']);
+
+            $branchReports[] = [
+                'date' => $carbonDate->toDateString(),
+                'AM' => [
+                    'sales_reports' => $amSalesReports,
+                    'date' => $carbonDate->toDateString(),
+                    'branch_name' => $branch->name,
+                ],
+                'PM' => [
+                    'sales_reports' => $pmSalesReports,
+                    'date' => $carbonDate->toDateString(),
+                    'branch_name' => $branch->name,
+                ]
+            ];
+        }
+
+
+        if (!empty($branchReports)) {
+            return response()->json($branchReports);
+        } else {
+            return response()->json(['message' => 'No reports found'], 404);
+        }
+    }
+
 //     public function fetchBranchReport($branchId)
 // {
 //     $branch = Branch::find($branchId);
