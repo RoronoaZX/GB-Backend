@@ -203,7 +203,8 @@ class BranchReportController extends Controller
                 ->filter(function ($report) {
                     $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
                     $hour = $localTime->hour;
-                    return $hour >= 6 && $hour < 22;
+                    $minute = $localTime->minute;
+                    return ($hour > 6 || ($hour == 6 && $minute > 0)) && $hour < 22; // It represents 6:01 AM to 9:59 PM
                 })
                 ->load(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports']);
 
@@ -213,7 +214,9 @@ class BranchReportController extends Controller
                 ->filter(function ($report) {
                     $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
                     $hour = $localTime->hour;
-                    return $hour >= 6 && $hour < 17;
+                    $minute = $localTime->minute;
+                    return ($hour > 6 || ($hour == 6 && $minute > 0)) && $hour < 18; // It represents 6:01 AM to 5:59 PM,
+                    // return $hour >= 6 && $hour < 17;
                 })
                 ->load(['user', 'branch', 'breadBakersReports', 'ingredientBakersReports', 'fillingBakersReports', 'breadProductionReports', 'branchRecipe']);
 
