@@ -166,104 +166,196 @@ class BranchReportController extends Controller
     // }
 
     public function fetchBranchReport($branchId)
-    {
-        $branch = Branch::find($branchId);
-        if (!$branch) {
-            return response()->json(['message' => 'Branch not found'], 404);
-        }
-
-        // Fetch unique dates from both SalesReports and InitialBakerreports in UTC and convert to local time zone
-        $dates = DB::table('sales_reports')
-            ->select(DB::raw('DATE(CONVERT_TZ(created_at, "+00:00", "+08:00")) as date'))
-            ->where('branch_id', $branchId)
-            ->union(
-                DB::table('initial_bakerreports')
-                    ->select(DB::raw('DATE(CONVERT_TZ(created_at, "+00:00", "+08:00")) as date'))
-                    ->where('branch_id', $branchId)
-            )
-            ->union(
-                DB::table('cake_sales_reports')
-                    ->join('sales_reports', 'cake_sales_reports.sales_report_id', '=', 'sales_reports.id')
-                    ->select(DB::raw('DATE(CONVERT_TZ(cake_sales_reports.created_at, "+00:00", "+08:00")) as date'))
-                    ->where('sales_reports.branch_id', $branchId)
-            )
-            ->groupBy('date')
-            ->orderBy('date', 'desc')
-            ->pluck('date');
-
-        $branchReports = [];
-
-        foreach ($dates as $date) {
-            $carbonDate = Carbon::createFromFormat('Y-m-d', $date, 'Asia/Manila');
-
-            // AM reports: 6:00 AM - 10:00 PM
-            $amSalesReports = SalesReports::where('branch_id', $branchId)
-                ->whereDate(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), $carbonDate)
-                ->get()
-                ->filter(function ($report) {
-                    $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
-                    $hour = $localTime->hour;
-                    $minute = $localTime->minute;
-                    return ($hour > 6 || ($hour == 6 && $minute > 0)) && $hour < 22; // It represents 6:01 AM to 9:59 PM
-                })
-                ->load(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports']);
-
-            $amBakerReports = InitialBakerreports::where('branch_id', $branchId)
-                ->whereDate(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), $carbonDate)
-                ->get()
-                ->filter(function ($report) {
-                    $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
-                    $hour = $localTime->hour;
-                    $minute = $localTime->minute;
-                    return ($hour > 6 || ($hour == 6 && $minute > 0)) && $hour < 18; // It represents 6:01 AM to 5:59 PM,
-                    // return $hour >= 6 && $hour < 17;
-                })
-                ->load(['user', 'branch', 'breadBakersReports', 'ingredientBakersReports', 'fillingBakersReports', 'breadProductionReports', 'branchRecipe']);
-
-            // PM reports: 11:00 PM - 5:00 AM
-            $pmSalesReports = SalesReports::where('branch_id', $branchId)
-                ->whereDate(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), $carbonDate)
-                ->get()
-                ->filter(function ($report) {
-                    $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
-                    $hour = $localTime->hour;
-                    return $hour >= 23 || $hour < 6;
-                })
-                ->load(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports']);
-
-            $pmBakerReports = InitialBakerreports::where('branch_id', $branchId)
-                ->whereDate(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), $carbonDate)
-                ->get()
-                ->filter(function ($report) {
-                    $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
-                    $hour = $localTime->hour;
-                    return $hour >= 18 || $hour < 6;
-                })
-                ->load(['user', 'branch', 'breadBakersReports', 'ingredientBakersReports', 'fillingBakersReports', 'breadProductionReports', 'branchRecipe']);
-
-            $branchReports[] = [
-                'date' => $carbonDate->toDateString(),
-                'AM' => [
-                    'sales_reports' => $amSalesReports,
-                    'baker_reports' => $amBakerReports,
-                    'date' => $carbonDate->toDateString(),
-                    'branch_name' => $branch->name,
-                ],
-                'PM' => [
-                    'sales_reports' => $pmSalesReports,
-                    'baker_reports' => $pmBakerReports,
-                    'date' => $carbonDate->toDateString(),
-                    'branch_name' => $branch->name,
-                ],
-            ];
-        }
-
-        if (!empty($branchReports)) {
-            return response()->json($branchReports);
-        } else {
-            return response()->json(['message' => 'No reports found'], 404);
-        }
+{
+    $branch = Branch::find($branchId);
+    if (!$branch) {
+        return response()->json(['message' => 'Branch not found'], 404);
     }
+
+    // Fetch unique dates from both SalesReports and InitialBakerreports in UTC and convert to local time zone
+    $dates = DB::table('sales_reports')
+        ->select(DB::raw('DATE(CONVERT_TZ(created_at, "+00:00", "+08:00")) as date'))
+        ->where('branch_id', $branchId)
+        ->union(
+            DB::table('initial_bakerreports')
+                ->select(DB::raw('DATE(CONVERT_TZ(created_at, "+00:00", "+08:00")) as date'))
+                ->where('branch_id', $branchId)
+        )
+        ->union(
+            DB::table('cake_sales_reports')
+                ->join('sales_reports', 'cake_sales_reports.sales_report_id', '=', 'sales_reports.id')
+                ->select(DB::raw('DATE(CONVERT_TZ(cake_sales_reports.created_at, "+00:00", "+08:00")) as date'))
+                ->where('sales_reports.branch_id', $branchId)
+        )
+        ->groupBy('date')
+        ->orderBy('date', 'desc')
+        ->pluck('date');
+
+    $branchReports = [];
+
+    foreach ($dates as $date) {
+        $carbonDate = Carbon::createFromFormat('Y-m-d', $date, 'Asia/Manila');
+
+        // AM Sales Reports: 6:00 AM - 10:00 PM
+        $amSalesReports = SalesReports::where('branch_id', $branchId)
+            ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
+                $carbonDate->copy()->setTime(6, 0, 0)->toDateTimeString(),
+                $carbonDate->copy()->setTime(22, 0, 0)->toDateTimeString(),
+            ])
+            ->with(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports'])
+            ->get();
+
+        // PM Sales Reports: 10:01 PM - 5:59 AM
+        $pmSalesReports = SalesReports::where('branch_id', $branchId)
+            ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
+                $carbonDate->copy()->setTime(22, 1, 0)->toDateTimeString(),
+                $carbonDate->copy()->addDay()->setTime(5, 59, 59)->toDateTimeString(),
+            ])
+            ->with(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports'])
+            ->get();
+
+        // AM Baker Reports: 6:00 AM - 5:00 PM
+        $amBakerReports = InitialBakerreports::where('branch_id', $branchId)
+            ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
+                $carbonDate->copy()->setTime(6, 0, 0)->toDateTimeString(),
+                $carbonDate->copy()->setTime(17, 0, 0)->toDateTimeString(),
+            ])
+            ->with(['user', 'branch', 'breadBakersReports', 'ingredientBakersReports', 'fillingBakersReports', 'breadProductionReports', 'branchRecipe'])
+            ->get();
+
+        // PM Baker Reports: 6:00 PM - 5:59 AM
+        $pmBakerReports = InitialBakerreports::where('branch_id', $branchId)
+            ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
+                $carbonDate->copy()->setTime(18, 0, 0)->toDateTimeString(),
+                $carbonDate->copy()->addDay()->setTime(5, 59, 59)->toDateTimeString(),
+            ])
+            ->with(['user', 'branch', 'breadBakersReports', 'ingredientBakersReports', 'fillingBakersReports', 'breadProductionReports', 'branchRecipe'])
+            ->get();
+
+        $branchReports[] = [
+            'date' => $carbonDate->toDateString(),
+            'AM' => [
+                'sales_reports' => $amSalesReports,
+                'baker_reports' => $amBakerReports,
+                'date' => $carbonDate->toDateString(),
+                'branch_name' => $branch->name,
+            ],
+            'PM' => [
+                'sales_reports' => $pmSalesReports,
+                'baker_reports' => $pmBakerReports,
+                'date' => $carbonDate->toDateString(),
+                'branch_name' => $branch->name,
+            ],
+        ];
+    }
+
+    if (!empty($branchReports)) {
+        return response()->json($branchReports);
+    } else {
+        return response()->json(['message' => 'No reports found'], 404);
+    }
+}
+
+
+    // public function fetchBranchReport($branchId)
+    // {
+    //     $branch = Branch::find($branchId);
+    //     if (!$branch) {
+    //         return response()->json(['message' => 'Branch not found'], 404);
+    //     }
+
+    //     // Fetch unique dates from both SalesReports and InitialBakerreports in UTC and convert to local time zone
+    //     $dates = DB::table('sales_reports')
+    //         ->select(DB::raw('DATE(CONVERT_TZ(created_at, "+00:00", "+08:00")) as date'))
+    //         ->where('branch_id', $branchId)
+    //         ->union(
+    //             DB::table('initial_bakerreports')
+    //                 ->select(DB::raw('DATE(CONVERT_TZ(created_at, "+00:00", "+08:00")) as date'))
+    //                 ->where('branch_id', $branchId)
+    //         )
+    //         ->union(
+    //             DB::table('cake_sales_reports')
+    //                 ->join('sales_reports', 'cake_sales_reports.sales_report_id', '=', 'sales_reports.id')
+    //                 ->select(DB::raw('DATE(CONVERT_TZ(cake_sales_reports.created_at, "+00:00", "+08:00")) as date'))
+    //                 ->where('sales_reports.branch_id', $branchId)
+    //         )
+    //         ->groupBy('date')
+    //         ->orderBy('date', 'desc')
+    //         ->pluck('date');
+
+    //     $branchReports = [];
+
+    //     foreach ($dates as $date) {
+    //         $carbonDate = Carbon::createFromFormat('Y-m-d', $date, 'Asia/Manila');
+
+    //         // AM reports: 6:00 AM - 10:00 PM
+    //         $amSalesReports = SalesReports::where('branch_id', $branchId)
+    //             ->whereDate(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), $carbonDate)
+    //             ->get()
+    //             ->filter(function ($report) {
+    //                 $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
+    //                 $hour = $localTime->hour;
+    //                 $minute = $localTime->minute;
+    //                 return ($hour > 6 || ($hour == 6 && $minute > 0)) && $hour < 22; // It represents 6:01 AM to 9:59 PM
+    //             })
+    //             ->load(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports']);
+
+    //         $amBakerReports = InitialBakerreports::where('branch_id', $branchId)
+    //             ->whereDate(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), $carbonDate)
+    //             ->get()
+    //             ->filter(function ($report) {
+    //                 $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
+    //                 $hour = $localTime->hour;
+    //                 $minute = $localTime->minute;
+    //                 return ($hour > 6 || ($hour == 6 && $minute > 0)) && $hour < 18; // It represents 6:01 AM to 5:59 PM,
+    //                 // return $hour >= 6 && $hour < 17;
+    //             })
+    //             ->load(['user', 'branch', 'breadBakersReports', 'ingredientBakersReports', 'fillingBakersReports', 'breadProductionReports', 'branchRecipe']);
+
+    //         // PM reports: 11:00 PM - 5:00 AM
+    //         $pmSalesReports = SalesReports::where('branch_id', $branchId)
+    //             ->whereDate(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), $carbonDate)
+    //             ->get()
+    //             ->filter(function ($report) {
+    //                 $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
+    //                 $hour = $localTime->hour;
+    //                 return $hour >= 23 || $hour < 6;
+    //             })
+    //             ->load(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports']);
+
+    //         $pmBakerReports = InitialBakerreports::where('branch_id', $branchId)
+    //             ->whereDate(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), $carbonDate)
+    //             ->get()
+    //             ->filter(function ($report) {
+    //                 $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
+    //                 $hour = $localTime->hour;
+    //                 return $hour >= 18 || $hour < 6;
+    //             })
+    //             ->load(['user', 'branch', 'breadBakersReports', 'ingredientBakersReports', 'fillingBakersReports', 'breadProductionReports', 'branchRecipe']);
+
+    //         $branchReports[] = [
+    //             'date' => $carbonDate->toDateString(),
+    //             'AM' => [
+    //                 'sales_reports' => $amSalesReports,
+    //                 'baker_reports' => $amBakerReports,
+    //                 'date' => $carbonDate->toDateString(),
+    //                 'branch_name' => $branch->name,
+    //             ],
+    //             'PM' => [
+    //                 'sales_reports' => $pmSalesReports,
+    //                 'baker_reports' => $pmBakerReports,
+    //                 'date' => $carbonDate->toDateString(),
+    //                 'branch_name' => $branch->name,
+    //             ],
+    //         ];
+    //     }
+
+    //     if (!empty($branchReports)) {
+    //         return response()->json($branchReports);
+    //     } else {
+    //         return response()->json(['message' => 'No reports found'], 404);
+    //     }
+    // }
 
     public function fetchBranchSalesReport($branchId)
     {
