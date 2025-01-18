@@ -85,7 +85,7 @@ public function getInitialReportsData()
                 'branch_recipe_id' => 'required|integer|exists:branch_recipes,id',
                 'recipe_category' => 'required|string|in:Dough,Filling',
                 'status' => 'required|string|max:255',
-                'kilo' => 'required|integer',
+                'kilo' => 'required|numeric',
                 'over' => 'required|integer',
                 'short' => 'required|integer',
                 'target' => 'required|numeric',

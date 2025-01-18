@@ -24,6 +24,8 @@ class InitialBakerreports extends Model
 
     ];
 
+    protected $append = ['combined_bakers_reports'];
+
         public function branch()
         {
             return $this->belongsTo(Branch::class);
@@ -72,6 +74,11 @@ class InitialBakerreports extends Model
         public function breadProductionReports()
         {
             return $this->hasMany(BreadProductionReport::class, 'initial_bakerreports_id')->with('bread');
+        }
+        public function getCombinedBakersReportsAttribute()
+        {
+            // Merge breadBakersReports and fillingBakersReports
+            return $this->breadBakersReports->merge($this->fillingBakersReports);
         }
 
 }

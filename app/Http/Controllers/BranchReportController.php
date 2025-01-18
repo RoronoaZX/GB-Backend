@@ -220,8 +220,12 @@ class BranchReportController extends Controller
                 $carbonDate->copy()->setTime(6, 0, 0)->toDateTimeString(),
                 $carbonDate->copy()->setTime(17, 0, 0)->toDateTimeString(),
             ])
-            ->with(['user', 'branch', 'breadBakersReports', 'ingredientBakersReports', 'fillingBakersReports', 'breadProductionReports', 'branchRecipe'])
-            ->get();
+            ->with(['user', 'branch', 'breadBakersReports', 'ingredientBakersReports', 'fillingBakersReports', 'breadProductionReports', 'branchRecipe', ])
+            ->get()
+            ->map(function ($report) {
+                $report->combined_bakers_reports = $report->breadBakersReports->merge($report->fillingBakersReports);
+                return $report;
+            });
 
         // PM Baker Reports: 6:00 PM - 5:59 AM
         $pmBakerReports = InitialBakerreports::where('branch_id', $branchId)
@@ -230,7 +234,12 @@ class BranchReportController extends Controller
                 $carbonDate->copy()->addDay()->setTime(5, 59, 59)->toDateTimeString(),
             ])
             ->with(['user', 'branch', 'breadBakersReports', 'ingredientBakersReports', 'fillingBakersReports', 'breadProductionReports', 'branchRecipe'])
-            ->get();
+            ->get()
+            ->map(function ($report) {
+                $report->combined_bakers_reports = $report->breadBakersReports->merge($report->fillingBakersReports);
+                return $report;
+            });
+
 
         $branchReports[] = [
             'date' => $carbonDate->toDateString(),

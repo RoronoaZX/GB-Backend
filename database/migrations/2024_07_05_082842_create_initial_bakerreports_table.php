@@ -21,7 +21,7 @@ return new class extends Migration
             $table->foreign('branch_recipe_id')->references('id')->on('branch_recipes');
             $table->string('recipe_category');
             $table->string('status');
-            $table->integer('kilo');
+            $table->decimal('kilo', 10,3);
             $table->integer('short');
             $table->integer('over');
             $table->integer('target');
