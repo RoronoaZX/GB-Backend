@@ -10,6 +10,8 @@ use App\Models\InitialBakerreports;
 use App\Models\InitialFillingBakerreports;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+
 use Illuminate\Support\Facades\Validator;
 
 class InitialBakerreportsController extends Controller
@@ -246,13 +248,158 @@ public function getInitialReportsData()
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, InitialBakerreports $initialBakerreports)
+    //             // Update related bread reports
+//             if ($recipeCategory === 'Dough') {
+//                 $bakerReport->breadBakersReports()->delete();
+//                 $bakerReport->breadBakersReports()->createMany($validatedData['combined_bakers_reports']);
+// // Retrieve existing bread production reports
+// $existingBreadReports = $bakerReport->breadProductionReports()->get()->keyBy('bread_id');
+
+// $breadReportsData = array_map(function ($bread) use ($existingBreadReports) {
+//     // Check if the record exists and if the production value has changed
+//     if (
+//         !isset($existingBreadReports[$bread['bread_id']]) ||
+//         $existingBreadReports[$bread['bread_id']]->bread_new_production != $bread['bread_production']
+//     ) {
+//         return [
+//             'bread_id' => $bread['bread_id'],
+//             'bread_new_production' => $bread['bread_production'],
+//         ];
+//     }
+//     return null; // Skip if no update is needed
+// }, $validatedData['combined_bakers_reports']);
+
+// // Filter out null values to only include updates
+// $breadReportsData = array_filter($breadReportsData);
+
+// if (!empty($breadReportsData)) {
+//     // Delete and recreate only updated records
+//     $bakerReport->breadProductionReports()->delete();
+//     $bakerReport->breadProductionReports()->createMany($breadReportsData);
+// }
+//             }
+
+    public function updateBakersReport($id, Request $request)
     {
-        //
+        $bakerReport = InitialBakerreports::find($id);
+
+        if (!$bakerReport) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Baker report not found',
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'initial_bakerreports_id' => 'required|integer',
+            'sales_report_id' => 'required|integer',
+            'category' => 'required|string|in:Dough,Filling',
+            'status' => 'sometimes|string|max:255',
+            'kilo' => 'required|numeric',
+            'over' => 'required|integer',
+            'short' => 'required|integer',
+            'target' => 'required|numeric',
+            'actual_target' => 'required|integer',
+            'combined_bakers_reports' => 'required|array',
+            'combined_bakers_reports.*.bread_id' => 'required|integer',
+            'combined_bakers_reports.*.bread_production' => 'required|numeric',
+            'recalculated_ingredients' => 'required|array',
+            'recalculated_ingredients.*.ingredients_id' => 'required|integer',
+            'recalculated_ingredients.*.quantity' => 'required|numeric',
+            'recalculated_ingredients.*.unit' => 'sometimes|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $validatedData = $validator->validated();
+        $recipeCategory = $validatedData['category'];
+
+        DB::beginTransaction();
+
+        try {
+            // Update the main baker report
+            $bakerReport->update([
+                'kilo' => $validatedData['kilo'],
+                'over' => $validatedData['over'],
+                'short' => $validatedData['short'],
+                'target' => $validatedData['target'],
+                'actual_target' => $validatedData['actual_target'],
+                'status' => $recipeCategory === 'Filling' ? 'confirmed' : ($validatedData['status'] ?? $bakerReport->status),
+            ]);
+
+            // Update related bread reports
+            if ($recipeCategory === 'Dough') {
+                $bakerReport->breadBakersReports()->delete();
+                $bakerReport->breadBakersReports()->createMany($validatedData['combined_bakers_reports']);
+
+                // Update only the bread_new_production for existing bread reports
+                foreach ($validatedData['combined_bakers_reports'] as $bread) {
+                    $bakerReport->breadProductionReports()
+                        ->where('bread_id', $bread['bread_id'])
+                        ->update([
+                            'bread_new_production' => $bread['bread_production']
+                        ]);
+
+                // Update new_production in bread_sales_report
+                DB::table('bread_sales_reports')
+                        ->where('product_id', $bread['bread_id'])
+                        ->where('sales_report_id', $validatedData['sales_report_id'])
+                        ->update(['new_production' => $bread['bread_production']]);
+                }
+            }
+//             // Update related bread reports
+
+
+            if ($recipeCategory === 'Filling') {
+                $bakerReport->fillingBakersReports()->delete();
+                $fillingData = array_map(function ($bread) {
+                    return [
+                        'bread_id' => $bread['bread_id'],
+                        'filling_production' => $bread['bread_production']
+                    ];
+                }, $validatedData['combined_bakers_reports']);
+                $bakerReport->fillingBakersReports()->createMany($fillingData);
+            }
+
+            // Update related ingredient reports
+            $bakerReport->ingredientBakersReports()->delete();
+            $bakerReport->ingredientBakersReports()->createMany($validatedData['recalculated_ingredients']);
+
+            // if ($recipeCategory === 'Filling') {
+            //     foreach ($validatedData['recalculated_ingredients'] as $ingredientReport) {
+            //         $ingredientInventory = BranchRawMaterialsReport::where('ingredients_id', $ingredientReport['ingredients_id'])
+            //             ->where('branch_id', $bakerReport->branch_id)
+            //             ->first();
+
+            //         if ($ingredientInventory) {
+            //             $ingredientInventory->total_quantity -= $ingredientReport['quantity'];
+            //             $ingredientInventory->save();
+            //         }
+            //     }
+            // }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Baker report updated successfully',
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to update baker report',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
+
 
     /**
      * Remove the specified resource from storage.
