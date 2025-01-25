@@ -17,6 +17,55 @@ class BreadSalesReportController extends Controller
         //
     }
 
+    public function updatePrice(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'price' => 'required|integer'
+        ]);
+
+        $breadSalesReport = BreadSalesReport::findorFail($id);
+        $breadSalesReport->price = $validatedData['price'];
+        $breadSalesReport->save();
+
+        return response()->json(['message' => 'Price updated successfully', 'price' => $breadSalesReport]);
+    }
+    public function updateBeginnings(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'beginnings' => 'required|integer'
+        ]);
+
+        $breadSalesReport = BreadSalesReport::findorFail($id);
+        $breadSalesReport->beginnings = $validatedData['beginnings'];
+        $breadSalesReport->save();
+
+        return response()->json(['message' => 'Beginnings updated successfully', 'beginnings' => $breadSalesReport]);
+    }
+    public function updateRemaining(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'remaining' => 'required|integer'
+        ]);
+
+        $breadSalesReport = BreadSalesReport::findorFail($id);
+        $breadSalesReport->remaining = $validatedData['remaining'];
+        $breadSalesReport->save();
+
+        return response()->json(['message' => 'Remaining updated successfully', 'remaining' => $breadSalesReport]);
+    }
+    public function updateBreadOut(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'bread_out' => 'required|integer'
+        ]);
+
+        $breadSalesReport = BreadSalesReport::findorFail($id);
+        $breadSalesReport->bread_out = $validatedData['bread_out'];
+        $breadSalesReport->save();
+
+        return response()->json(['message' => 'Bread out updated successfully', 'bread_out' => $breadSalesReport]);
+    }
+
     /**
      * Show the form for creating a new resource.
      *

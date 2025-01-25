@@ -17,6 +17,19 @@ class SelectaSalesReportController extends Controller
         //
     }
 
+    public function updatePrice(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'price' => 'required|integer'
+        ]);
+
+        $selectaSalesReport = SelectaSalesReport::findorFail($id);
+        $selectaSalesReport->price = $validatedData['price'];
+        $selectaSalesReport->save();
+
+        return response()->json(['message' => 'Price updated successfully', 'price' => $selectaSalesReport]);
+    }
+
     /**
      * Show the form for creating a new resource.
      *
