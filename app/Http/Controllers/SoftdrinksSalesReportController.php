@@ -17,6 +17,67 @@ class SoftdrinksSalesReportController extends Controller
         //
     }
 
+    public function updatePrice(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'price' => 'required|integer'
+        ]);
+
+        $softdrinksSalesReport = SoftdrinksSalesReport::findorFail($id);
+        $softdrinksSalesReport->price = $validatedData['price'];
+        $softdrinksSalesReport->save();
+
+        return response()->json(['message' => 'Price updated successfully', 'price' => $softdrinksSalesReport]);
+    }
+    public function updatedBeginnings(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'beginnings' => 'required|integer'
+        ]);
+
+        $softdrinksSalesReport = SoftdrinksSalesReport::findorFail($id);
+        $softdrinksSalesReport->beginnings = $validatedData['beginnings'];
+        $softdrinksSalesReport->save();
+
+        return response()->json(['message' => 'beginnings updated successfully', 'beginnings' => $softdrinksSalesReport]);
+    }
+    public function updatedRemaining(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'remaining' => 'required|integer'
+        ]);
+
+        $softdrinksSalesReport = SoftdrinksSalesReport::findorFail($id);
+        $softdrinksSalesReport->remaining = $validatedData['remaining'];
+        $softdrinksSalesReport->save();
+
+        return response()->json(['message' => 'remaining updated successfully', 'remaining' => $softdrinksSalesReport]);
+    }
+    public function updatedSoftdrinksOut(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'out' => 'required|integer'
+        ]);
+
+        $softdrinksSalesReport = SoftdrinksSalesReport::findorFail($id);
+        $softdrinksSalesReport->out = $validatedData['out'];
+        $softdrinksSalesReport->save();
+
+        return response()->json(['message' => 'out updated successfully', 'out' => $softdrinksSalesReport]);
+    }
+    public function updatedAddedStocks(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'added_stocks' => 'required|integer'
+        ]);
+
+        $softdrinksSalesReport = SoftdrinksSalesReport::findorFail($id);
+        $softdrinksSalesReport->added_stocks = $validatedData['added_stocks'];
+        $softdrinksSalesReport->save();
+
+        return response()->json(['message' => 'added_stocks updated successfully', 'added_stocks' => $softdrinksSalesReport]);
+    }
+
     /**
      * Show the form for creating a new resource.
      *

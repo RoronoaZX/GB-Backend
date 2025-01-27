@@ -29,6 +29,55 @@ class SelectaSalesReportController extends Controller
 
         return response()->json(['message' => 'Price updated successfully', 'price' => $selectaSalesReport]);
     }
+    public function updatedBeginnings(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'beginnings' => 'required|integer'
+        ]);
+
+        $selectaSalesReport = SelectaSalesReport::findorFail($id);
+        $selectaSalesReport->beginnings = $validatedData['beginnings'];
+        $selectaSalesReport->save();
+
+        return response()->json(['message' => 'beginnings updated successfully', 'beginnings' => $selectaSalesReport]);
+    }
+    public function updatedRemaining(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'remaining' => 'required|integer'
+        ]);
+
+        $selectaSalesReport = SelectaSalesReport::findorFail($id);
+        $selectaSalesReport->remaining = $validatedData['remaining'];
+        $selectaSalesReport->save();
+
+        return response()->json(['message' => 'remaining updated successfully', 'remaining' => $selectaSalesReport]);
+    }
+    public function updatedSelectaOut(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'out' => 'required|integer'
+        ]);
+
+        $selectaSalesReport = SelectaSalesReport::findorFail($id);
+        $selectaSalesReport->out = $validatedData['out'];
+        $selectaSalesReport->save();
+
+        return response()->json(['message' => 'out updated successfully', 'out' => $selectaSalesReport]);
+    }
+    public function updatedAddedStocks(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'added_stocks' => 'required|integer'
+        ]);
+
+        $selectaSalesReport = SelectaSalesReport::findorFail($id);
+        $selectaSalesReport->added_stocks = $validatedData['added_stocks'];
+        $selectaSalesReport->save();
+
+        return response()->json(['message' => 'added_stocks updated successfully', 'added_stocks' => $selectaSalesReport]);
+    }
+
 
     /**
      * Show the form for creating a new resource.

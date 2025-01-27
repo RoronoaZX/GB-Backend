@@ -15,6 +15,67 @@ class OtherProductsController extends Controller
         //
     }
 
+    public function updatePrice(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'price' => 'required|integer'
+        ]);
+
+        $otherProducts = OtherProducts::findorFail($id);
+        $otherProducts->price = $validatedData['price'];
+        $otherProducts->save();
+
+        return response()->json(['message' => 'Price updated successfully', 'price' => $otherProducts]);
+    }
+    public function updatedBeginnings(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'beginnings' => 'required|integer'
+        ]);
+
+        $otherProducts = OtherProducts::findorFail($id);
+        $otherProducts->beginnings = $validatedData['beginnings'];
+        $otherProducts->save();
+
+        return response()->json(['message' => 'beginnings updated successfully', 'beginnings' => $otherProducts]);
+    }
+    public function updatedRemaining(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'remaining' => 'required|integer'
+        ]);
+
+        $otherProducts = OtherProducts::findorFail($id);
+        $otherProducts->remaining = $validatedData['remaining'];
+        $otherProducts->save();
+
+        return response()->json(['message' => 'remaining updated successfully', 'remaining' => $otherProducts]);
+    }
+    public function updatedOtherProductsOut(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'out' => 'required|integer'
+        ]);
+
+        $otherProducts = OtherProducts::findorFail($id);
+        $otherProducts->out = $validatedData['out'];
+        $otherProducts->save();
+
+        return response()->json(['message' => 'out updated successfully', 'out' => $otherProducts]);
+    }
+    public function updatedAddedStocks(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'added_stocks' => 'required|integer'
+        ]);
+
+        $otherProducts = OtherProducts::findorFail($id);
+        $otherProducts->added_stocks = $validatedData['added_stocks'];
+        $otherProducts->save();
+
+        return response()->json(['message' => 'added_stocks updated successfully', 'added_stocks' => $otherProducts]);
+    }
+
     /**
      * Show the form for creating a new resource.
      */
