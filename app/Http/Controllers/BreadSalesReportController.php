@@ -66,15 +66,33 @@ class BreadSalesReportController extends Controller
         return response()->json(['message' => 'Bread out updated successfully', 'bread_out' => $breadSalesReport]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function addingBreadProduction(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'branch_id' => 'required|exists:branches,id',
+            'sales_report_id' => 'required|exists:sales_reports,id',
+            'product_id' => 'required|exists:products,id',
+            'product_name' => 'required|string',
+            'price' => 'required|numeric',
+            'beginnings' => 'numeric',
+            'remaining' => 'numeric',
+            'new_production' => 'numeric',
+            'bread_out' => 'numeric',
+            'bread_sold' => 'numeric',
+            'total' => 'numeric',
+            'sales' => 'numeric',
+        ]);
+
+        $breadProduction = BreadSalesReport::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bread production recorded successfully!',
+            'data' => $breadProduction,
+        ]);
     }
+
 
     /**
      * Store a newly created resource in storage.

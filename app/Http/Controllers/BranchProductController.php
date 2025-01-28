@@ -15,6 +15,29 @@ class BranchProductController extends Controller
         //
     }
 
+    // public function search(Request $request)
+    // {
+    //     $branchId = $request->input('branch_id');
+    //     $query = $request->input('query');
+    //     $category = $request->input('category');
+
+    //     $branchProducts = BranchProduct::with('product') // Assuming a relationship exists
+    //         ->when($branchId, function ($q) use ($branchId) {
+    //             return $q->where('branch_id', $branchId);
+    //         })
+    //         ->when($query, function ($q) use ($query) {
+    //             return $q->whereHas('product', function ($productQuery) use ($query) {
+    //                 $productQuery->where('name', 'LIKE', '%' . $query . '%');
+    //             });
+    //         })
+    //         ->when($category, function ($q) use ($category) {
+    //             return $q->where('category', $category);
+    //         })
+    //         ->get();
+
+    //     return response()->json($branchProducts);
+    // }
+
     public function getProducts($branchId)
     {
         $branchProducts = BranchProduct::orderBy('created_at', 'desc')->where('branches_id', $branchId)->with(['branch', 'product'])->get();

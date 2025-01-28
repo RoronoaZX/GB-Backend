@@ -78,6 +78,29 @@ class SoftdrinksSalesReportController extends Controller
         return response()->json(['message' => 'added_stocks updated successfully', 'added_stocks' => $softdrinksSalesReport]);
     }
 
+    public function addingSoftdrinksProduction(Request $request)
+    {
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'branch_id' => 'required|exists:branches,id',
+            'sales_report_id' => 'required|exists:sales_reports,id',
+            'product_id' => 'required|exists:products,id',
+            'product_name' => 'required|string',
+            'price' => 'required|numeric',
+            'beginnings' => 'numeric',
+            'remaining' => 'numeric',
+            'added_stocks' => 'numeric',
+            'out' => 'numeric',
+            'sold' => 'numeric',
+            'total' => 'numeric',
+            'sales' => 'numeric',
+        ]);
+
+        $selectaSalesReport = SoftdrinksSalesReport::create($validated);
+
+        return response()->json(['message' => 'Softdrinks Production added successfully', 'selectaSalesReport' => $selectaSalesReport]);
+    }
+
     /**
      * Show the form for creating a new resource.
      *

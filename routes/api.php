@@ -99,6 +99,7 @@ Route::apiResource('cash-advance', CashAdvanceController::class);
 Route::apiResource('uniform', UniformController::class);
 Route::apiResource('branch-recipe', BranchRecipeController::class);
 Route::apiResource('cake-report', CakeReportController::class);
+// Route::apiResource('branch-add-bread-production-report', BreadSalesReportController::class);
 Route::apiResource('warehouse-employee', WarehouseEmployeeController::class);
 Route::apiResource('warehouse-raw-materials-report', WarehouseRawMaterialsReportController::class);
 Route::apiResource('selecta-stocks-added', SelectaAddedStockController::class);
@@ -129,6 +130,7 @@ Route::post('confirm-otherProd-report/{id}', [OtherStocksReportController::class
 Route::post('confirm-initial-baker-report/{id}', [InitialBakerreportsController::class, 'confirmReport']);
 Route::post('decline-initial-baker-report/{id}', [InitialBakerreportsController::class, 'declineReport']);
 Route::post('search-branches-by-id', [BranchProductController::class, 'searchBranchId' ]);
+Route::post('search-branch-products', [BranchProductController::class, 'searchBranchProducts' ]);
 Route::post('search-selecta-products', [BranchProductController::class, 'searchBranchProducts' ]);
 Route::post('search-user', [UserController::class, 'searchUser' ]);
 Route::post('search', [UserController::class, 'search' ]);
@@ -148,6 +150,10 @@ Route::post('decline-cake-maker-report/{id}', [CakeReportController::class, 'dec
 Route::post('reports/{id}/decline-reports', [SelectaStocksReportController::class, 'declineReport']);
 Route::post('reports/{id}/decline-reports', [SoftdrinksStocksReportController::class, 'declineReport']);
 Route::post('reports/{id}/decline-reports', [OtherStocksReportController::class, 'declineReport']);
+Route::post('branch-add-bread-production-report', [BreadSalesReportController::class, 'addingBreadProduction']);
+Route::post('branch-add-selecta-production-report', [SelectaSalesReportController::class, 'addingSelectaProduction']);
+Route::post('branch-add-softdrinks-production-report', [SoftdrinksSalesReportController::class, 'addingSoftdrinksProduction']);
+Route::post('branch-add-other-production-report', [OtherProductsController::class, 'addingOtherProduction']);
 
 Route::put('update-employee-birthdate/{id}', [EmployeeController::class, 'updateEmployeeBirthdate']);
 Route::put('update-employee-phone/{id}', [EmployeeController::class, 'updateEmployeePhone']);
@@ -226,6 +232,7 @@ Route::get('search-recipes',[ RecipeController::class, 'searchRecipe']);
 Route::get('branch-recipe-search',[ BranchRecipeController::class, 'branchSearchRecipe']);
 Route::get('branches/{branchId}/recipes', [BranchRecipeController::class, 'getBranchRecipe']);
 Route::get('branches/{branchId}/products', [BranchProductController::class, 'getProducts']);
+Route::get('branch-products/search', [BranchProductController::class, 'search']);
 Route::get('branches/{branchId}/production-report', [BranchReportController::class, 'fetchBranchReport']);
 Route::get('branches/{branchId}/branch-sales-report', [BranchReportController::class, 'fetchBranchSalesReport']);
 Route::get('user/{userId}', [UserController::class, 'fetchUserById']);
