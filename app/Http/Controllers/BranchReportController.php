@@ -405,29 +405,23 @@ class BranchReportController extends Controller
         foreach ($dates as $date) {
             $carbonDate = Carbon::createFromFormat('Y-m-d', $date, 'Asia/Manila');
 
-            // AM reports: 6:00 AM - 10:00 PM
+             // AM Sales Reports: 6:00 AM - 10:00 PM
+             $amSalesReports = SalesReports::where('branch_id', $branchId)
+             ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
+                 $carbonDate->copy()->setTime(6, 0, 0)->toDateTimeString(),
+                 $carbonDate->copy()->setTime(22, 0, 0)->toDateTimeString(),
+             ])
+             ->with(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports'])
+             ->get();
 
-            // AM reports: 6:00 AM - 10:00 PM
-            $amSalesReports = SalesReports::where('branch_id', $branchId)
-                ->whereDate(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), $carbonDate)
-                ->get()
-                ->filter(function ($report) {
-                    $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
-                    $hour = $localTime->hour;
-                    return $hour >= 6 && $hour < 22;
-                })
-                ->load(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports']);
-
-                 // PM reports: 11:00 PM - 5:00 AM
-            $pmSalesReports = SalesReports::where('branch_id', $branchId)
-            ->whereDate(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), $carbonDate)
-            ->get()
-            ->filter(function ($report) {
-                $localTime = Carbon::parse($report->created_at)->setTimezone('Asia/Manila');
-                $hour = $localTime->hour;
-                return $hour >= 23 || $hour < 6;
-            })
-            ->load(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports']);
+         // PM Sales Reports: 10:01 PM - 5:59 AM
+         $pmSalesReports = SalesReports::where('branch_id', $branchId)
+             ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
+                 $carbonDate->copy()->setTime(22, 1, 0)->toDateTimeString(),
+                 $carbonDate->copy()->addDay()->setTime(5, 59, 59)->toDateTimeString(),
+             ])
+             ->with(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports'])
+             ->get();
 
             $branchReports[] = [
                 'date' => $carbonDate->toDateString(),
