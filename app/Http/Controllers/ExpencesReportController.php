@@ -55,6 +55,42 @@ class ExpencesReportController extends Controller
 
         return response()->json(['message' => 'amount updated successfully', 'amount' => $expensesReport]);
     }
+    public function updateExpensesReport(Request $request)
+    {
+        $validatedData = $request->validate([
+            'sales_report_id' => 'required|integer|exists:sales_reports,id',
+            'branch_id' => 'required|integer|exists:branches,id',
+            'user_id' => 'required|integer|exists:users,id',
+            'expenses' => 'required|array',
+            'expenses.*.name' => 'required|string|max:255',
+            'expenses.*.amount' => 'required|numeric|min:0',
+            'expenses.*.description' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            foreach ($validatedData['expenses'] as $expense) {
+                ExpencesReport::create([
+                    'sales_report_id' => $validatedData['sales_report_id'],
+                    'branch_id' => $validatedData['branch_id'],
+                    'user_id' => $validatedData['user_id'],
+                    'name' => $expense['name'],
+                    'amount' => $expense['amount'],
+                    'description' => $expense['description'] ?? null,
+                ]);
+            }
+
+            return response()->json([
+                'message' => 'Expenses successfully stored!',
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Something went wrong!',
+                'details' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
 
     /**
      * Show the form for creating a new resource.

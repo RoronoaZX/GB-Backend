@@ -20,6 +20,7 @@ use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\EmployeeAllowanceController;
 use App\Http\Controllers\EmployeeBenefitController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\EmployeeCreditProductsController;
 use App\Http\Controllers\EmployeeDeductionController;
 use App\Http\Controllers\EmploymentTypeController;
 use App\Http\Controllers\ExpencesReportController;
@@ -154,6 +155,8 @@ Route::post('branch-add-bread-production-report', [BreadSalesReportController::c
 Route::post('branch-add-selecta-production-report', [SelectaSalesReportController::class, 'addingSelectaProduction']);
 Route::post('branch-add-softdrinks-production-report', [SoftdrinksSalesReportController::class, 'addingSoftdrinksProduction']);
 Route::post('branch-add-other-production-report', [OtherProductsController::class, 'addingOtherProduction']);
+Route::post('employee-adding-credits', [EmployeeCreditProductsController::class, 'storeEmployeeCredits']);
+Route::post('employee-adding-expense', [ExpencesReportController::class, 'updateExpensesReport']);
 
 Route::put('update-employee-birthdate/{id}', [EmployeeController::class, 'updateEmployeeBirthdate']);
 Route::put('update-employee-phone/{id}', [EmployeeController::class, 'updateEmployeePhone']);
