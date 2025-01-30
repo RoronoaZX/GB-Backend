@@ -70,6 +70,9 @@ class SalesReportsController extends Controller
 
             if ($branchProduct) {
                 $branchProduct->beginnings = $breadReport['remaining'];
+                //this code is to set 0 the new production record of the branch product
+                //in every submiting of report so that the new production will not be added
+                // to the new production of the branch product
                 $branchProduct->new_production = $breadReport['new_production'];
                 $branchProduct->total_quantity = $breadReport['remaining'];
                 $branchProduct->save();
@@ -87,6 +90,9 @@ class SalesReportsController extends Controller
 
         if ($branchProduct) {
             $branchProduct->beginnings = $selectaReport['remaining'];
+            //this code is to set 0 the new production record of the branch product
+            //in every submiting of report so that the new production will not be added
+            // to the new production of the branch product
             $branchProduct->new_production = $selectaReport['new_production'];
             $branchProduct->total_quantity = $selectaReport['remaining'];
             $branchProduct->save();
@@ -130,6 +136,9 @@ class SalesReportsController extends Controller
 
         if ($branchProduct) {
             $branchProduct->beginnings = $softdrinksReport['remaining'];
+            //this code is to set 0 the new production record of the branch product
+            //in every submiting of report so that the new production will not be added
+            // to the new production of the branch product
             $branchProduct->new_production = $softdrinksReport['new_production'];
             $branchProduct->total_quantity = $softdrinksReport['remaining'];
             $branchProduct->save();
@@ -147,6 +156,9 @@ class SalesReportsController extends Controller
 
             if ($branchProduct) {
                 $branchProduct->beginnings = $otherProductsReports['remaining'];
+                //this code is to set 0 the new production record of the branch product
+                //in every submiting of report so that the new production will not be added
+                // to the new production of the branch product
                 $branchProduct->new_production = $otherProductsReports['new_production'];
                 $branchProduct->total_quantity = $otherProductsReports['remaining'];
                 $branchProduct->save();
