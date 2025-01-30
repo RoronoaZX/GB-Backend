@@ -41,6 +41,18 @@ class BreadSalesReportController extends Controller
 
         return response()->json(['message' => 'Beginnings updated successfully', 'beginnings' => $breadSalesReport]);
     }
+    public function updatedNewProduction(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'new_production' => 'required|integer'
+        ]);
+
+        $breadSalesReport = BreadSalesReport::findorFail($id);
+        $breadSalesReport->new_production = $validatedData['new_production'];
+        $breadSalesReport->save();
+
+        return response()->json(['message' => 'Beginnings updated successfully', 'new_production' => $breadSalesReport]);
+    }
     public function updateRemaining(Request $request, $id)
     {
         $validatedData = $request->validate([

@@ -172,6 +172,7 @@ Route::put('branch-update-status/{id}', [BranchRecipeController::class, 'branchU
 Route::put('update-bread-sales-breadOut-report/{id}', [BreadSalesReportController::class, 'updateBreadOut' ]);
 Route::put('update-bread-sales-remaining-report/{id}', [BreadSalesReportController::class, 'updateRemaining' ]);
 Route::put('update-bread-sales-beginnings-report/{id}', [BreadSalesReportController::class, 'updateBeginnings' ]);
+Route::put('update-bread-sales-newProduction-report/{id}', [BreadSalesReportController::class, 'updatedNewProduction' ]);
 Route::put('update-bread-sales-price-report/{id}', [BreadSalesReportController::class, 'updatePrice' ]);
 Route::put('update-selecta-sales-price-report/{id}', [SelectaSalesReportController::class, 'updatePrice' ]);
 Route::put('update-selecta-sales-beginnings-report/{id}', [SelectaSalesReportController::class, 'updatedBeginnings' ]);
