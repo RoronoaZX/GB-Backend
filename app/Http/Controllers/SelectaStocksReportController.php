@@ -62,6 +62,7 @@ class SelectaStocksReportController extends Controller
                     $query->where('added_stocks', '>', 0); // Optional: Only fetch added stocks greater than 0
                 }
             ])
+            ->orderBy('created_at', 'desc') // Ensures the newest reports appear first
             ->get();
 
         // Return the response with the filtered reports and their associated added stocks
@@ -117,6 +118,7 @@ class SelectaStocksReportController extends Controller
                     $query->where('added_stocks', '>', 0); // Optional: Only fetch added stocks greater than 0
                 }
             ])
+            ->orderBy('created_at', 'desc') // Ensures the newest reports appear first
             ->get();
 
         // Return the response with the filtered reports and their associated added stocks
@@ -190,6 +192,7 @@ class SelectaStocksReportController extends Controller
                     $query->where('added_stocks', '>', 0); // Optional: Only fetch added stocks greater than 0
                 }
             ])
+            ->orderBy('created_at', 'desc') // Ensures the newest reports appear first
             ->get();
 
         // Return the response with the filtered reports and their associated added stocks
