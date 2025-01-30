@@ -70,6 +70,7 @@ class SalesReportsController extends Controller
 
             if ($branchProduct) {
                 $branchProduct->beginnings = $breadReport['remaining'];
+                $branchProduct->new_production = $breadReport['new_production'];
                 $branchProduct->total_quantity = $breadReport['remaining'];
                 $branchProduct->save();
             }
@@ -86,6 +87,7 @@ class SalesReportsController extends Controller
 
         if ($branchProduct) {
             $branchProduct->beginnings = $selectaReport['remaining'];
+            $branchProduct->new_production = $selectaReport['new_production'];
             $branchProduct->total_quantity = $selectaReport['remaining'];
             $branchProduct->save();
         }
@@ -128,6 +130,7 @@ class SalesReportsController extends Controller
 
         if ($branchProduct) {
             $branchProduct->beginnings = $softdrinksReport['remaining'];
+            $branchProduct->new_production = $softdrinksReport['new_production'];
             $branchProduct->total_quantity = $softdrinksReport['remaining'];
             $branchProduct->save();
         }
@@ -144,6 +147,7 @@ class SalesReportsController extends Controller
 
             if ($branchProduct) {
                 $branchProduct->beginnings = $otherProductsReports['remaining'];
+                $branchProduct->new_production = $otherProductsReports['new_production'];
                 $branchProduct->total_quantity = $otherProductsReports['remaining'];
                 $branchProduct->save();
             }
