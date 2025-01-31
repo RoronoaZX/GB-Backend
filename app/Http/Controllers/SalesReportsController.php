@@ -73,7 +73,7 @@ class SalesReportsController extends Controller
                 //this code is to set 0 the new production record of the branch product
                 //in every submiting of report so that the new production will not be added
                 // to the new production of the branch product
-                $branchProduct->new_production = $breadReport['new_production'];
+                $branchProduct->new_production = $breadReport['branch_new_production'];
                 $branchProduct->total_quantity = $breadReport['remaining'];
                 $branchProduct->save();
             }
