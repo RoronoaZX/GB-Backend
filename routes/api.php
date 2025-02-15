@@ -6,6 +6,7 @@ use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\WarehouseController;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\BranchEmployeeController;
+use App\Http\Controllers\BranchPremixController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BranchProductController;
@@ -29,6 +30,7 @@ use App\Http\Controllers\InitialBakerreportsController;
 use App\Http\Controllers\OtherAddedStocksController;
 use App\Http\Controllers\OtherProductsController;
 use App\Http\Controllers\OtherStocksReportController;
+use App\Http\Controllers\RequestPremixController;
 use App\Http\Controllers\SalesReportsController;
 use App\Http\Controllers\SelectaAddedStockController;
 use App\Http\Controllers\SelectaSalesReportController;
@@ -48,6 +50,7 @@ use App\Models\BranchRawMaterialsReport;
 use App\Models\BranchRecipe;
 use App\Models\CashAdvance;
 use App\Models\DailyTimeRecord;
+use App\Models\RequestPremix;
 use App\Models\SoftdrinksAddedStocks;
 use App\Models\SoftdrinksStocksReport;
 use App\Models\WarehouseEmployee;
@@ -111,6 +114,8 @@ Route::apiResource('other-stocks-added', OtherAddedStocksController::class);
 Route::apiResource('other-stocks-report', OtherStocksReportController::class);
 Route::apiResource('warehouseRawMaterials-add-supply', WarehouseStockReportsController::class);
 Route::apiResource('warehouse-rawMaterials-report', WarehouseScalingReportController::class);
+Route::apiResource('branch-premix', BranchPremixController::class);
+Route::apiResource('request-premix', RequestPremixController::class);
 
 Route::post('search-allowance', [EmployeeAllowanceController::class, 'searchAllowance']);
 Route::post('search-benefit', [EmployeeBenefitController::class, 'searchBenefit']);
@@ -201,6 +206,8 @@ Route::put('update-warehouse-rawMaterials/{id}', [WarehouseRawMaterialsReportCon
 Route::put('update/branch-baker-report/{id}', [InitialBakerreportsController::class, 'updateBakersReport']);
 
 
+Route::get('get-branch-premix/{branch_id}', [BranchPremixController::class, 'getBranchPremix' ]);
+Route::get('search-premix', [BranchPremixController::class, 'searchBranchPremix' ]);
 Route::get('warehouse/{warehouseId}/branch', [BranchController::class, 'fetchBranchUnderWarehouse' ]);
 Route::get('fetch-selecta-products', [BranchProductController::class, 'fetchBranchSelectaProducts' ]);
 Route::get('fetch-softdrinks-products', [BranchProductController::class, 'fetchBranchSoftdrinksProducts' ]);
