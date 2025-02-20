@@ -107,14 +107,19 @@ class WarehouseController extends Controller
     {
         $keyword = $request->input('keyword');
 
-        $request->validate([
-            'keyword' => 'required|string|max:255'
-        ]);
+        $warehouse = Warehouse::where('name', 'like', "%$keyword%")
+                        ->orderBy('created_at', 'desc')
+                        ->take(7)
+                        ->get();
 
-        $results = Warehouse::search($keyword)->get();
+        if ($warehouse->isEmpty()) {
+            $warehouse = Warehouse::orderBy('created_at', 'desc')->take(7)->get();
+        }
 
-        return response()->json($results);
+        return response()->json($warehouse, 200);
     }
+
+
 
     public function fetchWarehouseWithEmployee()
     {

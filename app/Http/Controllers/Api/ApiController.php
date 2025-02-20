@@ -154,11 +154,12 @@ public function login(Request $request)
             'token' => $user->createToken('API TOKEN')->plainTextToken,
             'role' => $role,
             'device' => [
-                'branch_id' => $device->branch_id,
+                'reference_id' => $device->reference_id,
                 'uuid' => $device->uuid,
                 'name' => $device->name,
                 'model' => $device->model,
                 'os_version' => $device->os_version,
+                'designation' => $device->designation,
                 // Add other device fields you want to include
             ] // Include device data in response
         ], 200);
@@ -171,7 +172,7 @@ public function login(Request $request)
     }
 }
 
-    public function profile(Request $request)
+public function profile(Request $request)
 {
     // Retrieve UUID from the request header
     $uuid = $request->header('Device-UUID');
@@ -187,7 +188,9 @@ public function login(Request $request)
     $user = auth()->user();
 
     // Find the device associated with the UUID
-    $device = Device::where('uuid', $uuid)->with('branch')->first();
+    $device = Device::where('uuid', $uuid)
+        ->with(['branch', 'warehouse']) // Load both relationships
+        ->first();
 
     if (!$device) {
         return response()->json([
@@ -203,7 +206,7 @@ public function login(Request $request)
     $employeeData = null;
 
     if ($userData && $userData->employee) {
-        $position = $userData->employee->position; // Assuming `position` is a column in the `employees` table
+        $position = $userData->employee->position;
 
         if ($position === 'Scaler') {
             $employeeData = $userData->employee->warehouseEmployee()->first();
@@ -218,15 +221,75 @@ public function login(Request $request)
         'data' => $userData,
         'employee' => $employeeData,
         'device' => [
-            'branch_id' => $device->branch_id,
+            'reference_id' => $device->reference_id,
             'uuid' => $device->uuid,
             'name' => $device->name,
             'model' => $device->model,
             'os_version' => $device->os_version,
-            'branch' => $device->branch
-        ],
+            'designation' => $device->designation,
+            'reference' => $device->reference // Use the accessor to get the correct branch/warehouse
+        ]
     ], 200);
 }
+
+
+    // public function profile(Request $request)
+    // {
+    //     // Retrieve UUID from the request header
+    //     $uuid = $request->header('Device-UUID');
+
+    //     if (!$uuid) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Device UUID is required'
+    //         ], 400);
+    //     }
+
+    //     // Get the authenticated user
+    //     $user = auth()->user();
+
+    //     // Find the device associated with the UUID
+    //     $device = Device::where('uuid', $uuid)->with('branch')->first();
+
+    //     if (!$device) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Device not registered'
+    //         ], 404);
+    //     }
+
+    //     // Retrieve user data with employee information
+    //     $userData = User::where('id', $user->id)->with('employee')->first();
+
+    //     // Initialize employee data
+    //     $employeeData = null;
+
+    //     if ($userData && $userData->employee) {
+    //         $position = $userData->employee->position; // Assuming `position` is a column in the `employees` table
+
+    //         if ($position === 'Scaler') {
+    //             $employeeData = $userData->employee->warehouseEmployee()->first();
+    //         } else {
+    //             $employeeData = $userData->employee->branchEmployee()->first();
+    //         }
+    //     }
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'User profile retrieved successfully',
+    //         'data' => $userData,
+    //         'employee' => $employeeData,
+    //         'device' => [
+    //                 'reference_id' => $device->reference_id,
+    //                 'uuid' => $device->uuid,
+    //                 'name' => $device->name,
+    //                 'model' => $device->model,
+    //                 'os_version' => $device->os_version,
+    //                 'designation' => $device->designation,
+    //                 // Add other device fields you want to include
+    //             ] //
+    //     ], 200);
+    // }
 
 
     // public function profile()

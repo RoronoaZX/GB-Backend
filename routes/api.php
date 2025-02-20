@@ -146,6 +146,7 @@ Route::post('search-branch-rawMaterials', [BranchRawMaterialsReportController::c
 Route::post('search-warehouse-rawMaterials', [WarehouseRawMaterialsReportController::class, 'searchWarehouseRawMaterials' ]);
 Route::post('search-products', [BranchProductController::class, 'searchProducts']);
 Route::post('search-branch',[ BranchController::class, 'searchBranch']);
+Route::post('search-warehouse',[ WarehouseController::class, 'searchWarehouse']);
 Route::post('search-employees', [EmployeeController::class, 'searchEmployees']);
 Route::post('searchEmployeesWithDesignation', [EmployeeController::class, 'searchEmployeesWithDesignation']);
 Route::post('dtr-data', [DailyTimeRecordController::class, 'getDTRData']);
@@ -162,6 +163,9 @@ Route::post('branch-add-softdrinks-production-report', [SoftdrinksSalesReportCon
 Route::post('branch-add-other-production-report', [OtherProductsController::class, 'addingOtherProduction']);
 Route::post('employee-adding-credits', [EmployeeCreditProductsController::class, 'storeEmployeeCredits']);
 Route::post('employee-adding-expense', [ExpencesReportController::class, 'updateExpensesReport']);
+Route::post('confirm-premix', [RequestPremixController::class, 'confirmPremix']);
+Route::post('decline-premix', [RequestPremixController::class, 'declinePremix']);
+Route::post('process-premix', [RequestPremixController::class, 'processPremix']);
 
 Route::put('update-employee-birthdate/{id}', [EmployeeController::class, 'updateEmployeeBirthdate']);
 Route::put('update-employee-phone/{id}', [EmployeeController::class, 'updateEmployeePhone']);
@@ -206,6 +210,9 @@ Route::put('update-warehouse-rawMaterials/{id}', [WarehouseRawMaterialsReportCon
 Route::put('update/branch-baker-report/{id}', [InitialBakerreportsController::class, 'updateBakersReport']);
 
 
+Route::get('get-process-premix/{warehouseId}', [RequestPremixController::class, 'getProcessPremix' ]);
+Route::get('get-decline-premix/{warehouseId}', [RequestPremixController::class, 'getDeclineReports' ]);
+Route::get('get-confirm-premix/{warehouseId}', [RequestPremixController::class, 'getConfirmReports' ]);
 Route::get('get-branch-premix/{branch_id}', [BranchPremixController::class, 'getBranchPremix' ]);
 Route::get('search-premix', [BranchPremixController::class, 'searchBranchPremix' ]);
 Route::get('warehouse/{warehouseId}/branch', [BranchController::class, 'fetchBranchUnderWarehouse' ]);
@@ -224,6 +231,7 @@ Route::get('other-added-stocks/{branchId}', [OtherStocksReportController::class,
 Route::get('other-added-stocks/{branchId}/pending-reports', [OtherStocksReportController::class, 'getPendingReports']);
 Route::get('other-added-stocks/{branchId}/confirmed-reports', [OtherStocksReportController::class, 'getConfirmedReport']);
 Route::get('other-added-stocks/{branchId}/declined-reports', [OtherStocksReportController::class, 'getDeclinedReport']);
+Route::get('pending-premix/{warehouseId}', [RequestPremixController::class, 'getPendingPremix']);
 Route::get('warehouse/{warehouseId}', [WarehouseController::class, 'getWarehouse']);
 Route::get('warehouse/{warehouseId}/warehouseBranchReports', [WarehouseController::class, 'getWarehouseBranchReport']);
 Route::get('branch/{branchId}/getCakeOnDisplayProduct', [CakeReportController::class, 'getCakeOnDisplayProduct']);

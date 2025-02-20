@@ -10,15 +10,28 @@ class Device extends Model
     use HasFactory;
 
     protected $fillable = [
-        'branch_id',
+        'reference_id',
         'uuid',
         'name',
         'model',
         'os_version',
+        'designation',
     ];
 
-    public function branch()
-    {
-        return $this->belongsTo(Branch::class, 'branch_id');
-    }
+     // Define separate relationships for Branch and Warehouse
+     public function branch()
+     {
+         return $this->belongsTo(Branch::class, 'reference_id');
+     }
+
+     public function warehouse()
+     {
+         return $this->belongsTo(Warehouse::class, 'reference_id');
+     }
+
+     // Create an accessor method to get the correct reference dynamically
+     public function getReferenceAttribute()
+     {
+         return $this->designation === 'branch' ? $this->branch : $this->warehouse;
+     }
 }

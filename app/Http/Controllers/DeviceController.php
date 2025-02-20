@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Branch;
 use App\Models\Device;
 use App\Models\Employee; // Assuming your model for the users is User
+use App\Models\Warehouse;
 use Illuminate\Http\Request;
 
 class DeviceController extends Controller
@@ -13,8 +15,14 @@ class DeviceController extends Controller
      */
     public function index()
     {
-        $device = Device::with('branch')->orderBy('created_at', 'desc')->get();
-        return $device;
+        $devices = Device::all()->map(function ($device) {
+            $device->reference = $device->designation === 'branch'
+                ? Branch::find($device->reference_id)
+                : Warehouse::find($device->reference_id);
+            return $device;
+        });
+
+        return response()->json($devices);
     }
 
     public function checkDevice(Request $request) {
@@ -30,11 +38,12 @@ class DeviceController extends Controller
     public function store(Request $request)
     {
         $validateData = $request->validate([
-            'branch_id' => 'required',
+            'reference_id' => 'required',
             'uuid' => "required|unique:devices",
             'name' => "required|string|max:255",
             'model' => "required|string|max:255",
-            'os_version' => "required|string|max:255"
+            'os_version' => "required|string|max:255",
+            'designation' => "required|string|max:255"
         ]);
 
         $device = Device::create($validateData);

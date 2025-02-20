@@ -26,6 +26,218 @@ class RequestPremixController extends Controller
         //
     }
 
+    public function getPendingPremix($warehouseId, Request $request)
+    {
+         // Set category to 'pending' by default, if not provided
+         $status = $request->query('status', 'pending');
+
+         $pendingPremix = RequestPremix::where('warehouse_id', $warehouseId)
+                    ->where('status', $status)
+                    ->with('branchPremix', 'employee')
+                    ->get();
+
+        return response()->json($pendingPremix);
+    }
+
+    public function confirmPremix(Request $request)
+    {
+        $request->validate([
+            "request_premixes_id" => "required|exists:request_premixes,id",
+            "branch_premix_id" => "required|exists:branch_premixes,id",
+            "employee_id" => "required|exists:employees,id",
+            "status" => "required|string",
+            "quantity" => "required|numeric|min:1",
+            "warehouse_id" => "required|exists:warehouses,id",
+            "notes" => "nullable|string",
+        ]);
+
+        // Retrieve the request premix entry
+        $requestPremix = RequestPremix::findOrFail($request->request_premixes_id);
+
+        // Ensure it's still pending before confirming
+        if ($requestPremix->status !== 'pending') {
+            return response()->json(['message' => 'This premix request is not pending.'], 400);
+        }
+
+        // Update status in request_premix table
+        $requestPremix->update([
+            'status' => 'confirmed',
+        ]);
+
+        // Create a new entry in premix_history
+        $premixHistory = RequestPremixesHistory::create([
+            "request_premixes_id" => $requestPremix->id,
+            "branch_premix_id" => $request->branch_premix_id, // Direct assignment
+            "changed_by" => $request->employee_id,
+            "status" => "confirmed",
+            "quantity" => $request->quantity,
+            "warehouse_id" => $request->warehouse_id,
+            "notes" => $request->notes,
+        ]);
+
+        return response()->json([
+            "message" => "Premix request confirmed successfully.",
+            "premix_history" => $premixHistory,
+        ]);
+    }
+
+    public function getConfirmReports($warehouseId)
+    {
+        // Retrieve all confirmed premix requests for the specified warehouse
+        $confirmedPremixes = RequestPremix::where('status', 'confirmed')
+            ->where('warehouse_id', $warehouseId) // Filter by warehouse
+            ->with([
+                'branchPremix',
+                'employee',
+                'warehouse',
+                'history' => function ($query) { // Fetch only confirmed history records
+                    $query->where('status', 'confirmed')
+                        ->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
+                        ->with('employee'); // Include employee who changed the status
+                }
+            ])
+            ->orderBy('updated_at', 'desc') // Sort by latest update
+            ->get();
+
+        return response()->json($confirmedPremixes);
+    }
+
+    public function processPremix(Request $request)
+    {
+        $request->validate([
+            "request_premixes_id" => "required|exists:request_premixes,id",
+            "branch_premix_id" => "required|exists:branch_premixes,id",
+            "employee_id" => "required|exists:employees,id",
+            "status" => "required|string",
+            "quantity" => "required|numeric|min:1",
+            "warehouse_id" => "required|exists:warehouses,id",
+            "notes" => "nullable|string",
+        ]);
+
+        // Retrieve the request premix entry
+        $requestPremix = RequestPremix::findOrFail($request->request_premixes_id);
+
+        // Ensure it's still pending before confirming
+        if ($requestPremix->status !== 'confirmed') {
+            return response()->json(['message' => 'This premix request is not confirmed.'], 400);
+        }
+
+        // Update status in request_premix table
+        $requestPremix->update([
+            'status' => 'process',
+        ]);
+
+        // Create a new entry in premix_history
+        $premixHistory = RequestPremixesHistory::create([
+            "request_premixes_id" => $requestPremix->id,
+            "branch_premix_id" => $request->branch_premix_id, // Direct assignment
+            "changed_by" => $request->employee_id,
+            "status" => "process",
+            "quantity" => $request->quantity,
+            "warehouse_id" => $request->warehouse_id,
+            "notes" => $request->notes,
+        ]);
+
+        return response()->json([
+            "message" => "Premix request process successfully.",
+            "premix_history" => $premixHistory,
+        ]);
+    }
+
+    public function getProcessPremix($warehouseId)
+    {
+        // Retrieve all confirmed premix requests for the specified warehouse
+        $processedPremixes = RequestPremix::where('status', 'process')
+            ->where('warehouse_id', $warehouseId) // Filter by warehouse
+            ->with([
+                'branchPremix',
+                'employee',
+                'warehouse',
+                'history' => function ($query) { // Fetch only confirmed history records
+                    $query->where('status', 'process')
+                        ->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
+                        ->with('employee'); // Include employee who changed the status
+                }
+            ])
+            ->orderBy('updated_at', 'desc') // Sort by latest update
+            ->get();
+
+        return response()->json($processedPremixes);
+    }
+
+    public function declinePremix(Request $request)
+    {
+        $request->validate([
+            "request_premixes_id" => "required|exists:request_premixes,id",
+            "branch_premix_id" => "required|exists:branch_premixes,id",
+            "employee_id" => "required|exists:employees,id",
+            "quantity" => "required|numeric|min:1",
+            "warehouse_id" => "required|exists:warehouses,id",
+            "notes" => "nullable|string",
+        ]);
+
+        // Retrieve the request premix entry
+        $requestPremix = RequestPremix::findOrFail($request->request_premixes_id);
+
+        // Ensure it's still pending before confirming
+        if ($requestPremix->status !== 'pending') {
+            return response()->json(['message' => 'This premix request is not pending.'], 400);
+        }
+
+        // Update status in request_premix table
+        $requestPremix->update([
+            'status' => 'declined',
+        ]);
+
+        // Create a new entry in premix_history
+        $premixHistory = RequestPremixesHistory::create([
+            "request_premixes_id" => $requestPremix->id,
+            "branch_premix_id" => $request->branch_premix_id, // Direct assignment
+            "changed_by" => $request->employee_id,
+            "status" => "declined",
+            "quantity" => $request->quantity,
+            "warehouse_id" => $request->warehouse_id,
+            "notes" => $request->notes,
+        ]);
+
+        return response()->json([
+            "message" => "Premix request declined successfully.",
+            "premix_history" => $premixHistory,
+        ]);
+    }
+
+    public function getDeclineReports($warehouseId)
+    {
+        // Retrieve all decline premix requests for the specified warehouse
+        $declinedPremixes = RequestPremix::where('status', 'declined')
+        ->where('warehouse_id', $warehouseId) // Filter by warehouse
+        ->with([
+            'branchPremix',
+            'employee',
+            'warehouse',
+            'history' => function ($query) { // Fetch only confirmed history records
+                $query->where('status', 'declined')
+                    ->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
+                    ->with('employee'); // Include employee who changed the status
+            }
+        ])
+        ->orderBy('updated_at', 'desc') // Sort by latest update
+        ->get();
+
+    return response()->json($declinedPremixes);
+
+    }
+    // public function getConfirmReports($warehouseId)
+    // {
+    //     // Retrieve all confirmed premix requests for the specified warehouse
+    //     $confirmedPremixes = RequestPremix::where('status', 'confirmed')
+    //         ->where('warehouse_id', $warehouseId) // Filter by warehouse
+    //         ->with(['branchPremix', 'employee', 'warehouse'])
+    //         ->orderBy('updated_at', 'desc') // Use 'updated_at' instead of 'confirmed_at' (if applicable)
+    //         ->get();
+
+    //     return response()->json($confirmedPremixes);
+    // }
     /**
      * Store a newly created resource in storage.
      */
@@ -65,8 +277,10 @@ class RequestPremixController extends Controller
                 // Create the request history for each entry
                 RequestPremixesHistory::create([
                     'request_premixes_id' => $premixRequest->id, // Ensure it refers to the correct premix request
+                    'branch_premix_id' => $req['branch_premix_id'],
                     'status' => $req['status'],
                     'changed_by' => $req['employee_id'],
+                    'quantity' => $req['quantity'],
                     'notes' => 'Initial request created.',
                 ]);
             }
