@@ -144,6 +144,7 @@ Route::post('search-user-with-branchID', [BranchEmployeeController::class, 'sear
 Route::post('search-branch-employee', [BranchEmployeeController::class, 'searchBranchEmployee' ]);
 Route::post('search-branch-rawMaterials', [BranchRawMaterialsReportController::class, 'searchBranchRawMaterials' ]);
 Route::post('search-warehouse-rawMaterials', [WarehouseRawMaterialsReportController::class, 'searchWarehouseRawMaterials' ]);
+Route::post('warehouse/raw-materials/bulk-create', [WarehouseRawMaterialsReportController::class, 'bulkStore' ]);
 Route::post('search-products', [BranchProductController::class, 'searchProducts']);
 Route::post('search-branch',[ BranchController::class, 'searchBranch']);
 Route::post('search-warehouse',[ WarehouseController::class, 'searchWarehouse']);
@@ -166,6 +167,7 @@ Route::post('employee-adding-expense', [ExpencesReportController::class, 'update
 Route::post('confirm-premix', [RequestPremixController::class, 'confirmPremix']);
 Route::post('decline-premix', [RequestPremixController::class, 'declinePremix']);
 Route::post('process-premix', [RequestPremixController::class, 'processPremix']);
+Route::post('completed-premix', [RequestPremixController::class, 'completedPremix']);
 
 Route::put('update-employee-birthdate/{id}', [EmployeeController::class, 'updateEmployeeBirthdate']);
 Route::put('update-employee-phone/{id}', [EmployeeController::class, 'updateEmployeePhone']);
@@ -209,7 +211,7 @@ Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportControlle
 Route::put('update-warehouse-rawMaterials/{id}', [WarehouseRawMaterialsReportController::class, 'updateStocks' ]);
 Route::put('update/branch-baker-report/{id}', [InitialBakerreportsController::class, 'updateBakersReport']);
 
-
+Route::get('get-completed-premix/{warehouseId}', [RequestPremixController::class, 'getcompletedPremix' ]);
 Route::get('get-process-premix/{warehouseId}', [RequestPremixController::class, 'getProcessPremix' ]);
 Route::get('get-decline-premix/{warehouseId}', [RequestPremixController::class, 'getDeclineReports' ]);
 Route::get('get-confirm-premix/{warehouseId}', [RequestPremixController::class, 'getConfirmReports' ]);

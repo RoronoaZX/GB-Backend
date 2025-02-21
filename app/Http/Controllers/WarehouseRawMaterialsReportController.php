@@ -71,6 +71,88 @@ class WarehouseRawMaterialsReportController extends Controller
         ], 201);
     }
 
+    public function bulkStore(Request $request)
+    {
+        $data = $request->input('materials');
+
+        if (!is_array($data) || empty($data)) {
+            return response()->json(['message' => 'No raw materials provided'], 400);
+        }
+
+        // Extract raw_material_id and warehouse_id from input data
+        $rawMaterialWarehousePairs = collect($data)->map(function ($material) {
+            return ['raw_material_id' => $material['raw_material_id'], 'warehouse_id' => $material['warehouse_id']];
+        });
+
+        // Fetch existing records that match both raw_material_id and warehouse_id
+        $existingRecords = WarehouseRawMaterialsReport::whereIn('raw_material_id', $rawMaterialWarehousePairs->pluck('raw_material_id'))
+            ->whereIn('warehouse_id', $rawMaterialWarehousePairs->pluck('warehouse_id'))
+            ->get(['raw_material_id', 'warehouse_id'])
+            ->toArray();
+
+        // Convert to an associative array for easier lookup
+        $existingPairs = [];
+        foreach ($existingRecords as $record) {
+            $existingPairs[$record['raw_material_id'] . '_' . $record['warehouse_id']] = true;
+        }
+
+        // Filter out existing materials
+        $newMaterials = array_filter($data, function ($material) use ($existingPairs) {
+            return !isset($existingPairs[$material['raw_material_id'] . '_' . $material['warehouse_id']]);
+        });
+
+        if (empty($newMaterials)) {
+            return response()->json(['message' => 'All raw materials already exist in the warehouse'], 200);
+        }
+
+        // Add timestamps
+        foreach ($newMaterials as &$material) {
+            $material['created_at'] = now();
+            $material['updated_at'] = now();
+        }
+
+        // Insert only new materials
+        WarehouseRawMaterialsReport::insert($newMaterials);
+
+        return response()->json(['message' => 'Raw materials added successfully!']);
+    }
+
+
+    // public function bulkStore(Request $request)
+    // {
+    //     $data = $request->input('materials');
+
+    //     if (!is_array($data) || empty($data)) {
+    //         return response()->json(['message' => 'No raw materials provided'], 400);
+    //     }
+
+    //     // Get all existing raw_material_ids in the warehouse
+    //     $existingIds = WarehouseRawMaterialsReport::whereIn('raw_material_id', array_column($data, 'raw_material_id'))
+    //         ->pluck('raw_material_id')
+    //         ->toArray();
+
+    //     // Filter out materials that already exist
+    //     $newMaterials = array_filter($data, function ($material) use ($existingIds) {
+    //         return !in_array($material['raw_material_id'], $existingIds);
+    //     });
+
+    //     if (empty($newMaterials)) {
+    //         return response()->json(['message' => 'All raw materials already exist in the warehouse'], 200);
+    //     }
+
+    //     // Add timestamps
+    //     foreach ($newMaterials as &$material) {
+    //         $material['created_at'] = now();
+    //         $material['updated_at'] = now();
+    //     }
+
+    //     // Insert only new materials
+    //     WarehouseRawMaterialsReport::insert($newMaterials);
+
+    //     return response()->json(['message' => 'Raw materials added successfully!']);
+    // }
+
+
     public function updateStocks(Request $request, $id)
     {
         $validateData = $request->validate([

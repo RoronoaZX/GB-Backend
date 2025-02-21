@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\RequestPremix;
 use App\Models\RequestPremixesHistory;
+use App\Models\WarehouseRawMaterialsReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -164,6 +165,96 @@ class RequestPremixController extends Controller
 
         return response()->json($processedPremixes);
     }
+
+    public function completedPremix(Request $request)
+    {
+        $request->validate([
+            "request_premixes_id" => "required|exists:request_premixes,id",
+            "branch_premix_id" => "required|exists:branch_premixes,id",
+            "employee_id" => "required|exists:employees,id",
+            "ingredients" => "required|array",
+            "ingredients.*.ingredient_id" => "required",
+            "ingredients.*.quantity" => "required|numeric|min:0",
+            "status" => "required|string",
+            "quantity" => "required|numeric|min:1",
+            "warehouse_id" => "required|exists:warehouses,id",
+            "notes" => "nullable|string",
+        ]);
+
+        // Retrieve the request premix entry
+        $requestPremix = RequestPremix::findOrFail($request->request_premixes_id);
+
+        // Ensure it's still pending before confirming
+        if ($requestPremix->status !== 'process') {
+            return response()->json(['message' => 'This premix request is not process.'], 400);
+        }
+
+        // Update status in request_premix table
+        $requestPremix->update([
+            'status' => 'completed',
+        ]);
+
+        // Create a new entry in premix_history
+        $premixHistory = RequestPremixesHistory::create([
+            "request_premixes_id" => $requestPremix->id,
+            "branch_premix_id" => $request->branch_premix_id, // Direct assignment
+            "changed_by" => $request->employee_id,
+            "status" => "completed",
+            "quantity" => $request->quantity,
+            "warehouse_id" => $request->warehouse_id,
+            "notes" => $request->notes,
+        ]);
+
+        // Deduct ingredient quantities from warehouse_ingredients
+    foreach ($request->ingredients as $ingredientData) {
+        $warehouseIngredient = WarehouseRawMaterialsReport::where('warehouse_id', $request->warehouse_id)
+            ->where('raw_material_id', $ingredientData['ingredient_id'])
+            ->first();
+
+        if (!$warehouseIngredient) {
+            return response()->json([
+                "message" => "Ingredient ID {$ingredientData['ingredient_id']} not found in this warehouse."
+            ], 400);
+        }
+
+        // Ensure there's enough stock
+        if ($warehouseIngredient->total_quantity < $ingredientData['quantity']) {
+            return response()->json([
+                "message" => "Insufficient stock for Ingredient ID {$ingredientData['ingredient_id']}."
+            ], 400);
+        }
+
+        // Deduct the quantity
+        $warehouseIngredient->decrement('total_quantity', $ingredientData['quantity']);
+    }
+
+        return response()->json([
+            "message" => "Premix request completed successfully.",
+            "premix_history" => $premixHistory,
+        ]);
+    }
+
+    public function getcompletedPremix($warehouseId)
+    {
+        // Retrieve all confirmed premix requests for the specified warehouse
+        $completedPremixes = RequestPremix::where('status', 'completed')
+            ->where('warehouse_id', $warehouseId) // Filter by warehouse
+            ->with([
+                'branchPremix',
+                'employee',
+                'warehouse',
+                'history' => function ($query) { // Fetch only confirmed history records
+                    $query->where('status', 'completed')
+                        ->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
+                        ->with('employee'); // Include employee who changed the status
+                }
+            ])
+            ->orderBy('updated_at', 'desc') // Sort by latest update
+            ->get();
+
+        return response()->json($completedPremixes);
+    }
+
 
     public function declinePremix(Request $request)
     {

@@ -13,7 +13,6 @@ class WarehouseRawMaterialsReport extends Model
         'warehouse_id',
         'raw_material_id',
         'total_quantity',
-
     ];
 
     public function warehouse()
