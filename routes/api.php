@@ -168,6 +168,9 @@ Route::post('confirm-premix', [RequestPremixController::class, 'confirmPremix'])
 Route::post('decline-premix', [RequestPremixController::class, 'declinePremix']);
 Route::post('process-premix', [RequestPremixController::class, 'processPremix']);
 Route::post('completed-premix', [RequestPremixController::class, 'completedPremix']);
+Route::post('to-deliver-premix', [RequestPremixController::class, 'toDeliverPremix']);
+Route::post('to-receive-premix', [RequestPremixController::class, 'toReceivePremix']);
+Route::post('receive-premix', [RequestPremixController::class, 'receivePremix']);
 
 Route::put('update-employee-birthdate/{id}', [EmployeeController::class, 'updateEmployeeBirthdate']);
 Route::put('update-employee-phone/{id}', [EmployeeController::class, 'updateEmployeePhone']);
@@ -211,6 +214,10 @@ Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportControlle
 Route::put('update-warehouse-rawMaterials/{id}', [WarehouseRawMaterialsReportController::class, 'updateStocks' ]);
 Route::put('update/branch-baker-report/{id}', [InitialBakerreportsController::class, 'updateBakersReport']);
 
+Route::get('get-request-branch-premix/{branchId}', [RequestPremixController::class, 'getBranchPremix' ]);
+Route::get('get-receive-premix/{warehouseId}', [RequestPremixController::class, 'getRecievePremix' ]);
+Route::get('get-to-receive-premix/{warehouseId}', [RequestPremixController::class, 'getToReceivePremix' ]);
+Route::get('get-to-deliver-premix/{warehouseId}', [RequestPremixController::class, 'getToDeliverPremix' ]);
 Route::get('get-completed-premix/{warehouseId}', [RequestPremixController::class, 'getcompletedPremix' ]);
 Route::get('get-process-premix/{warehouseId}', [RequestPremixController::class, 'getProcessPremix' ]);
 Route::get('get-decline-premix/{warehouseId}', [RequestPremixController::class, 'getDeclineReports' ]);
