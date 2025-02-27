@@ -41,29 +41,40 @@ class BranchPremixController extends Controller
 
     public function store(Request $request)
     {
-       $request->validate([
-        'branch_id' => 'required|exists:branches,id',
-        'branch_recipe_id' => 'required|exists:branch_recipes,id',
-        'name' => 'required|string|max:50',
-        'category' => 'required|string|max:50',
-        'status' => 'required|string|max:50',
-        'available_stocks' => 'required|numeric',
-       ]);
+        $request->validate([
+            'branch_id' => 'required|exists:branches,id',
+            'branch_recipe_id' => 'required|exists:branch_recipes,id',
+            'name' => 'required|string|max:50',
+            'category' => 'required|string|max:50',
+            'status' => 'required|string|max:50',
+            'available_stocks' => 'required|numeric',
+        ]);
 
-       $branchPremix = BranchPremix::create([
-        'branch_id' => $request->branch_id,
-        'branch_recipe_id' =>  $request->branch_recipe_id,
-        'name' => $request->name,
-        'category' => $request->category,
-        'status' => $request->status,
-        'available_stocks' => $request->available_stocks,
-       ]);
+        // Check if the branch_recipe_id already exists
+        $exists = BranchPremix::where('branch_recipe_id', $request->branch_recipe_id)->exists();
 
-       return response()->json([
-        'message' => 'Branch premix created successfully.',
+        if ($exists) {
+            return response()->json([
+                'message' => 'Branch recipe already exists.'
+            ], 422);
+        }
+
+        // Create new BranchPremix
+        $branchPremix = BranchPremix::create([
+            'branch_id' => $request->branch_id,
+            'branch_recipe_id' => $request->branch_recipe_id,
+            'name' => $request->name,
+            'category' => $request->category,
+            'status' => $request->status,
+            'available_stocks' => $request->available_stocks,
+        ]);
+
+        return response()->json([
+            'message' => 'Branch premix created successfully.',
             'branchPremix' => $branchPremix
-         ], 201);
+        ], 201);
     }
+
 
     /**
      * Display the specified resource.
