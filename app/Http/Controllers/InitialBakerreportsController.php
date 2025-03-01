@@ -45,12 +45,16 @@ public function getInitialReportsData()
     return response()->json($reports);
 }
 
-    public function getReportsByUserId($userId)
+    public function getReportsByUserId(Request $request, $userId)
     {
+        // Get pagination size (default to 10 if not provided)
+        $perPage = $request->query('per_page', 10);
+        $page = $request->query('page', 1); // Default to page 1
+
         // Fetch reports by user ID and order by creation date
         $reports = InitialBakerreports::where('user_id', $userId)
-                                    ->orderBy('created_at', 'desc')
-                                    ->get();
+                                        ->orderBy('created_at', 'desc')
+                                        ->paginate($perPage, ['*'], 'page', $page);
 
         // Loop through each report to load relationships conditionally
         foreach ($reports as $report) {

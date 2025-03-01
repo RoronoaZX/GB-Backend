@@ -214,6 +214,7 @@ Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportControlle
 Route::put('update-warehouse-rawMaterials/{id}', [WarehouseRawMaterialsReportController::class, 'updateStocks' ]);
 Route::put('update/branch-baker-report/{id}', [InitialBakerreportsController::class, 'updateBakersReport']);
 
+Route::get('get-request-branch-employee-premix/{branchId}/{employeeId}', [RequestPremixController::class, 'getBranchEmployeePremix' ]);
 Route::get('get-request-branch-premix/{branchId}', [RequestPremixController::class, 'getBranchPremix' ]);
 Route::get('get-receive-premix/{warehouseId}', [RequestPremixController::class, 'getRecievePremix' ]);
 Route::get('get-to-receive-premix/{warehouseId}', [RequestPremixController::class, 'getToReceivePremix' ]);

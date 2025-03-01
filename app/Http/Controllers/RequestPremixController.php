@@ -29,25 +29,50 @@ class RequestPremixController extends Controller
         //
     }
 
-    public function getBranchPremix($branchId)
-{
-    $branchPremix = RequestPremix::whereHas('branchPremix', function ($query) use ($branchId) {
-            $query->where('branch_id', $branchId);
-        })
-        ->with([
-            'branchPremix',
-            'employee',
-            'warehouse',
-            'history' => function ($query) {
-                $query->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
-                    ->with('employee'); // Include employee who changed the status
-            }
-        ])
-        ->orderBy('updated_at', 'desc') // Sort by latest update
-        ->get();
+    public function getBranchEmployeePremix(Request $request, $branchId, $employeeId)
+    {
+         // Get pagination size (default to 10 if not provided)
+         $perPage = $request->query('per_page', 10);
+         $page = $request->query('page', 1); // Default to page 1
 
-    return response()->json($branchPremix);
-}
+        $branchPremix = RequestPremix::whereHas('branchPremix', function ($query) use ($branchId) {
+                $query->where('branch_id', $branchId);
+            })
+            ->where('employee_id', $employeeId) // Filter by employee_id
+            ->with([
+                'branchPremix',
+                'employee',
+                'warehouse',
+                'history' => function ($query) {
+                    $query->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
+                        ->with('employee'); // Include employee who changed the status
+                }
+            ])
+            ->latest('updated_at')
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json($branchPremix);
+    }
+
+    public function getBranchPremix($branchId)
+    {
+        $branchPremix = RequestPremix::whereHas('branchPremix', function ($query) use ($branchId) {
+                $query->where('branch_id', $branchId);
+            })
+            ->with([
+                'branchPremix',
+                'employee',
+                'warehouse',
+                'history' => function ($query) {
+                    $query->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
+                        ->with('employee'); // Include employee who changed the status
+                }
+            ])
+            ->orderBy('updated_at', 'desc') // Sort by latest update
+            ->get();
+
+        return response()->json($branchPremix);
+    }
 
 
     // public function getBranchPremix($branchId)
@@ -70,6 +95,7 @@ class RequestPremixController extends Controller
          $pendingPremix = RequestPremix::where('warehouse_id', $warehouseId)
                     ->where('status', $status)
                     ->with('branchPremix', 'employee')
+                    ->latest()
                     ->get();
 
         return response()->json($pendingPremix);
@@ -459,7 +485,7 @@ class RequestPremixController extends Controller
 
         $requestPremix->update(['status' => 'received']);
 
-        RequestPremixesHistory::create([
+        $receivePremixes = RequestPremixesHistory::create([
             'request_premixes_id' => $validated['request_premix_id'],
             'branch_premix_id' => $validated['branch_premix_id'],
             'changed_by' => $validated['employee_id'],
@@ -469,7 +495,11 @@ class RequestPremixController extends Controller
             'notes' => $validated['notes'],
         ]);
 
-        return response()->json(['message' => 'Branch raw materials updated successfully'], 200);
+        return response()->json(
+            [
+            'message' => 'Branch raw materials updated successfully',
+            'receivePremixes' => $receivePremixes
+            ], 200);
     }
 
     public function getRecievePremix($warehouseId)

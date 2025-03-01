@@ -28,43 +28,90 @@ class WarehouseController extends Controller
         return response()->json($warehouse, 200);
     }
 
+    // public function getWarehouseBranchReport($warehouseId)
+    // {
+    //     // Fetch all reports for branches within the given warehouse
+    //     $reports = BranchRawMaterialsReport::query()
+    //         ->whereHas('branch', function ($query) use ($warehouseId) {
+    //             $query->where('warehouse_id', $warehouseId);
+    //         })
+    //         ->with('branch', 'ingredients') // Eager load branch details
+    //         ->get();
+
+    //     // Group the reports by branch_id
+    //     $groupedReports = $reports->groupBy(function ($report) {
+    //         return $report->branch_id;
+    //     })->map(function ($reports, $branchId) {
+    //         return [
+    //             'branch_id' => $branchId,
+    //             'branch_name' => $reports->first()->branch->name, // Assuming `name` exists
+    //             'reports' => $reports->map(function ($report) {
+    //                 return [
+    //                     'id' => $report->id,
+    //                     'report_date' => $report->created_at,
+    //                     'raw_material' =>  [
+    //                         'id' => $report->ingredients_id,
+    //                         'name' => $report->ingredients->name, // Assuming `name` exists in the ingredient table
+    //                         'code' => $report->ingredients->code,
+    //                         'unit' => $report->ingredients->unit,
+    //                         'category' => $report->ingredients->category
+    //                     ],
+    //                     'quantity' => $report->total_quantity,
+    //                     // Add other fields as needed
+    //                 ];
+    //             }),
+    //         ];
+    //     })->values();
+
+    //     return response()->json($groupedReports);
+    // }
     public function getWarehouseBranchReport($warehouseId)
-    {
-        // Fetch all reports for branches within the given warehouse
-        $reports = BranchRawMaterialsReport::query()
-            ->whereHas('branch', function ($query) use ($warehouseId) {
-                $query->where('warehouse_id', $warehouseId);
-            })
-            ->with('branch', 'ingredients') // Eager load branch details
-            ->get();
+{
+    // Fetch all branches under the warehouse
+    $branches = Branch::where('warehouse_id', $warehouseId)->get();
 
-        // Group the reports by branch_id
-        $groupedReports = $reports->groupBy(function ($report) {
-            return $report->branch_id;
-        })->map(function ($reports, $branchId) {
-            return [
-                'branch_id' => $branchId,
-                'branch_name' => $reports->first()->branch->name, // Assuming `name` exists
-                'reports' => $reports->map(function ($report) {
-                    return [
-                        'id' => $report->id,
-                        'report_date' => $report->created_at,
-                        'raw_material' =>  [
-                            'id' => $report->ingredients_id,
-                            'name' => $report->ingredients->name, // Assuming `name` exists in the ingredient table
-                            'code' => $report->ingredients->code,
-                            'unit' => $report->ingredients->unit,
-                            'category' => $report->ingredients->category
-                        ],
-                        'quantity' => $report->total_quantity,
-                        // Add other fields as needed
-                    ];
-                }),
-            ];
-        })->values();
+    // Fetch all reports for branches within the warehouse
+    $reports = BranchRawMaterialsReport::query()
+        ->whereHas('branch', function ($query) use ($warehouseId) {
+            $query->where('warehouse_id', $warehouseId);
+        })
+        ->with('branch', 'ingredients') // Eager load branch and ingredient details
+        ->get();
 
-        return response()->json($groupedReports);
-    }
+    // Group reports by branch_id and ensure it's a collection
+    $groupedReports = $reports->groupBy('branch_id')->map(function ($reports, $branchId) {
+        return collect([
+            'branch_id' => $branchId,
+            'branch_name' => $reports->first()->branch->name, // Assuming `name` exists
+            'reports' => $reports->map(function ($report) {
+                return [
+                    'id' => $report->id,
+                    'report_date' => $report->created_at,
+                    'raw_material' => [
+                        'id' => $report->ingredients_id,
+                        'name' => $report->ingredients->name,
+                        'code' => $report->ingredients->code,
+                        'unit' => $report->ingredients->unit,
+                        'category' => $report->ingredients->category,
+                    ],
+                    'quantity' => $report->total_quantity,
+                ];
+            })->values(), // Ensure it's a collection
+        ]);
+    });
+
+    // Ensure all branches are included, even those without reports
+    $finalResult = $branches->map(function ($branch) use ($groupedReports) {
+        return [
+            'branch_id' => $branch->id,
+            'branch_name' => $branch->name,
+            'reports' => $groupedReports->get($branch->id, collect(['reports' => collect()]))['reports'], // Always return a collection
+        ];
+    });
+
+    return response()->json($finalResult);
+}
+
 
 
     // public function getWarehouseBranchReport($warehouseId)
