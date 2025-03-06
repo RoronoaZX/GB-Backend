@@ -473,9 +473,9 @@ class RequestPremixController extends Controller
         }
 
         // If any ingredient validation fails, return an error response and stop further execution
-        if (!empty($errors)) {
-            return response()->json(['errors' => $errors], 400);
-        }
+        // if (!empty($errors)) {
+        //     return response()->json(['errors' => $errors], 400);
+        // }
 
         $requestPremix = RequestPremix::findOrFail($validated['request_premix_id']);
 
@@ -485,21 +485,28 @@ class RequestPremixController extends Controller
 
         $requestPremix->update(['status' => 'received']);
 
-        $receivePremixes = RequestPremixesHistory::create([
-            'request_premixes_id' => $validated['request_premix_id'],
-            'branch_premix_id' => $validated['branch_premix_id'],
-            'changed_by' => $validated['employee_id'],
-            'status' => 'received',
-            'quantity' => $validated['quantity'],
-            'warehouse_id' => $validated['warehouse_id'],
-            'notes' => $validated['notes'],
-        ]);
+        try {
+            $receivePremixes = RequestPremixesHistory::create([
+                'request_premixes_id' => $validated['request_premix_id'],
+                'branch_premix_id' => $validated['branch_premix_id'],
+                'changed_by' => $validated['employee_id'],
+                'status' => 'received',
+                'quantity' => $validated['quantity'],
+                'warehouse_id' => $validated['warehouse_id'],
+                'notes' => $validated['notes'],
+            ]);
 
-        return response()->json(
-            [
-            'message' => 'Branch raw materials updated successfully',
-            'receivePremixes' => $receivePremixes
+            return response()->json([
+                'message' => 'Branch raw materials updated successfully',
+                'receivePremixes' => $receivePremixes
             ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error saving premix history',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function getRecievePremix($warehouseId)
