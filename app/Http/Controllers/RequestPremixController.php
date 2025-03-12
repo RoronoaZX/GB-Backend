@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BranchPremix;
 use App\Models\BranchRawMaterialsReport;
 use App\Models\RequestPremix;
 use App\Models\RequestPremixesHistory;
@@ -471,6 +472,13 @@ class RequestPremixController extends Controller
                 $errors[] = "Ingredient ID {$ingredient['ingredients_id']} does not exist for Branch ID {$validated['branch_id']}";
             }
         }
+        $branchPremix =  BranchPremix::where('id', $validated['branch_premix_id'])
+        ->first();
+
+        if ($branchPremix) {
+            $branchPremix->increment('available_stocks', $validated['quantity']);
+        }
+
 
         // If any ingredient validation fails, return an error response and stop further execution
         // if (!empty($errors)) {
