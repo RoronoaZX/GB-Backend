@@ -20,7 +20,8 @@ class InitialBakerreports extends Model
         'over',
         'target',
         'actual_target',
-        'remark'
+        'remark',
+        'created_at', // allow optional overriding
 
     ];
 

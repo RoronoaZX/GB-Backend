@@ -133,6 +133,7 @@ Route::post('checkDevice', [DeviceController::class, 'checkDevice']);
 Route::post('confirm-selecta-report/{id}', [SelectaStocksReportController::class, 'confirmReport']);
 Route::post('confirm-softdrinks-report/{id}', [SoftdrinksStocksReportController::class, 'confirmReport']);
 Route::post('confirm-otherProd-report/{id}', [OtherStocksReportController::class, 'confirmReport']);
+Route::post('admin-create-baker-report', [InitialBakerreportsController::class, 'adminCreateReport']);
 Route::post('confirm-initial-baker-report/{id}', [InitialBakerreportsController::class, 'confirmReport']);
 Route::post('decline-initial-baker-report/{id}', [InitialBakerreportsController::class, 'declineReport']);
 Route::post('search-branches-by-id', [BranchProductController::class, 'searchBranchId' ]);
