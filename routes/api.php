@@ -117,6 +117,7 @@ Route::apiResource('warehouse-rawMaterials-report', WarehouseScalingReportContro
 Route::apiResource('branch-premix', BranchPremixController::class);
 Route::apiResource('request-premix', RequestPremixController::class);
 
+Route::post('admin-sales-report', [SalesReportsController::class, 'adminStoreSalesReport']);
 Route::post('search-allowance', [EmployeeAllowanceController::class, 'searchAllowance']);
 Route::post('search-benefit', [EmployeeBenefitController::class, 'searchBenefit']);
 Route::post('search-uniform', [UniformController::class, 'searchUniform']);

@@ -18,7 +18,8 @@ class SalesReports extends Model
         'denomination_total',
         'charges_amount',
         'over_total',
-        'credit_total'
+        'credit_total',
+        'created_at'
     ];
 
     public function branch()
