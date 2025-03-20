@@ -21,6 +21,7 @@ class BranchPremixController extends Controller
         $searchBranchPremixId = $request->input('branch_id');
 
         $branchPremix = BranchPremix::with('branch_recipe')
+            ->where('status', 'active')
             ->when($searchBranchPremix, function ($query, $searchBranchPremix) {
                 return $query->where('name', 'LIKE', "%{$searchBranchPremix}%");
             })
@@ -73,6 +74,16 @@ class BranchPremixController extends Controller
             'message' => 'Branch premix created successfully.',
             'branchPremix' => $branchPremix
         ], 201);
+    }
+
+    public function updateRequestPremixStatus(Request $request, $id)
+    {
+        $validatedData = $request->validate(['status' => 'required|string']);
+        $recipe = BranchPremix::findOrFail($id);
+        $recipe->status = $validatedData['status'];
+        $recipe->save();
+
+        return response()->json(['message' => 'Status updated successfully', 'recipe' => $recipe]);
     }
 
 

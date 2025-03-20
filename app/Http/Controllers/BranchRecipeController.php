@@ -107,6 +107,7 @@ class BranchRecipeController extends Controller
         $searchBranchRecipeId = $request->input('branch_id');
 
         $branchRecipe = BranchRecipe::with('recipe')
+            ->where('status', 'active')
             ->when($searchBranchRecipe !== null, function ($query) use ($searchBranchRecipe) {
                 $query->whereHas('recipe', function ($recipeQuery) use ($searchBranchRecipe) {
                     $recipeQuery->where('name', 'like', "%{$searchBranchRecipe}%");
