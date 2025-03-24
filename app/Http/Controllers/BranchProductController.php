@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Branch;
 use App\Models\BranchProduct;
+use App\Models\BreadAdded;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+
+
 
 class BranchProductController extends Controller
 {
@@ -42,6 +45,31 @@ class BranchProductController extends Controller
     {
         $branchProducts = BranchProduct::orderBy('created_at', 'desc')->where('branches_id', $branchId)->with(['branch', 'product'])->get();
         return response()->json($branchProducts, 200);
+    }
+
+    public function fetchBranchBreadProducts(Request $request)
+    {
+        $validated = $request->validate([
+            'branches_id' => 'required|integer',
+            'category' => 'nullable|string',
+        ]);
+
+
+        $products = BranchProduct::where('branches_id', $validated['branches_id'])
+        ->when($validated['category'], function ($query, $category) {
+            $query->where('category', $category);
+        })
+        ->with('product') // Load the product relationship
+        ->get()
+        ->map(function ($branchProduct) {
+            $product = $branchProduct->product;
+            if ($product) {
+                $product->price = $branchProduct->price; // Add price to the product object
+            }
+            return $product;
+        });
+
+        return response()->json($products);
     }
 
     public function fetchBranchSelectaProducts(Request $request)
