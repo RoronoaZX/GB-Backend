@@ -52,7 +52,7 @@ class UserController extends Controller
                 });
             })
             ->orderBy('created_at', 'desc')
-            ->take(12)
+            // ->take(12)
             ->get();
 
         // Map the results as in the original function
