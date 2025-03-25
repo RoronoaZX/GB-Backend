@@ -18,7 +18,8 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::with('employee')->orderBy('created_at', 'desc')->take(12)->get();
+        $users = User::with('employee')->orderBy('created_at', 'desc')->get();
+        // ->take(12)
 
         $users = $users->map(function($user){
             if ($user->employee) {
