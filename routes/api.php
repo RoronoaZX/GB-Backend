@@ -241,6 +241,7 @@ Route::get('selecta-added-stocks/{branchId}/pending-reports', [SelectaStocksRepo
 Route::get('selecta-added-stocks/{branchId}/confirmed-reports', [SelectaStocksReportController::class, 'getConfirmedReport']);
 Route::get('selecta-added-stocks/{branchId}/declined-reports', [SelectaStocksReportController::class, 'getDeclinedReport']);
 Route::get('selecta-added-stocks/{branchId}', [SelectaStocksReportController::class, 'getBranchSelectaReports']);
+Route::get('fetch-pending-send-branch-bread', [BreadAddedController::class, 'fetchPendingSendBread']);
 Route::get('fetch-send-bread-to-branch/{branchId}', [BreadAddedController::class, 'getSentBreadBranchProduct']);
 Route::get('softdrinks-added-stocks/{branchId}', [SoftdrinksStocksReportController::class, 'getBranchSoftdrinksReports']);
 Route::get('softdrinks-added-stocks/{branchId}/pending-reports', [SoftdrinksStocksReportController::class, 'getPendingReports']);

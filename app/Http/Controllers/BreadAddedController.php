@@ -17,53 +17,70 @@ class BreadAddedController extends Controller
     {
         //
     }
-    public function receivedBread(Request $request)
-{
-    try {
-        $validated = $request->validate([
-            'status' => 'required|string',
-            'branchId' => 'required|integer',
-            'report_id' => 'required|integer',
-            'product_id' => 'required|integer',
-            'bread_added' => 'required|numeric',
+
+    public function fetchPendingSendBread(Request $request)
+    {
+        $validatedData = $request->validate([
+            'branch_id' => 'required|integer',
+            // 'perPage' => 'nullable|integer',
+            // 'page' => 'nullable|integer',
         ]);
 
-        $branchId = $validated['branchId'];
-        $productId = $validated['product_id'];
-        $breadAdded = $validated['bread_added'];
+        $pendingSendBread = BreadAdded::with(['employee','product', 'fromBranch', 'toBranch'])
+            ->where('from_branch_id', $validatedData['branch_id'])
+            ->get();
+            // ->paginate($validatedData['perPage'] ?? 5, ['*'], 'page', $validatedData['page'] ?? 1);
 
-        // Find the product based on product_id and branch_id
-        $product = BranchProduct::where('product_id', $productId)
-            ->where('branches_id', $branchId)
-            ->first();
+        return response()->json($pendingSendBread);
+    }
 
-        if (!$product) {
+    public function receivedBread(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'status' => 'required|string',
+                'branchId' => 'required|integer',
+                'report_id' => 'required|integer',
+                'product_id' => 'required|integer',
+                'bread_added' => 'required|numeric',
+            ]);
+
+            $branchId = $validated['branchId'];
+            $productId = $validated['product_id'];
+            $breadAdded = $validated['bread_added'];
+
+            // Find the product based on product_id and branch_id
+            $product = BranchProduct::where('product_id', $productId)
+                ->where('branches_id', $branchId)
+                ->first();
+
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product not found for this branch.',
+                ], 404);
+            }
+
+            // Add the received bread to the total_quantity
+            $product->total_quantity += $breadAdded;
+            $product->save();
+
+            // Optionally, update status of the report or breadAdded record
+            BreadAdded::where('id', $validated['report_id'])
+                ->update(['status' => $validated['status']]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Bread received and product quantity updated successfully.',
+                'product' => $product
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Product not found for this branch.',
-            ], 404);
+                'message' => 'Failed to receive bread. ' . $e->getMessage(),
+            ], 500);
         }
-
-        // Add the received bread to the total_quantity
-        $product->total_quantity += $breadAdded;
-        $product->save();
-
-        // Optionally, update status of the report or breadAdded record
-        BreadAdded::where('id', $validated['report_id'])
-            ->update(['status' => $validated['status']]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Bread received and product quantity updated successfully.',
-            'product' => $product
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to receive bread. ' . $e->getMessage(),
-        ], 500);
     }
-}
 
 
     // public function receivedBreadBranchProduct(Request $request)
