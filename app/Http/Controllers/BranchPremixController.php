@@ -76,6 +76,16 @@ class BranchPremixController extends Controller
         ], 201);
     }
 
+    public function updatePremixAvailableStocks(Request $request, $id)
+    {
+        $validatedData = $request->validate(['available_stocks' => 'required|numeric']);
+        $recipe = BranchPremix::findOrFail($id);
+        $recipe->available_stocks = $validatedData['available_stocks'];
+        $recipe->save();
+
+        return response()->json(['message' => 'Available stocks updated successfully', 'recipe' => $recipe]);
+    }
+
     public function updateRequestPremixStatus(Request $request, $id)
     {
         $validatedData = $request->validate(['status' => 'required|string']);

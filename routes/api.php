@@ -188,6 +188,7 @@ Route::put('update-user-profile/{userId}', [ApiController::class, 'updateUser'])
 Route::put('update-name/{id}', [RecipeController::class, 'updateName']);
 Route::put('update-target/{id}', [BranchRecipeController::class, 'updateTarget']);
 Route::put('update-status/{id}', [RecipeController::class, 'updateStatus']);
+Route::put('branch-premix-update-stocks/{id}', [BranchPremixController::class, 'updatePremixAvailableStocks']);
 Route::put('branch-premix-update-status/{id}', [BranchPremixController::class, 'updateRequestPremixStatus']);
 Route::put('branch-update-status/{id}', [BranchRecipeController::class, 'branchUpdateStatus']);
 Route::put('update-bread-sales-breadOut-report/{id}', [BreadSalesReportController::class, 'updateBreadOut' ]);
