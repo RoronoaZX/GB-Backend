@@ -272,6 +272,20 @@ class BranchProductController extends Controller
 
         return response()->json(['message' => 'Total Quantity updated successfully', 'total quantity' => $branchProduct]);
     }
+
+    public function updateNewProduction(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'new_production' => 'required|integer'
+        ]);
+
+        $branchProduct = BranchProduct::findOrFail($id);
+        $branchProduct->new_production = $validatedData['new_production'];
+        $branchProduct->save();
+
+        return response()->json(['message' => 'New Production updated successfully', 'new production' => $branchProduct]);
+    }
+
     public function updateBeginnings(Request $request, $id)
     {
         $validatedData = $request->validate([

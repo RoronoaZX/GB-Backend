@@ -217,6 +217,7 @@ Route::put('update-expenses-sales-amount-report/{id}', [ExpencesReportController
 Route::put('update-expenses-sales-description-report/{id}', [ExpencesReportController::class, 'updateDescription' ]);
 Route::put('update-branch-products/{id}', [BranchProductController::class, 'updatePrice' ]);
 Route::put('update-branch-products-total-quantity/{id}', [BranchProductController::class, 'updateTotatQuatity' ]);
+Route::put('update-branch-products-new-production/{id}', [BranchProductController::class, 'updateNewProduction' ]);
 Route::put('update-branch-products-beginnings/{id}', [BranchProductController::class, 'updateBeginnings' ]);
 Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportController::class, 'updateStocks' ]);
 Route::put('update-warehouse-rawMaterials/{id}', [WarehouseRawMaterialsReportController::class, 'updateStocks' ]);
