@@ -40,6 +40,19 @@ class BranchProductController extends Controller
 
     //     return response()->json($branchProducts);
     // }
+    public function samplePaginationFretchingBranchProducts(Request $request)
+    {
+        $perPage = $request->query('rowsPerPage', 5);
+        $branchId = $request->query('branchId');
+
+        $query = BranchProduct::orderBy('created_at', 'desc')->where('branches_id', $branchId)->with(['branch', 'product']);
+        $branchProduct = $query->paginate($perPage);
+
+        return response()->json([
+            'data' => $branchProduct,
+            'total' => $branchProduct->total()
+        ]);
+    }
 
     public function getProducts($branchId)
     {
@@ -105,19 +118,19 @@ class BranchProductController extends Controller
         ]);
 
 
-    $products = BranchProduct::where('branches_id', $validated['branches_id'])
-    ->when($validated['category'], function ($query, $category) {
-        $query->where('category', $category);
-    })
-    ->with('product') // Load the product relationship
-    ->get()
-    ->map(function ($branchProduct) {
-        $product = $branchProduct->product;
-        if ($product) {
-            $product->price = $branchProduct->price; // Add price to the product object
-        }
-        return $product;
-    });
+        $products = BranchProduct::where('branches_id', $validated['branches_id'])
+        ->when($validated['category'], function ($query, $category) {
+            $query->where('category', $category);
+        })
+        ->with('product') // Load the product relationship
+        ->get()
+        ->map(function ($branchProduct) {
+            $product = $branchProduct->product;
+            if ($product) {
+                $product->price = $branchProduct->price; // Add price to the product object
+            }
+            return $product;
+        });
 
         return response()->json($products);
     }

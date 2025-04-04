@@ -5,17 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ExpencesReport extends Model
+class BirReport extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'sales_report_id',
         'user_id',
         'branch_id',
-        'name',
-        'amount',
+        'receipt_no',
+        'tin_no',
         'description',
+        'address',
+        'amount',
         'category',
     ];
 
@@ -23,9 +24,8 @@ class ExpencesReport extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-
-    public function salesReports()
+    public function branch()
     {
-        return $this->belongsTo(SalesReports::class, 'sales_report_id');
+        return $this->belongsTo(Branch::class, 'branch_id');
     }
 }

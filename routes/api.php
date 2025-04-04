@@ -5,6 +5,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\WarehouseController;
 use App\Http\Controllers\Api\ApiController;
+use App\Http\Controllers\BirReportController;
 use App\Http\Controllers\BranchEmployeeController;
 use App\Http\Controllers\BranchPremixController;
 use App\Http\Controllers\RecipeController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\EmployeeAllowanceController;
 use App\Http\Controllers\EmployeeBenefitController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeCreditProductsController;
+use App\Http\Controllers\EmployeeCreditsController;
 use App\Http\Controllers\EmployeeDeductionController;
 use App\Http\Controllers\EmploymentTypeController;
 use App\Http\Controllers\ExpencesReportController;
@@ -46,6 +48,7 @@ use App\Http\Controllers\WarehouseEmployeeController;
 use App\Http\Controllers\WarehouseRawMaterialsReportController;
 use App\Http\Controllers\WarehouseScalingReportController;
 use App\Http\Controllers\WarehouseStockReportsController;
+use App\Models\BirReport;
 use App\Models\Branch;
 use App\Models\BranchRawMaterialsReport;
 use App\Models\BranchRecipe;
@@ -118,6 +121,7 @@ Route::apiResource('warehouse-rawMaterials-report', WarehouseScalingReportContro
 Route::apiResource('branch-premix', BranchPremixController::class);
 Route::apiResource('request-premix', RequestPremixController::class);
 Route::apiResource('sending-bread-to-branch', BreadAddedController::class);
+Route::apiResource('delivery-receipt', BirReportController::class);
 
 Route::post('received-branch-bread', [BreadAddedController::class, 'receivedBread']);
 Route::post('admin-sales-report', [SalesReportsController::class, 'adminStoreSalesReport']);
@@ -137,6 +141,7 @@ Route::post('checkDevice', [DeviceController::class, 'checkDevice']);
 Route::post('confirm-selecta-report/{id}', [SelectaStocksReportController::class, 'confirmReport']);
 Route::post('confirm-softdrinks-report/{id}', [SoftdrinksStocksReportController::class, 'confirmReport']);
 Route::post('confirm-otherProd-report/{id}', [OtherStocksReportController::class, 'confirmReport']);
+// Route::post('admin-create-admin-insert-recipe-baker-report', [InitialBakerreportsController::class, 'adminCreateAdminInsertRecipeBakerReport']);
 Route::post('admin-create-baker-report', [InitialBakerreportsController::class, 'adminCreateReport']);
 Route::post('confirm-initial-baker-report/{id}', [InitialBakerreportsController::class, 'confirmReport']);
 Route::post('decline-initial-baker-report/{id}', [InitialBakerreportsController::class, 'declineReport']);
@@ -168,6 +173,7 @@ Route::post('branch-add-selecta-production-report', [SelectaSalesReportControlle
 Route::post('branch-add-softdrinks-production-report', [SoftdrinksSalesReportController::class, 'addingSoftdrinksProduction']);
 Route::post('branch-add-other-production-report', [OtherProductsController::class, 'addingOtherProduction']);
 Route::post('employee-adding-credits', [EmployeeCreditProductsController::class, 'storeEmployeeCredits']);
+Route::post('employee-saving-credits', [EmployeeCreditsController::class, 'saveCreditReport']);
 Route::post('employee-adding-expense', [ExpencesReportController::class, 'updateExpensesReport']);
 Route::post('confirm-premix', [RequestPremixController::class, 'confirmPremix']);
 Route::post('decline-premix', [RequestPremixController::class, 'declinePremix']);
@@ -176,7 +182,6 @@ Route::post('completed-premix', [RequestPremixController::class, 'completedPremi
 Route::post('to-deliver-premix', [RequestPremixController::class, 'toDeliverPremix']);
 Route::post('to-receive-premix', [RequestPremixController::class, 'toReceivePremix']);
 Route::post('receive-premix', [RequestPremixController::class, 'receivePremix']);
-
 
 Route::put('update-employee-birthdate/{id}', [EmployeeController::class, 'updateEmployeeBirthdate']);
 Route::put('update-employee-phone/{id}', [EmployeeController::class, 'updateEmployeePhone']);
@@ -223,6 +228,8 @@ Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportControlle
 Route::put('update-warehouse-rawMaterials/{id}', [WarehouseRawMaterialsReportController::class, 'updateStocks' ]);
 Route::put('update/branch-baker-report/{id}', [InitialBakerreportsController::class, 'updateBakersReport']);
 
+Route::get('fetch-branch-data-for-bir-report/{branchId}', [BirReportController::class, 'fetchBranchDataForReports']);
+Route::get('fetch-non-vat-bir-reports/{branchId}', [BirReportController::class, 'fetchNonVATBirReports']);
 Route::get('get-request-branch-employee-premix/{branchId}/{employeeId}', [RequestPremixController::class, 'getBranchEmployeePremix' ]);
 Route::get('get-request-branch-premix/{branchId}', [RequestPremixController::class, 'getBranchPremix' ]);
 Route::get('get-receive-premix/{warehouseId}', [RequestPremixController::class, 'getRecievePremix' ]);
@@ -272,6 +279,7 @@ Route::get('search-branch',[ BranchController::class, 'searchBranch']);
 Route::get('search-recipes',[ RecipeController::class, 'searchRecipe']);
 Route::get('branch-recipe-search',[ BranchRecipeController::class, 'branchSearchRecipe']);
 Route::get('branches/{branchId}/recipes', [BranchRecipeController::class, 'getBranchRecipe']);
+Route::get('sample-fetch-pagination-branch-products', [BranchProductController::class, 'samplePaginationFretchingBranchProducts']);
 Route::get('branches/{branchId}/products', [BranchProductController::class, 'getProducts']);
 Route::get('branch-products/search', [BranchProductController::class, 'search']);
 Route::get('branches/{branchId}/production-report', [BranchReportController::class, 'fetchBranchReport']);

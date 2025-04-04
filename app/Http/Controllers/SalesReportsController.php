@@ -40,7 +40,7 @@ class SalesReportsController extends Controller
         'softdrinksReports' => 'nullable|array',
         'otherProductsReports' => 'nullable|array',
         'cakeReports' => 'nullable|array',
-        'expensesReports' => 'nullable|array',
+        'withOutReceiptExpensesReport' => 'nullable|array',
         'denominationReports' => 'required|array',
         'creditReports' => 'nullable|array',
         'creditReports.*.credits' => 'nullable|array',
@@ -143,8 +143,8 @@ class SalesReportsController extends Controller
         }
     }
 
-    foreach ($request->expensesReports ?? [] as $expensesReport) {
-        $salesReport->expensesReports()->create($expensesReport);
+    foreach ($request->withOutReceiptExpensesReport ?? [] as $withOutReceiptExpensesReport) {
+        $salesReport->expensesReports()->create($withOutReceiptExpensesReport);
     }
 
     foreach ($request->denominationReports as $denominationReport) {
@@ -364,7 +364,7 @@ class SalesReportsController extends Controller
             'softdrinksReports' => 'nullable|array',
             'otherProductsReports' => 'nullable|array',
             'cakeReports' => 'nullable|array',
-            'expensesReports' => 'nullable|array',
+            'withOutReceiptExpensesReport' => 'nullable|array',
             'denominationReports' => 'required|array',
             'creditReports' => 'nullable|array',
             'creditReports.*.credits' => 'nullable|array',
@@ -489,8 +489,8 @@ class SalesReportsController extends Controller
         }
 
         // Store Expenses Reports
-        foreach ($request->expensesReports as $expensesReport) {
-            $salesReport->expensesReports()->create($expensesReport);
+        foreach ($request->withOutReceiptExpensesReport as $withOutReceiptExpensesReport) {
+            $salesReport->expensesReports()->create($withOutReceiptExpensesReport);
         }
 
         // Store Denomination Reports

@@ -35,25 +35,53 @@ class EmployeeController extends Controller
     /**
      * Show the form for creating a new resource.
      */
+    // public function searchEmployees(Request $request)
+    // {
+    //     $keyword = $request->input('keyword');
+
+    //     // Search by firstname or lastname
+    //     $employees = Employee::with('employmentType')
+    //         ->where('firstname', 'like', "%$keyword%")
+    //         ->orWhere('lastname', 'like', "%$keyword%")
+    //         ->take(7)
+    //         ->get();
+
+    //     // Check if employees are found
+    //     if ($employees->isEmpty()) {
+    //         // return response()->json([], 200); // Return an empty array if no results
+    //         $employees = Employee::orderBy('created_at', 'asc')->with('employmentType')->take(7)->get();
+    //     }
+
+    //     return response()->json($employees, 200);
+    // }
+
     public function searchEmployees(Request $request)
     {
         $keyword = $request->input('keyword');
 
-        // Search by firstname or lastname
+        // Search by firstname or lastname, excluding "super admin"
         $employees = Employee::with('employmentType')
-            ->where('firstname', 'like', "%$keyword%")
-            ->orWhere('lastname', 'like', "%$keyword%")
+            ->where(function ($query) use ($keyword) {
+                $query->where('firstname', 'like', "%$keyword%")
+                    ->orWhere('lastname', 'like', "%$keyword%");
+            })
+            ->where('position', '!=', 'super admin')  // Exclude employees with the role "super admin"
             ->take(7)
             ->get();
 
         // Check if employees are found
         if ($employees->isEmpty()) {
-            // return response()->json([], 200); // Return an empty array if no results
-            $employees = Employee::orderBy('created_at', 'asc')->with('employmentType')->take(7)->get();
+            // If no results, return the first 7 employees excluding "super admin"
+            $employees = Employee::with('employmentType')
+                ->where('position', '!=', 'super admin')  // Exclude "super admin" from the fallback
+                ->orderBy('created_at', 'asc')
+                ->take(7)
+                ->get();
         }
 
         return response()->json($employees, 200);
     }
+
 
     public function searchEmployeesWithDesignation(Request $request)
     {
