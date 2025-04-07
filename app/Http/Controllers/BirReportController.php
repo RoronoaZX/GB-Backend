@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BirReport;
 use App\Models\Branch;
+use App\Models\ExpencesReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -30,55 +31,80 @@ class BirReportController extends Controller
         return response()->json($branchDataBirReports);
     }
 
-    public function fetchNonVATBirReports(Request $request,$branchId)
+    // public function fetchNonVATBirReports(Request $request,$branchId)
+    // {
+
+    //     $startDate = $request->query('startDate');
+    //     $endDate = $request->query('endDate');
+
+    //     $birReports = BirReport::where('branch_id', $branchId)
+    //         ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+    //             $query->whereBetween('created_at', [$startDate, $endDate]);
+    //         })
+    //         ->with(['user', 'branch'])
+    //         ->orderBy('created_at', 'desc')
+    //         ->get()
+    //         ->map(function ($report) {
+    //             $report->category = 'Non-VAT';
+    //             return $report;
+    //         });
+
+    //     return response()->json($birReports);
+
+    // }
+
+    public function fetchNonVATBirReports(Request $request, $branchId)
+    {
+        $startDate = $request->query('startDate');
+        $endDate = $request->query('endDate');
+
+        $birReports = BirReport::where('branch_id', $branchId)
+            ->where('category', 'Non-VAT') // filter for Non-VAT only
+            ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('created_at', [$startDate, $endDate]);
+            })
+            ->with(['user', 'branch'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($birReports);
+    }
+
+    public function fetchVATBirReports(Request $request,$branchId)
     {
 
         $startDate = $request->query('startDate');
         $endDate = $request->query('endDate');
 
         $birReports = BirReport::where('branch_id', $branchId)
+            ->where('category', 'VAT') // filter for Non-VAT only
             ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
                 $query->whereBetween('created_at', [$startDate, $endDate]);
             })
             ->with(['user', 'branch'])
             ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($report) {
-                $report->category = 'Non-VAT';
-                return $report;
-            });
+            ->get();
 
         return response()->json($birReports);
-     // Get the current month and year
-    // $currentMonth = Carbon::now()->month;
-    // $currentYear = Carbon::now()->year;
 
-    // // Fetch BIR reports filtered by month and year
-    // $birReports = BirReport::where('branch_id', $branchId)
-    //     ->whereMonth('created_at', $currentMonth)
-    //     ->whereYear('created_at', $currentYear)
-    //     ->with(['user', 'branch'])
-    //     ->orderBy('created_at', 'desc')
-    //     ->get()
-    //     ->map(function ($report) {
-    //         // Add a static or dynamic category field
-    //         $report->category = 'Non-VAT';  // You can customize this logic based on your data
-    //         return $report;
-    //     });
+    }
+    public function fetchExpensesReports(Request $request,$branchId)
+    {
 
-    // return response()->json($birReports);
+        $startDate = $request->query('startDate');
+        $endDate = $request->query('endDate');
 
-        // Fetch expenses for this branch, grouped by month too
-        // $expenses = DB::table('expences_reports')
-        //     ->where('branch_id', $branchId)
-        //     ->orderBy('created_at', 'desc')
-        //     ->get()
+        $birReports = ExpencesReport::where('branch_id', $branchId)
+            ->where('category', '!=', 'premium') // filter for Non-VAT only
+            ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('created_at', [$startDate, $endDate]);
+            })
+            ->with(['user', 'branch'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
+        return response()->json($birReports);
 
-        // return response()->json([
-        //     'bir_reports' => $birReports,
-        //     // 'expenses' => $expenses,
-        // ]);
     }
 
     /**

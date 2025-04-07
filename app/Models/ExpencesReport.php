@@ -28,4 +28,8 @@ class ExpencesReport extends Model
     {
         return $this->belongsTo(SalesReports::class, 'sales_report_id');
     }
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class, 'branch_id');
+    }
 }

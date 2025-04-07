@@ -229,6 +229,8 @@ Route::put('update-warehouse-rawMaterials/{id}', [WarehouseRawMaterialsReportCon
 Route::put('update/branch-baker-report/{id}', [InitialBakerreportsController::class, 'updateBakersReport']);
 
 Route::get('fetch-branch-data-for-bir-report/{branchId}', [BirReportController::class, 'fetchBranchDataForReports']);
+Route::get('fetch-expenses-report/{branchId}', [BirReportController::class, 'fetchExpensesReports']);
+Route::get('fetch-vat-bir-reports/{branchId}', [BirReportController::class, 'fetchVATBirReports']);
 Route::get('fetch-non-vat-bir-reports/{branchId}', [BirReportController::class, 'fetchNonVATBirReports']);
 Route::get('get-request-branch-employee-premix/{branchId}/{employeeId}', [RequestPremixController::class, 'getBranchEmployeePremix' ]);
 Route::get('get-request-branch-premix/{branchId}', [RequestPremixController::class, 'getBranchPremix' ]);
