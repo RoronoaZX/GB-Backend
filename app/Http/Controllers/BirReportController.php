@@ -64,7 +64,7 @@ class BirReportController extends Controller
                 $query->whereBetween('created_at', [$startDate, $endDate]);
             })
             ->with(['user', 'branch'])
-            ->orderBy('created_at', 'desc')
+            ->orderBy('created_at', 'asc')
             ->get();
 
         return response()->json($birReports);
@@ -82,7 +82,7 @@ class BirReportController extends Controller
                 $query->whereBetween('created_at', [$startDate, $endDate]);
             })
             ->with(['user', 'branch'])
-            ->orderBy('created_at', 'desc')
+            ->orderBy('created_at', 'asc')
             ->get();
 
         return response()->json($birReports);
@@ -100,7 +100,7 @@ class BirReportController extends Controller
                 $query->whereBetween('created_at', [$startDate, $endDate]);
             })
             ->with(['user', 'branch'])
-            ->orderBy('created_at', 'desc')
+            ->orderBy('created_at', 'asc')
             ->get();
 
         return response()->json($birReports);
@@ -110,6 +110,26 @@ class BirReportController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+
+    public function savingBIRReportAdmin(Request $request)
+    {
+        $validatedData = $request->validate([
+            'user_id' => 'required|integer',
+            'branch_id' => 'required|integer',
+            'receipt_no' => 'required|integer',
+            'tin_no' => 'required|integer',
+            'description' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'amount' => 'nullable|numeric',
+            'category' => 'nullable|string|max:255',
+            'created_at' => 'nullable|date',
+        ]);
+
+        BirReport::create($validatedData);
+
+        return response()->json(['message' => 'Bir Report created successfully'], 201);
+    }
+
     public function store(Request $request)
     {
         $request->validate([

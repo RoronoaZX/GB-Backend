@@ -123,6 +123,8 @@ Route::apiResource('request-premix', RequestPremixController::class);
 Route::apiResource('sending-bread-to-branch', BreadAddedController::class);
 Route::apiResource('delivery-receipt', BirReportController::class);
 
+Route::post('saving-bir-report-admin', [BirReportController::class, 'savingBIRReportAdmin'] );
+// Route::post('saving-vat-admin', [BirReportController::class, 'savingVATAdmin'] );
 Route::post('received-branch-bread', [BreadAddedController::class, 'receivedBread']);
 Route::post('admin-sales-report', [SalesReportsController::class, 'adminStoreSalesReport']);
 Route::post('search-allowance', [EmployeeAllowanceController::class, 'searchAllowance']);

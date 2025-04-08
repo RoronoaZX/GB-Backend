@@ -18,6 +18,7 @@ class BirReport extends Model
         'address',
         'amount',
         'category',
+        'created_at'
     ];
 
     public function user()
