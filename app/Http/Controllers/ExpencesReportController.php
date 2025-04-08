@@ -65,6 +65,7 @@ class ExpencesReportController extends Controller
             'expenses.*.name' => 'required|string|max:255',
             'expenses.*.amount' => 'required|numeric|min:0',
             'expenses.*.description' => 'nullable|string|max:500',
+            'expenses.*.category' => 'nullable|string|max:255',
         ]);
 
         try {
@@ -76,6 +77,7 @@ class ExpencesReportController extends Controller
                     'name' => $expense['name'],
                     'amount' => $expense['amount'],
                     'description' => $expense['description'] ?? null,
+                    'category' => $expense['category'] ?? null,
                 ]);
             }
 
