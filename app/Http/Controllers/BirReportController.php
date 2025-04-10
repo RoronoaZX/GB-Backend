@@ -22,6 +22,108 @@ class BirReportController extends Controller
     /**
      * Show the form for fetching resource.
      */
+    public function updateBranchDescriptionForReports(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'description' => 'required|string|max:255',
+        ]);
+
+        $updated = BirReport::where('id', $id)->update([
+            'description' => $validatedData['description']
+        ]);
+
+        if ($updated) {
+            return response()->json(['message' => 'Branch description updated successfully'], 200);
+        } else {
+            return response()->json(['message' => 'No records were updated or branch not found'], 404);
+        }
+    }
+
+    public function updateReceiptNoForReports(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'receipt_no' => 'required|integer',
+        ]);
+
+        $updated = BirReport::where('id', $id)->update([
+            'receipt_no' => $validatedData['receipt_no']
+        ]);
+
+        if ($updated) {
+            return response()->json(['message' => 'Receipt number updated successfully'], 200);
+        } else {
+            return response()->json(['message' => 'No records were updated or branch not found'], 404);
+        }
+    }
+
+    public function updateAddressReports(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'address' => 'required|string|max:255',
+        ]);
+
+        $updated = BirReport::where('id', $id)->update([
+            'address' => $validatedData['address']
+        ]);
+
+        if ($updated) {
+            return response()->json(['message' => 'Address updated successfully'], 200);
+        } else {
+            return response()->json(['message' => 'No records were updated or branch not found'], 404);
+        }
+    }
+
+    public function updateTinNoForReports(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'tin_no' => 'required|integer',
+        ]);
+
+        $updated = BirReport::where('id', $id)->update([
+            'tin_no' => $validatedData['tin_no']
+        ]);
+
+        if ($updated) {
+            return response()->json(['message' => 'TIN number updated successfully'], 200);
+        } else {
+            return response()->json(['message' => 'No records were updated or branch not found'], 404);
+        }
+    }
+
+    public function updateAmountForReports(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'amount' => 'required|numeric',
+        ]);
+
+        $updated = BirReport::where('id', $id)->update([
+            'amount' => $validatedData['amount']
+        ]);
+
+        if ($updated) {
+            return response()->json(['message' => 'Amount updated successfully'], 200);
+        } else {
+            return response()->json(['message' => 'No records were updated or branch not found'], 404);
+        }
+    }
+
+    public function updateDateForReports(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'created_at' => 'required|date',
+        ]);
+
+        $updated = BirReport::where('id', $id)->update([
+            'created_at' => Carbon::parse($validatedData['created_at'])
+        ]);
+
+        if ($updated) {
+            return response()->json(['message' => 'Date updated successfully'], 200);
+        } else {
+            return response()->json(['message' => 'No records were updated or branch not found'], 404);
+        }
+    }
+
     public function fetchBranchDataForReports($branchId)
     {
         $branchDataBirReports = Branch::where('id', $branchId)
