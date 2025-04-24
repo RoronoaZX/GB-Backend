@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BreadSalesReport;
+use App\Models\HistoryLog;
 use Illuminate\Http\Request;
 
 class BreadSalesReportController extends Controller
@@ -27,6 +28,19 @@ class BreadSalesReportController extends Controller
         $breadSalesReport->price = $validatedData['price'];
         $breadSalesReport->save();
 
+        HistoryLog::create([
+            'report_id' => $request->input('report_id'),
+            'name' => $request->input('name'),
+            'original_data' => $request->input('original_data'),
+            'updated_data' => $request->input('updated_data'),
+            'updated_field' => $request->input('updated_field'),
+            'designation' => $request->input('designation'),
+            'designation_type' => $request->input('designation_type'),
+            'action' => $request->input('action'),
+            'type_of_report' => $request->input('type_of_report'),
+            'user_id' => $request->input('user_id'),
+        ]);
+
         return response()->json(['message' => 'Price updated successfully', 'price' => $breadSalesReport]);
     }
     public function updateBeginnings(Request $request, $id)
@@ -39,6 +53,19 @@ class BreadSalesReportController extends Controller
         $breadSalesReport->beginnings = $validatedData['beginnings'];
         $breadSalesReport->save();
 
+        HistoryLog::create([
+            'report_id' => $request->input('report_id'),
+            'name' => $request->input('name'),
+            'original_data' => $request->input('original_data'),
+            'updated_data' => $request->input('updated_data'),
+            'updated_field' => $request->input('updated_field'),
+            'designation' => $request->input('designation'),
+            'designation_type' => $request->input('designation_type'),
+            'action' => $request->input('action'),
+            'type_of_report' => $request->input('type_of_report'),
+            'user_id' => $request->input('user_id'),
+        ]);
+
         return response()->json(['message' => 'Beginnings updated successfully', 'beginnings' => $breadSalesReport]);
     }
     public function updatedNewProduction(Request $request, $id)
@@ -50,6 +77,19 @@ class BreadSalesReportController extends Controller
         $breadSalesReport = BreadSalesReport::findorFail($id);
         $breadSalesReport->new_production = $validatedData['new_production'];
         $breadSalesReport->save();
+
+        HistoryLog::create([
+            'report_id' => $request->input('report_id'),
+            'name' => $request->input('name'),
+            'original_data' => $request->input('original_data'),
+            'updated_data' => $request->input('updated_data'),
+            'updated_field' => $request->input('updated_field'),
+            'designation' => $request->input('designation'),
+            'designation_type' => $request->input('designation_type'),
+            'action' => $request->input('action'),
+            'type_of_report' => $request->input('type_of_report'),
+            'user_id' => $request->input('user_id'),
+        ]);
 
         return response()->json(['message' => 'Beginnings updated successfully', 'new_production' => $breadSalesReport]);
     }
@@ -74,6 +114,19 @@ class BreadSalesReportController extends Controller
         $breadSalesReport = BreadSalesReport::findorFail($id);
         $breadSalesReport->bread_out = $validatedData['bread_out'];
         $breadSalesReport->save();
+
+        HistoryLog::create([
+            'report_id' => $request->input('report_id'),
+            'name' => $request->input('name'),
+            'original_data' => $request->input('original_data'),
+            'updated_data' => $request->input('updated_data'),
+            'updated_field' => $request->input('updated_field'),
+            'designation' => $request->input('designation'),
+            'designation_type' => $request->input('designation_type'),
+            'action' => $request->input('action'),
+            'type_of_report' => $request->input('type_of_report'),
+            'user_id' => $request->input('user_id'),
+        ]);
 
         return response()->json(['message' => 'Bread out updated successfully', 'bread_out' => $breadSalesReport]);
     }
