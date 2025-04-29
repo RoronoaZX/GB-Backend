@@ -9,6 +9,8 @@ use App\Models\SalesReports;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class BranchReportController extends Controller
 {
@@ -165,6 +167,9 @@ class BranchReportController extends Controller
     //     }
     // }
 
+    //------------------------//
+    // this is the final codes//
+    //------------------------//
     public function fetchBranchReport($branchId)
     {
         $branch = Branch::find($branchId);
@@ -172,7 +177,7 @@ class BranchReportController extends Controller
             return response()->json(['message' => 'Branch not found'], 404);
         }
 
-        // Fetch unique dates from both SalesReports and InitialBakerreports in UTC and convert to local time zone
+        // Fetch unique dates from all reports
         $dates = DB::table('sales_reports')
             ->select(DB::raw('DATE(CONVERT_TZ(created_at, "+00:00", "+08:00")) as date'))
             ->where('branch_id', $branchId)
@@ -191,12 +196,18 @@ class BranchReportController extends Controller
             ->orderBy('date', 'desc')
             ->pluck('date');
 
+        // Setup pagination
+        $page = request()->get('page', 1); // Default to page 1 if no page param
+        $perPage = request()->get('per_page', 5); // Default 5 items per page
+
+        $paginatedDates = (new Collection($dates))->forPage($page, $perPage);
+
         $branchReports = [];
 
-        foreach ($dates as $date) {
+        foreach ($paginatedDates as $date) {
             $carbonDate = Carbon::createFromFormat('Y-m-d', $date, 'Asia/Manila');
 
-            // AM Sales Reports: 6:00 AM - 10:00 PM
+            // Fetch AM Sales Reports
             $amSalesReports = SalesReports::where('branch_id', $branchId)
                 ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
                     $carbonDate->copy()->setTime(6, 0, 0)->toDateTimeString(),
@@ -205,7 +216,7 @@ class BranchReportController extends Controller
                 ->with(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports'])
                 ->get();
 
-            // PM Sales Reports: 10:01 PM - 5:59 AM
+            // Fetch PM Sales Reports
             $pmSalesReports = SalesReports::where('branch_id', $branchId)
                 ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
                     $carbonDate->copy()->setTime(22, 1, 0)->toDateTimeString(),
@@ -214,37 +225,31 @@ class BranchReportController extends Controller
                 ->with(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports'])
                 ->get();
 
-            // AM Baker Reports: 6:00 AM - 5:00 PM
+            // Fetch AM Baker Reports
             $amBakerReports = InitialBakerreports::where('branch_id', $branchId)
                 ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
                     $carbonDate->copy()->setTime(6, 0, 0)->toDateTimeString(),
                     $carbonDate->copy()->setTime(17, 0, 0)->toDateTimeString(),
                 ])
-                ->with(['user', 'branch', 'breadBakersReports', 'ingredientBakersReports', 'fillingBakersReports', 'breadProductionReports', 'branchRecipe', ])
+                ->with(['user', 'branch', 'breadBakersReports', 'ingredientBakersReports', 'fillingBakersReports', 'breadProductionReports', 'branchRecipe'])
                 ->get()
                 ->map(function ($report) {
-                    // Standardize property names for bread reports
                     $breadReports = $report->breadBakersReports->map(function ($breadReport) {
-                        $breadReport->bread_production = $breadReport->bread_production; // No change needed
+                        $breadReport->bread_production = $breadReport->bread_production;
                         return $breadReport;
                     });
 
-                    // Standardize property names for filling reports
                     $fillingReports = $report->fillingBakersReports->map(function ($fillingReport) {
-                        $fillingReport->bread_production = $fillingReport->filling_production; // Rename to bread_production
-                        unset($fillingReport->filling_production); // Remove the original property
+                        $fillingReport->bread_production = $fillingReport->filling_production;
+                        unset($fillingReport->filling_production);
                         return $fillingReport;
                     });
 
-                    // Merge the collections
                     $report->combined_bakers_reports = $breadReports->merge($fillingReports);
-
                     return $report;
-                    // $report->combined_bakers_reports = $report->breadBakersReports->merge($report->fillingBakersReports);
-                    // return $report;
                 });
 
-            // PM Baker Reports: 6:00 PM - 5:59 AM
+            // Fetch PM Baker Reports
             $pmBakerReports = InitialBakerreports::where('branch_id', $branchId)
                 ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
                     $carbonDate->copy()->setTime(18, 0, 0)->toDateTimeString(),
@@ -257,18 +262,17 @@ class BranchReportController extends Controller
                     return $report;
                 });
 
-
             $branchReports[] = [
                 'date' => $carbonDate->toDateString(),
                 'AM' => [
-                    'sales_reports_id' => $amSalesReports->pluck('id')->first(), // Retrieve the first ID
+                    'sales_reports_id' => $amSalesReports->pluck('id')->first(),
                     'sales_reports' => $amSalesReports,
                     'baker_reports' => $amBakerReports,
                     'date' => $carbonDate->toDateString(),
                     'branch_name' => $branch->name,
                 ],
                 'PM' => [
-                    'sales_reports_id' => $pmSalesReports->pluck('id')->first(), // Retrieve the first ID
+                    'sales_reports_id' => $pmSalesReports->pluck('id')->first(),
                     'sales_reports' => $pmSalesReports,
                     'baker_reports' => $pmBakerReports,
                     'date' => $carbonDate->toDateString(),
@@ -277,12 +281,143 @@ class BranchReportController extends Controller
             ];
         }
 
-        if (!empty($branchReports)) {
-            return response()->json($branchReports);
-        } else {
-            return response()->json(['message' => 'No reports found'], 404);
-        }
+        // Create manual pagination
+        $paginator = new LengthAwarePaginator(
+            $branchReports,
+            count($dates),
+            $perPage,
+            $page,
+            ['path' => url()->current()]
+        );
+
+        return response()->json($paginator);
     }
+
+
+    // public function fetchBranchReport($branchId)
+    // {
+    //     $branch = Branch::find($branchId);
+    //     if (!$branch) {
+    //         return response()->json(['message' => 'Branch not found'], 404);
+    //     }
+
+    //     // Fetch unique dates from both SalesReports and InitialBakerreports in UTC and convert to local time zone
+    //     $dates = DB::table('sales_reports')
+    //         ->select(DB::raw('DATE(CONVERT_TZ(created_at, "+00:00", "+08:00")) as date'))
+    //         ->where('branch_id', $branchId)
+    //         ->union(
+    //             DB::table('initial_bakerreports')
+    //                 ->select(DB::raw('DATE(CONVERT_TZ(created_at, "+00:00", "+08:00")) as date'))
+    //                 ->where('branch_id', $branchId)
+    //         )
+    //         ->union(
+    //             DB::table('cake_sales_reports')
+    //                 ->join('sales_reports', 'cake_sales_reports.sales_report_id', '=', 'sales_reports.id')
+    //                 ->select(DB::raw('DATE(CONVERT_TZ(cake_sales_reports.created_at, "+00:00", "+08:00")) as date'))
+    //                 ->where('sales_reports.branch_id', $branchId)
+    //         )
+    //         ->groupBy('date')
+    //         ->orderBy('date', 'desc')
+    //         ->pluck('date');
+
+    //     // Setup pagination
+    // $page = request()->get('page', 1); // Default to page 1 if no page param
+    // $perPage = request()->get('per_page', 5); // Default 5 items per page
+
+    // $paginatedDates = (new Collection($dates))->forPage($page, $perPage);
+
+    //     $branchReports = [];
+
+    //     foreach ($dates as $date) {
+    //         $carbonDate = Carbon::createFromFormat('Y-m-d', $date, 'Asia/Manila');
+
+    //         // AM Sales Reports: 6:00 AM - 10:00 PM
+    //         $amSalesReports = SalesReports::where('branch_id', $branchId)
+    //             ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
+    //                 $carbonDate->copy()->setTime(6, 0, 0)->toDateTimeString(),
+    //                 $carbonDate->copy()->setTime(22, 0, 0)->toDateTimeString(),
+    //             ])
+    //             ->with(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports'])
+    //             ->get();
+
+    //         // PM Sales Reports: 10:01 PM - 5:59 AM
+    //         $pmSalesReports = SalesReports::where('branch_id', $branchId)
+    //             ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
+    //                 $carbonDate->copy()->setTime(22, 1, 0)->toDateTimeString(),
+    //                 $carbonDate->copy()->addDay()->setTime(5, 59, 59)->toDateTimeString(),
+    //             ])
+    //             ->with(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports'])
+    //             ->get();
+
+    //         // AM Baker Reports: 6:00 AM - 5:00 PM
+    //         $amBakerReports = InitialBakerreports::where('branch_id', $branchId)
+    //             ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
+    //                 $carbonDate->copy()->setTime(6, 0, 0)->toDateTimeString(),
+    //                 $carbonDate->copy()->setTime(17, 0, 0)->toDateTimeString(),
+    //             ])
+    //             ->with(['user', 'branch', 'breadBakersReports', 'ingredientBakersReports', 'fillingBakersReports', 'breadProductionReports', 'branchRecipe', ])
+    //             ->get()
+    //             ->map(function ($report) {
+    //                 // Standardize property names for bread reports
+    //                 $breadReports = $report->breadBakersReports->map(function ($breadReport) {
+    //                     $breadReport->bread_production = $breadReport->bread_production; // No change needed
+    //                     return $breadReport;
+    //                 });
+
+    //                 // Standardize property names for filling reports
+    //                 $fillingReports = $report->fillingBakersReports->map(function ($fillingReport) {
+    //                     $fillingReport->bread_production = $fillingReport->filling_production; // Rename to bread_production
+    //                     unset($fillingReport->filling_production); // Remove the original property
+    //                     return $fillingReport;
+    //                 });
+
+    //                 // Merge the collections
+    //                 $report->combined_bakers_reports = $breadReports->merge($fillingReports);
+
+    //                 return $report;
+    //                 // $report->combined_bakers_reports = $report->breadBakersReports->merge($report->fillingBakersReports);
+    //                 // return $report;
+    //             });
+
+    //         // PM Baker Reports: 6:00 PM - 5:59 AM
+    //         $pmBakerReports = InitialBakerreports::where('branch_id', $branchId)
+    //             ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
+    //                 $carbonDate->copy()->setTime(18, 0, 0)->toDateTimeString(),
+    //                 $carbonDate->copy()->addDay()->setTime(5, 59, 59)->toDateTimeString(),
+    //             ])
+    //             ->with(['user', 'branch', 'breadBakersReports', 'ingredientBakersReports', 'fillingBakersReports', 'breadProductionReports', 'branchRecipe'])
+    //             ->get()
+    //             ->map(function ($report) {
+    //                 $report->combined_bakers_reports = $report->breadBakersReports->merge($report->fillingBakersReports);
+    //                 return $report;
+    //             });
+
+
+    //         $branchReports[] = [
+    //             'date' => $carbonDate->toDateString(),
+    //             'AM' => [
+    //                 'sales_reports_id' => $amSalesReports->pluck('id')->first(), // Retrieve the first ID
+    //                 'sales_reports' => $amSalesReports,
+    //                 'baker_reports' => $amBakerReports,
+    //                 'date' => $carbonDate->toDateString(),
+    //                 'branch_name' => $branch->name,
+    //             ],
+    //             'PM' => [
+    //                 'sales_reports_id' => $pmSalesReports->pluck('id')->first(), // Retrieve the first ID
+    //                 'sales_reports' => $pmSalesReports,
+    //                 'baker_reports' => $pmBakerReports,
+    //                 'date' => $carbonDate->toDateString(),
+    //                 'branch_name' => $branch->name,
+    //             ],
+    //         ];
+    //     }
+
+    //     if (!empty($branchReports)) {
+    //         return response()->json($branchReports);
+    //     } else {
+    //         return response()->json(['message' => 'No reports found'], 404);
+    //     }
+    // }
 
 
     // public function fetchBranchReport($branchId)
@@ -385,66 +520,151 @@ class BranchReportController extends Controller
     //     }
     // }
 
-    public function fetchBranchSalesReport($branchId)
-    {
-        $branch = Branch::find($branchId);
-        if (!$branch) {
-            return response()->json(['message' => 'Branch not found'], 404);
-        }
-
-         // Fetch unique dates from both SalesReports and InitialBakerreports in UTC and convert to local time zone
-         $dates = DB::table('sales_reports')
-            ->select(DB::raw('DATE(CONVERT_TZ(created_at, "+00:00", "+08:00")) as date'))
-            ->where('branch_id', $branchId)
-            ->groupBy('date')
-            ->orderBy('date', 'desc')
-            ->pluck('date');
-
-        $branchReports = [];
-
-        foreach ($dates as $date) {
-            $carbonDate = Carbon::createFromFormat('Y-m-d', $date, 'Asia/Manila');
-
-             // AM Sales Reports: 6:00 AM - 10:00 PM
-             $amSalesReports = SalesReports::where('branch_id', $branchId)
-             ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
-                 $carbonDate->copy()->setTime(6, 0, 0)->toDateTimeString(),
-                 $carbonDate->copy()->setTime(22, 0, 0)->toDateTimeString(),
-             ])
-             ->with(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports'])
-             ->get();
-
-         // PM Sales Reports: 10:01 PM - 5:59 AM
-         $pmSalesReports = SalesReports::where('branch_id', $branchId)
-             ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
-                 $carbonDate->copy()->setTime(22, 1, 0)->toDateTimeString(),
-                 $carbonDate->copy()->addDay()->setTime(5, 59, 59)->toDateTimeString(),
-             ])
-             ->with(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports'])
-             ->get();
-
-            $branchReports[] = [
-                'date' => $carbonDate->toDateString(),
-                'AM' => [
-                    'sales_reports' => $amSalesReports,
-                    'date' => $carbonDate->toDateString(),
-                    'branch_name' => $branch->name,
-                ],
-                'PM' => [
-                    'sales_reports' => $pmSalesReports,
-                    'date' => $carbonDate->toDateString(),
-                    'branch_name' => $branch->name,
-                ]
-            ];
-        }
-
-
-        if (!empty($branchReports)) {
-            return response()->json($branchReports);
-        } else {
-            return response()->json(['message' => 'No reports found'], 404);
-        }
+public function fetchBranchSalesReport($branchId)
+{
+    $branch = Branch::find($branchId);
+    if (!$branch) {
+        return response()->json(['message' => 'Branch not found'], 404);
     }
+
+    // Fetch unique dates from sales_reports (converted to Asia/Manila timezone)
+    $dates = DB::table('sales_reports')
+        ->select(DB::raw('DATE(CONVERT_TZ(created_at, "+00:00", "+08:00")) as date'))
+        ->where('branch_id', $branchId)
+        ->groupBy('date')
+        ->orderBy('date', 'desc')
+        ->pluck('date');
+
+    // Setup pagination
+    $page = request()->get('page', 1);
+    $perPage = request()->get('per_page', 5);
+    $paginatedDates = (new Collection($dates))->forPage($page, $perPage)->values(); // Reset index
+
+    $branchReports = [];
+
+    foreach ($paginatedDates as $date) {
+        $carbonDate = Carbon::createFromFormat('Y-m-d', $date, 'Asia/Manila');
+
+        // AM Sales Reports: 6:00 AM - 10:00 PM
+        $amSalesReports = SalesReports::where('branch_id', $branchId)
+            ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
+                $carbonDate->copy()->setTime(6, 0, 0)->toDateTimeString(),
+                $carbonDate->copy()->setTime(22, 0, 0)->toDateTimeString(),
+            ])
+            ->with([
+                'user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports',
+                'expensesReports', 'denominationReports', 'creditReports',
+                'cakeSalesReports', 'otherProductsReports'
+            ])
+            ->get();
+
+        // PM Sales Reports: 10:01 PM - 5:59 AM
+        $pmSalesReports = SalesReports::where('branch_id', $branchId)
+            ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
+                $carbonDate->copy()->setTime(22, 1, 0)->toDateTimeString(),
+                $carbonDate->copy()->addDay()->setTime(5, 59, 59)->toDateTimeString(),
+            ])
+            ->with([
+                'user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports',
+                'expensesReports', 'denominationReports', 'creditReports',
+                'cakeSalesReports', 'otherProductsReports'
+            ])
+            ->get();
+
+        $branchReports[] = [
+            'date' => $carbonDate->toDateString(),
+            'AM' => [
+                'sales_reports' => $amSalesReports,
+                'date' => $carbonDate->toDateString(),
+                'branch_name' => $branch->name,
+            ],
+            'PM' => [
+                'sales_reports' => $pmSalesReports,
+                'date' => $carbonDate->toDateString(),
+                'branch_name' => $branch->name,
+            ]
+        ];
+    }
+
+    // Create manual pagination
+    $paginator = new LengthAwarePaginator(
+        $branchReports,
+        count($dates),       // total number of all dates
+        $perPage,
+        $page,
+        ['path' => url()->current()] // for next_page_url, prev_page_url, etc.
+    );
+
+    return response()->json($paginator);
+}
+
+
+    // public function fetchBranchSalesReport($branchId)
+    // {
+    //     $branch = Branch::find($branchId);
+    //     if (!$branch) {
+    //         return response()->json(['message' => 'Branch not found'], 404);
+    //     }
+
+    //      // Fetch unique dates from both SalesReports and InitialBakerreports in UTC and convert to local time zone
+    //      $dates = DB::table('sales_reports')
+    //         ->select(DB::raw('DATE(CONVERT_TZ(created_at, "+00:00", "+08:00")) as date'))
+    //         ->where('branch_id', $branchId)
+    //         ->groupBy('date')
+    //         ->orderBy('date', 'desc')
+    //         ->pluck('date');
+
+    //      // Setup pagination
+    //      $page = request()->get('page', 1);  // Default to page 1 if no page param
+    //      $perPage  =request()->get('per_page', 5); // Default 5 items per page
+
+    //      $paginatedDates = (new Collection($dates))->forPage($page, $perPage);
+
+    //     $branchReports = [];
+
+    //     foreach ($dates as $date) {
+    //         $carbonDate = Carbon::createFromFormat('Y-m-d', $date, 'Asia/Manila');
+
+    //          // AM Sales Reports: 6:00 AM - 10:00 PM
+    //          $amSalesReports = SalesReports::where('branch_id', $branchId)
+    //          ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
+    //              $carbonDate->copy()->setTime(6, 0, 0)->toDateTimeString(),
+    //              $carbonDate->copy()->setTime(22, 0, 0)->toDateTimeString(),
+    //          ])
+    //          ->with(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports'])
+    //          ->get();
+
+    //      // PM Sales Reports: 10:01 PM - 5:59 AM
+    //      $pmSalesReports = SalesReports::where('branch_id', $branchId)
+    //          ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
+    //              $carbonDate->copy()->setTime(22, 1, 0)->toDateTimeString(),
+    //              $carbonDate->copy()->addDay()->setTime(5, 59, 59)->toDateTimeString(),
+    //          ])
+    //          ->with(['user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports', 'cakeSalesReports', 'otherProductsReports'])
+    //          ->get();
+
+    //         $branchReports[] = [
+    //             'date' => $carbonDate->toDateString(),
+    //             'AM' => [
+    //                 'sales_reports' => $amSalesReports,
+    //                 'date' => $carbonDate->toDateString(),
+    //                 'branch_name' => $branch->name,
+    //             ],
+    //             'PM' => [
+    //                 'sales_reports' => $pmSalesReports,
+    //                 'date' => $carbonDate->toDateString(),
+    //                 'branch_name' => $branch->name,
+    //             ]
+    //         ];
+    //     }
+
+
+    //     if (!empty($branchReports)) {
+    //         return response()->json($branchReports);
+    //     } else {
+    //         return response()->json(['message' => 'No reports found'], 404);
+    //     }
+    // }
 
 //     public function fetchBranchReport($branchId)
 // {
