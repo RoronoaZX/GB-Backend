@@ -6,6 +6,7 @@ use App\Models\BranchProduct;
 use App\Models\SoftdrinksAddedStocks;
 use App\Models\SoftdrinksStocksReport;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use PhpParser\Node\Stmt\TryCatch;
 
 class SoftdrinksStocksReportController extends Controller
@@ -52,6 +53,8 @@ class SoftdrinksStocksReportController extends Controller
 
          // Set category to 'pending' by default, if not provided
          $status = $request->query('status', 'pending');
+         $page = $request->get('page', 1);
+         $perPage = $request->get('per_page', 5);
 
          // Fetch the SoftdrinksStocksReport with the related SoftdrinksAddedStock and filter by category and branch_id
         $softdrinksStockReports = SoftdrinksStocksReport::where('branches_id', $branchId)
@@ -61,10 +64,19 @@ class SoftdrinksStocksReportController extends Controller
                 $query->where('added_stocks', '>', 0); // Optional: Only fetch added stocks greater than 0
             }
         ])
+        ->orderBy('created_at', 'desc')
         ->get();
 
-    // Return the response with the filtered reports and their associated added stocks
-    return response()->json($softdrinksStockReports);
+        // Paginate manually
+        $paginated = new LengthAwarePaginator(
+            $softdrinksStockReports->forPage($page, $perPage)->values(),
+            $softdrinksStockReports->count(),
+            $perPage,
+            $page,
+            ['page' => url()->current()]
+        );
+
+        return response()->json($paginated);
     }
 
     public function declineReport(Request $request, $id)
@@ -104,6 +116,8 @@ class SoftdrinksStocksReportController extends Controller
 
         // Set category to 'pending' by default, if not provided
         $status = $request->query('status', 'confirmed');
+        $page = $request->get('page',1);
+        $perPage = $request->get('per_page', 5);
 
          // Fetch the SoftdrinksStocksReport with the related SoftdrinksAddedStock and filter by category and branch_id
          $softdrinksStockReport = SoftdrinksStocksReport::where('branches_id', $branchId)
@@ -113,10 +127,19 @@ class SoftdrinksStocksReportController extends Controller
                  $query->where('added_stocks', '>', 0); // Optional: Only fetch added stocks greater than 0
              }
          ])
+         ->orderBy('created_at', 'desc')
          ->get();
 
-     // Return the response with the filtered reports and their associated added stocks
-     return response()->json($softdrinksStockReport);
+        // Paginate manually
+        $paginated = new LengthAwarePaginator(
+            $softdrinksStockReport->forPage($page, $perPage)->values(),
+            $softdrinksStockReport->count(),
+            $perPage,
+            $page,
+            ['path' => url()->current()]
+        );
+
+        return response()->json($paginated);
     }
 
     public function confirmReport($id)
@@ -171,6 +194,8 @@ class SoftdrinksStocksReportController extends Controller
 
         // Set category to 'pending' by default, if not provided
         $status = $request->query('status', 'declined');
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 5);
 
         // Fetch the SelectaStocksReport with the related SelectaAddedStock and filter by category and branch_id
         $softdrinksStockReport = SoftdrinksStocksReport::where('branches_id', $branchId)
@@ -180,8 +205,16 @@ class SoftdrinksStocksReportController extends Controller
             }])
             ->get();
 
-            // Return the response with the filtered reports and their associated added stocks
-            return response()->json($softdrinksStockReport);
+            // Paginate manually
+            $paginated= new LengthAwarePaginator(
+                $softdrinksStockReport->forPage($page, $perPage)->values(),
+                $softdrinksStockReport->count(),
+                $perPage,
+                $page,
+                ['path' => url()->current()]
+            );
+
+            return response()->json($paginated);
     }
 
 

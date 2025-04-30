@@ -7,6 +7,8 @@ use App\Models\BreadAdded;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PhpParser\Node\Stmt\TryCatch;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class BreadAddedController extends Controller
 {
@@ -21,17 +23,29 @@ class BreadAddedController extends Controller
     public function fetchPendingSendBread(Request $request)
     {
         $validatedData = $request->validate([
-            'branch_id' => 'required|integer',
-            // 'perPage' => 'nullable|integer',
-            // 'page' => 'nullable|integer',
+            'branch_id' => 'required|integer'
         ]);
 
-        $pendingSendBread = BreadAdded::with(['employee','product', 'fromBranch', 'toBranch'])
-            ->where('from_branch_id', $validatedData['branch_id'])
-            ->get();
-            // ->paginate($validatedData['perPage'] ?? 5, ['*'], 'page', $validatedData['page'] ?? 1);
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 5);
 
-        return response()->json($pendingSendBread);
+        // Get full results first
+
+        $allPending = BreadAdded::with(['employee', 'product', 'product', 'fromBranch', 'toBranch'])
+                    ->where('from_branch_id', $validatedData['branch_id'])
+                    ->get();
+
+        // Paginate manually
+
+        $paginated = new LengthAwarePaginator(
+            $allPending->forPage($page, $perPage)->values(), // Items on current page
+            $allPending->count(),                            // Total items
+            $perPage,                                        // Items per page
+            $page,                                           // Current page
+            ['path' => url()->current()]                     // For pagination URLs
+        );
+
+        return response()->json($paginated);
     }
 
     public function receivedBread(Request $request)

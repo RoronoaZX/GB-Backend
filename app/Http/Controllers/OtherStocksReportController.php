@@ -6,6 +6,8 @@ use App\Models\BranchProduct;
 use App\Models\OtherAddedStocks;
 use App\Models\OtherStocksReport;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Psr\Http\Message\ResponseInterface;
 
 class OtherStocksReportController extends Controller
 {
@@ -49,6 +51,8 @@ class OtherStocksReportController extends Controller
 
         // Set category to 'pending' by default, if not provided
         $status = $request->query('status', 'pending');
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 5);
 
         // Fetch the SelectaStocksReport with the related SelectaAddedStock and filter by category and branch_id
         $otherStockReports = OtherStocksReport::where('branches_id', $branchId)
@@ -58,9 +62,20 @@ class OtherStocksReportController extends Controller
             $query->where('added_stocks', '>', 0); // Optional: Only fetch added stocks greater than 0
         }
         ])
+        ->orderBy('created_at', 'desc')
         ->get();
-         // Return the response with the filtered reports and their associated added stocks
-         return response()->json($otherStockReports);
+
+        // Paginate manually
+
+        $paginate = new LengthAwarePaginator(
+            $otherStockReports->forPage($page, $perPage)->values(),
+            $otherStockReports->count(),
+            $perPage,
+            $page,
+            ['path' => url()->current()]
+        );
+
+        return response()->json($paginate);
     }
 
     public function getConfirmedReport($branchId, Request $request)
@@ -71,6 +86,8 @@ class OtherStocksReportController extends Controller
 
         // Set category to 'pending' by default, if not provided
         $status = $request->query('status', 'confirmed');
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 5);
 
         // Fetch the SelectaStocksReport with the related SelectaAddedStock and filter by category and branch_id
         $otherStockReport = OtherStocksReport::where('branches_id', $branchId)
@@ -80,10 +97,19 @@ class OtherStocksReportController extends Controller
                     $query->where('added_stocks', '>', 0); // Optional: Only fetch added stocks greater than 0
                 }
             ])
+            ->orderBy('created_at', 'desc')
             ->get();
 
-        // Return the response with the filtered reports and their associated added stocks
-        return response()->json($otherStockReport);
+        // Paginate manually
+        $paginated = new LengthAwarePaginator(
+            $otherStockReport->forPage($page, $perPage)->values(),
+            $otherStockReport->count(),
+            $perPage,
+            $page,
+            ['path' => url()->current()]
+        );
+
+        return response()->json($paginated);
     }
 
     public function getDeclinedReport($branchId, Request $request)
@@ -94,6 +120,8 @@ class OtherStocksReportController extends Controller
 
         // Set category to 'pending' by default, if not provided
         $status = $request->query('status', 'declined');
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 5);
 
          // Fetch the SelectaStocksReport with the related SelectaAddedStock and filter by category and branch_id
          $otherStockReport = OtherStocksReport::where('branches_id', $branchId)
@@ -103,10 +131,18 @@ class OtherStocksReportController extends Controller
                  $query->where('added_stocks', '>', 0); // Optional: Only fetch added stocks greater than 0
              }
          ])
+         ->orderBy('created_at', 'desc')
          ->get();
 
-     // Return the response with the filtered reports and their associated added stocks
-     return response()->json($otherStockReport);
+        $paginate = new LengthAwarePaginator(
+            $otherStockReport->forPage($page, $perPage)->values(),
+            $otherStockReport->count(),
+            $perPage,
+            $page,
+            ['path' => url()->current()]
+        );
+
+        return response()->json($paginate);
     }
 
     public function confirmReport($id)
