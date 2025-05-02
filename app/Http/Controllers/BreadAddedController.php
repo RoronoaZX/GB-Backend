@@ -35,8 +35,18 @@ class BreadAddedController extends Controller
                     ->where('from_branch_id', $validatedData['branch_id'])
                     ->get();
 
-        // Paginate manually
+        // Return all data if per_page is 0
+        if ($perPage == 0) {
+            return response()->json([
+                'data' => $allPending,
+                'total' => $allPending->count(),
+                'per_page' => $allPending->count(),
+                'current_page' => 1,
+                'last_page' => 1,
+            ]);
+        }
 
+        // Paginate manually
         $paginated = new LengthAwarePaginator(
             $allPending->forPage($page, $perPage)->values(), // Items on current page
             $allPending->count(),                            // Total items

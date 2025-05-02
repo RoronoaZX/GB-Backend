@@ -8,6 +8,7 @@ use App\Models\RequestPremix;
 use App\Models\RequestPremixesHistory;
 use App\Models\WarehouseRawMaterialsReport;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 // use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -57,6 +58,10 @@ class RequestPremixController extends Controller
 
     public function getBranchPremix($branchId)
     {
+        $page = request()->get('page', 1);
+        $perPage = request()->get('per_page', 5);
+
+
         $branchPremix = RequestPremix::whereHas('branchPremix', function ($query) use ($branchId) {
                 $query->where('branch_id', $branchId);
             })
@@ -72,7 +77,27 @@ class RequestPremixController extends Controller
             ->orderBy('updated_at', 'desc') // Sort by latest update
             ->get();
 
-        return response()->json($branchPremix);
+        // Return all data if per_page is 0
+        if ($perPage == 0) {
+            return response()->json([
+                'data' => $branchPremix,
+                'total' => $branchPremix->count(),
+                'per_page' => $branchPremix->count(),
+                'current_page' => 1,
+                'last_page' => 1
+            ]);
+        }
+
+
+        $paginate = new LengthAwarePaginator(
+            $branchPremix->forPage($page, $perPage)->values(),
+            $branchPremix->count(),
+            $perPage,
+            $page,
+            ['path' => url()->current()]
+        );
+
+        return response()->json($paginate);
     }
 
 

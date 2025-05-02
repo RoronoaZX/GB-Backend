@@ -9,6 +9,7 @@ use App\Models\SalesReports;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Http\Client\ResponseSequence;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
@@ -200,7 +201,8 @@ class BranchReportController extends Controller
         $page = request()->get('page', 1); // Default to page 1 if no page param
         $perPage = request()->get('per_page', 5); // Default 5 items per page
 
-        $paginatedDates = (new Collection($dates))->forPage($page, $perPage);
+        $allDates = $dates;  // already ordered DESC from your query
+        $paginatedDates = ($perPage == 0) ? $allDates :  (new Collection($dates))->forPage($page, $perPage);
 
         $branchReports = [];
 
@@ -281,6 +283,18 @@ class BranchReportController extends Controller
             ];
         }
 
+        // Return paginated or full result
+
+        if ($perPage == 0) {
+            return response()->json([
+                'data' => $branchReports,
+                'total' => count($branchReports),
+                'per_page' => count($branchReports),
+                'current_page' => 1,
+                'last_page' => 1
+            ]);
+        } else {
+
         // Create manual pagination
         $paginator = new LengthAwarePaginator(
             $branchReports,
@@ -289,6 +303,8 @@ class BranchReportController extends Controller
             $page,
             ['path' => url()->current()]
         );
+
+        }
 
         return response()->json($paginator);
     }
@@ -538,7 +554,9 @@ public function fetchBranchSalesReport($branchId)
     // Setup pagination
     $page = request()->get('page', 1);
     $perPage = request()->get('per_page', 5);
-    $paginatedDates = (new Collection($dates))->forPage($page, $perPage)->values(); // Reset index
+
+    $allDates = $dates; // already ordered DESC form your query
+    $paginatedDates = ($perPage == 0) ? $allDates : (new Collection($dates))->forPage($page, $perPage)->values(); // Reset index
 
     $branchReports = [];
 
@@ -586,14 +604,27 @@ public function fetchBranchSalesReport($branchId)
         ];
     }
 
-    // Create manual pagination
-    $paginator = new LengthAwarePaginator(
-        $branchReports,
-        count($dates),       // total number of all dates
-        $perPage,
-        $page,
-        ['path' => url()->current()] // for next_page_url, prev_page_url, etc.
-    );
+    // Return paginated or full result
+
+    if ($perPage == 0) {
+        return response()->json([
+            'data' => $branchReports,
+            'total' => count($branchReports),
+            'per_page' => count($branchReports),
+            'current_page' => 1,
+            'last_page' => 1
+        ]);
+    } else {
+        // Create manual pagination
+        $paginator = new LengthAwarePaginator(
+            $branchReports,
+            count($dates),       // total number of all dates
+            $perPage,
+            $page,
+            ['path' => url()->current()] // for next_page_url, prev_page_url, etc.
+        );
+    }
+
 
     return response()->json($paginator);
 }
