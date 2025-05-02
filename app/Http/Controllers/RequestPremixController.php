@@ -56,49 +56,98 @@ class RequestPremixController extends Controller
         return response()->json($branchPremix);
     }
 
+    // public function getBranchPremix($branchId)
+    // {
+    //     $page = request()->get('page', 1);
+    //     $perPage = request()->get('per_page', 5);
+    //     $search = request()->query('search', '');
+
+
+    //     $query = RequestPremix::whereHas('branchPremix', function ($q) use ($branchId) {
+    //             $q->where('branch_id', $branchId);
+    //         })
+    //         ->with([
+    //             'branchPremix',
+    //             'employee',
+    //             'warehouse',
+    //             'history' => function ($q) {
+    //                 $q->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
+    //                     ->with('employee'); // Include employee who changed the status
+    //             }
+    //         ])
+    //         ->orderBy('updated_at', 'desc'); // Sort by latest update
+
+
+    //     // Return all data if per_page is 0
+    //     if ($perPage == 0) {
+    //         return response()->json([
+    //             'data' => $query,
+    //             'total' => $query->count(),
+    //             'per_page' => $query->count(),
+    //             'current_page' => 1,
+    //             'last_page' => 1
+    //         ]);
+    //     }
+
+
+    //     $paginate = new LengthAwarePaginator(
+    //         $branchPremix->forPage($page, $perPage)->values(),
+    //         $branchPremix->count(),
+    //         $perPage,
+    //         $page,
+    //         ['path' => url()->current()]
+    //     );
+
+    //     return response()->json($paginate);
+    // }
+
     public function getBranchPremix($branchId)
     {
         $page = request()->get('page', 1);
         $perPage = request()->get('per_page', 5);
+        $search = request()->query('search', '');
 
-
-        $branchPremix = RequestPremix::whereHas('branchPremix', function ($query) use ($branchId) {
-                $query->where('branch_id', $branchId);
+        $query = RequestPremix::whereHas('branchPremix', function ($q) use ($branchId) {
+                $q->where('branch_id', $branchId);
             })
             ->with([
                 'branchPremix',
                 'employee',
                 'warehouse',
-                'history' => function ($query) {
-                    $query->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
-                        ->with('employee'); // Include employee who changed the status
+                'history' => function ($q) {
+                    $q->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
+                        ->with('employee');
                 }
             ])
-            ->orderBy('updated_at', 'desc') // Sort by latest update
-            ->get();
+            ->orderBy('updated_at', 'desc');
 
-        // Return all data if per_page is 0
+        // ✅ Apply filter if there's a search term
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                ->orWhere('status', 'like', "%{$search}%");
+                // Add more fields if needed
+            });
+        }
+
+        // Return all data if perPage is 0 (no pagination)
         if ($perPage == 0) {
+            $data = $query->get();
             return response()->json([
-                'data' => $branchPremix,
-                'total' => $branchPremix->count(),
-                'per_page' => $branchPremix->count(),
+                'data' => $data,
+                'total' => $data->count(),
+                'per_page' => $data->count(),
                 'current_page' => 1,
                 'last_page' => 1
             ]);
         }
 
+        // ✅ Use built-in paginate method for server-side pagination
+        $paginated = $query->paginate($perPage, ['*'], 'page', $page);
 
-        $paginate = new LengthAwarePaginator(
-            $branchPremix->forPage($page, $perPage)->values(),
-            $branchPremix->count(),
-            $perPage,
-            $page,
-            ['path' => url()->current()]
-        );
-
-        return response()->json($paginate);
+        return response()->json($paginated);
     }
+
 
 
     // public function getBranchPremix($branchId)
