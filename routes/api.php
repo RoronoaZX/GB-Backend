@@ -126,6 +126,7 @@ Route::apiResource('sending-bread-to-branch', BreadAddedController::class);
 Route::apiResource('delivery-receipt', BirReportController::class);
 Route::apiResource('history-logs', HistoryLogController::class);
 
+Route::post('branch/raw-materials/bulk-create', [BranchRawMaterialsReportController::class, 'bulkStore']);
 Route::post('update-branch-date-for-bir-report/{id}', [BirReportController::class, 'updateDateForReports']);
 Route::post('update-branch-amount-for-bir-report/{id}', [BirReportController::class, 'updateAmountForReports']);
 Route::post('update-branch-tin-no-for-bir-report/{id}', [BirReportController::class, 'updateTinNoForReports']);

@@ -23,19 +23,30 @@ class BreadAddedController extends Controller
     public function fetchPendingSendBread(Request $request)
     {
         $validatedData = $request->validate([
-            'branch_id' => 'required|integer'
+            'branch_id' => 'required|integer',
         ]);
 
         $page = $request->get('page', 1);
         $perPage = $request->get('per_page', 5);
+        $search = $request->get('search');
 
-        // Get full results first
+        // Build base query
+        $query = BreadAdded::with(['employee', 'product', 'fromBranch', 'toBranch'])
+                    ->where('from_branch_id', $validatedData['branch_id']);
 
-        $allPending = BreadAdded::with(['employee', 'product', 'product', 'fromBranch', 'toBranch'])
-                    ->where('from_branch_id', $validatedData['branch_id'])
-                    ->get();
+        // Apply search filter for fromBranch and toBranch names
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('fromBranch', function ($q2) use ($search) {
+                    $q2->where('name', 'like', '%' . $search . '%');
+                })->orWhereHas('toBranch', function ($q2) use ($search) {
+                    $q2->where('name', 'like', '%' . $search . '%');
+                });
+            });
+        }
 
-        // Return all data if per_page is 0
+        $allPending = $query->get();
+
         if ($perPage == 0) {
             return response()->json([
                 'data' => $allPending,
@@ -46,18 +57,17 @@ class BreadAddedController extends Controller
             ]);
         }
 
-        // Paginate manually
+        // Manual pagination
         $paginated = new LengthAwarePaginator(
-            $allPending->forPage($page, $perPage)->values(), // Items on current page
-            $allPending->count(),                            // Total items
-            $perPage,                                        // Items per page
-            $page,                                           // Current page
-            ['path' => url()->current()]                     // For pagination URLs
+            $allPending->forPage($page, $perPage)->values(),
+            $allPending->count(),
+            $perPage,
+            $page,
+            ['path' => url()->current()]
         );
 
         return response()->json($paginated);
     }
-
     public function receivedBread(Request $request)
     {
         try {
