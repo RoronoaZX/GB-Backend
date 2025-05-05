@@ -158,8 +158,10 @@ class BreadAddedController extends Controller
 
     public function getSentBreadBranchProduct(Request $request, $branchId)
     {
-        try {
+
+            $page = $request->get('page', 1);
             $perPage = $request->get('per_page', 5);
+
 
             $sentBreadProducts = BreadAdded::with(['employee', 'product', 'fromBranch', 'toBranch'])
                 ->where(function ($query) use ($branchId) {
@@ -167,15 +169,28 @@ class BreadAddedController extends Controller
                         ->orWhere('to_branch_id', $branchId);
                 })
                 ->orderBy('created_at', 'desc')
-                ->paginate($perPage);
+                ->get();
 
-            return response()->json($sentBreadProducts);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to fetch reports. ' . $e->getMessage(),
-            ], 500);
-        }
+            if ($perPage == 0) {
+                return response()->json([
+                    'data' => $sentBreadProducts,
+                    'total' => count($sentBreadProducts),
+                    'per_page' => count($sentBreadProducts),
+                    'current_page' => 1,
+                    'last_page' => 1
+                ]);
+            } else {
+                $paginate = new LengthAwarePaginator(
+                    $sentBreadProducts->forPage($page, $perPage)->values(),
+                    $sentBreadProducts->count(),
+                    $perPage,
+                    $page,
+                    ['path' => url()->current()]
+
+                );
+            }
+            return response()->json($paginate);
+
     }
 
 

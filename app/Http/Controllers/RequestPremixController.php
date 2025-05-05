@@ -591,8 +591,10 @@ class RequestPremixController extends Controller
         }
     }
 
-    public function getRecievePremix($warehouseId)
+    public function getRecievePremix($warehouseId, Request $request)
     {
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 5);
         // Retrieve all receive premix requests for the specified warehouse
         $receivePremixes = RequestPremix::where('status', 'received')
             ->where('warehouse_id', $warehouseId) // Filter by warehouse
@@ -609,7 +611,15 @@ class RequestPremixController extends Controller
             ->orderBy('updated_at', 'desc') // Sort by latest update
             ->get();
 
-        return response()->json($receivePremixes);
+        $paginate = new LengthAwarePaginator(
+            $receivePremixes->forPage($page, $perPage)->values(),
+            $receivePremixes->count(),
+            $perPage,
+            $page,
+            ['path' => url()->current()]
+        );
+
+        return response()->json($paginate);
     }
 
 

@@ -240,6 +240,7 @@ Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportControlle
 Route::put('update-warehouse-rawMaterials/{id}', [WarehouseRawMaterialsReportController::class, 'updateStocks' ]);
 Route::put('update/branch-baker-report/{id}', [InitialBakerreportsController::class, 'updateBakersReport']);
 
+Route::get('warehouse/{warehouseId}/added-stocks-history', [WarehouseStockReportsController::class, 'fetchWarehouseAddedStocks']);
 Route::get('fetch-branch-data-for-bir-report/{branchId}', [BirReportController::class, 'fetchBranchDataForReports']);
 Route::get('fetch-expenses-report/{branchId}', [BirReportController::class, 'fetchExpensesReports']);
 Route::get('fetch-vat-bir-reports/{branchId}', [BirReportController::class, 'fetchVATBirReports']);

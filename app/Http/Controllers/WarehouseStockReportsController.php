@@ -7,6 +7,8 @@ use App\Models\WarehouseRawMaterialsReport;
 use App\Models\WarehouseStockReports;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use PhpParser\Node\Stmt\TryCatch;
 
 class WarehouseStockReportsController extends Controller
 {
@@ -26,9 +28,39 @@ class WarehouseStockReportsController extends Controller
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    public function fetchWarehouseAddedStocks($warehouseId, Request $request)
+    {
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 5);
+
+        $warehouseStockReports = WarehouseStockReports::with(['warehouseAddedStocks', 'employee'])
+                                ->where('warehouse_id', $warehouseId)
+                                ->orderBy('created_at', 'desc')
+                                ->get();
+
+
+        if ($perPage == 0) {
+            return response()->json([
+                'data' => $warehouseStockReports,
+                'total' => count($warehouseStockReports),
+                'per_page' => count($warehouseStockReports),
+                'current_page' => 1,
+                'last_page' => 1
+            ]);
+        } else {
+
+            // Paginate manually
+            $paginate = new LengthAwarePaginator(
+                $warehouseStockReports->forPage($page, $perPage)->values(),
+                $warehouseStockReports->count(),
+                $perPage,
+                $page,
+                ['path' => url()->current()]
+            );
+        }
+        return response()->json($paginate);
+    }
+
     public function store(Request $request)
     {
         // Validate the incoming request data
