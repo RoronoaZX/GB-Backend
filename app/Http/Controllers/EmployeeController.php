@@ -26,10 +26,39 @@ class EmployeeController extends Controller
         return response()->json($employee, 201);
     }
 
-    public function fetchEmployeeWithEmploymentType()
+    public function fetchEmployeeWithEmploymentType(Request $request)
     {
-        $employees = Employee::with('employmentType')->orderBy('created_at', 'desc')->take(7)->get();
-        return response()->json($employees, 201);
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 5);
+        $search = $request->query('search', '');
+
+        $query = Employee::with('employmentType')->where('position', '!=', 'super admin');
+
+        // $employees = Employee::with('employmentType')->orderBy('created_at', 'desc')->take(7)->get();
+        // return response()->json($employees, 201);
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search){
+                $q->where('firstname', 'like', "%$search%")
+                ->orWhere('lastname', 'like', "%$search%");
+            });
+        }
+
+        if ($perPage == 0) {
+            $data = $query->get();
+            return response()->json([
+                'data' => $data,
+                'total' => $data->count(),
+                'per_page' => $data->count(),
+                'current_page' => 1,
+                'last_page' => 1
+            ]);
+        }
+
+        // ✅ Use built-in paginate method for server-side pagination
+        $paginated = $query->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json($paginated);
     }
 
     /**
