@@ -81,7 +81,9 @@ class WarehouseRawMaterialsReportController extends Controller
 
         // Extract raw_material_id and warehouse_id from input data
         $rawMaterialWarehousePairs = collect($data)->map(function ($material) {
-            return ['raw_material_id' => $material['raw_material_id'], 'warehouse_id' => $material['warehouse_id']];
+            return [
+                'raw_material_id' => $material['raw_material_id'],
+                'warehouse_id' => $material['warehouse_id']];
         });
 
         // Fetch existing records that match both raw_material_id and warehouse_id
@@ -106,15 +108,25 @@ class WarehouseRawMaterialsReportController extends Controller
         }
 
         // Add timestamps
+        $now = now();
         foreach ($newMaterials as &$material) {
-            $material['created_at'] = now();
-            $material['updated_at'] = now();
+            $material['created_at'] = $now;
+            $material['updated_at'] = $now;
         }
 
         // Insert only new materials
         WarehouseRawMaterialsReport::insert($newMaterials);
 
-        return response()->json(['message' => 'Raw materials added successfully!']);
+        $insertedRawMaterials = WarehouseRawMaterialsReport::with(['rawMaterials', 'warehouse'])
+            ->whereIn('raw_material_id', collect($newMaterials)->pluck('raw_material_id'))
+            ->whereIn('warehouse_id', collect($newMaterials)->pluck('warehouse_id'))
+            ->orderByDesc('id')
+            ->get();
+
+            return response()->json([
+                'message' => 'Raw materials added successfully!',
+                'data' => $insertedRawMaterials
+            ]);
     }
 
 
