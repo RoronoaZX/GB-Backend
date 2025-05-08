@@ -61,9 +61,29 @@ class BranchController extends Controller
             'status' => 'nullable',
         ]);
 
-        $branch = Branch::create($validatedData);
-        $branchResponseData = $branch->fresh()->load('employees');
-        return response()->json($branchResponseData, 201);
+        $existingBranch = Branch::where('name', $validatedData['name'])
+                                ->where('location', $validatedData['location'])
+                                ->first();
+
+        if ($existingBranch) {
+            return response()->json([
+                'message' => 'Branch already exist'
+            ]);
+        }
+
+        $branch = Branch:: create([
+            'warehouse_id' => $validatedData['warehouse_id'],
+            'employee_id' => $validatedData['employee_id'],
+            'name' => $validatedData['name'],
+            'location' => $validatedData['location'],
+            'phone' => $validatedData['phone'],
+            'status' => $validatedData['status'],
+        ]);
+        $branchResponseData = $branch->fresh()->load('employees', 'warehouse');
+        return response()->json([
+            'message' => 'Branch saved successfully',
+            'branch' => $branchResponseData
+        ], 201);
     }
 
     public function update(Request $request, $id)

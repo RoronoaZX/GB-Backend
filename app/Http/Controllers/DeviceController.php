@@ -15,7 +15,7 @@ class DeviceController extends Controller
      */
     public function index()
     {
-        $devices = Device::all()->map(function ($device) {
+        $devices = Device::latest()->take(10)->get()->map(function ($device) {
             $device->reference = $device->designation === 'branch'
                 ? Branch::find($device->reference_id)
                 : Warehouse::find($device->reference_id);

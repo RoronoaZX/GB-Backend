@@ -110,6 +110,31 @@ class EmployeeController extends Controller
 
         return response()->json($employees, 200);
     }
+    public function searchPersonInCharge(Request $request)
+    {
+        $keyword = $request->input('keyword');
+
+        // Search by firstname or lastname, excluding "super admin"
+        $employees = Employee::with('employmentType')
+            ->where(function ($query) use ($keyword) {
+                $query->where('firstname', 'like', "%$keyword%")
+                    ->orWhere('lastname', 'like', "%$keyword%");
+            })
+            ->take(7)
+            ->get();
+
+        // Check if employees are found
+        if ($employees->isEmpty()) {
+            // If no results, return the first 7 employees excluding "super admin"
+            $employees = Employee::with('employmentType')
+                ->where('position', '!=', 'super admin')  // Exclude "super admin" from the fallback
+                ->orderBy('created_at', 'asc')
+                ->take(7)
+                ->get();
+        }
+
+        return response()->json($employees, 200);
+    }
 
 
     public function searchEmployeesWithDesignation(Request $request)

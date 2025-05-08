@@ -178,7 +178,7 @@ class WarehouseController extends Controller
     {
         $validateData = $request->validate([
             'employee_id' => 'required|exists:employees,id',
-            'name' => 'required',
+            'name' => 'required|unique:warehouses',
             'location' => 'required',
             'phone' => 'required',
             'status' => 'required',
@@ -203,11 +203,11 @@ class WarehouseController extends Controller
 
         ]);
 
-        // $warehouseResponseData = $warehouse->fresh()->load('employees');
+        $warehouseResponseData = $warehouse->fresh()->load('employees');
 
         return response()->json([
             'message' => 'Warehouse saved successfully',
-            'warehouse' => $warehouse
+            'warehouse' => $warehouseResponseData
         ], 201);
     }
 
@@ -220,8 +220,15 @@ class WarehouseController extends Controller
                 'message' => 'Raw material not found'
             ], 404);
         }
-        $warehouse->update($request->all());
-        $updated_warehouse = $warehouse->fresh();
+        $validatedData = $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'name' => 'required|unique:warehouses',
+            'location' => 'required',
+            'phone' => 'required',
+            'status' => 'required',
+        ]);
+        $warehouse->update($validatedData);
+        $updated_warehouse = $warehouse->fresh()->load('employees');
         return response()->json($updated_warehouse);
     }
 

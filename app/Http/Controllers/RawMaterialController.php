@@ -31,22 +31,11 @@ class RawMaterialController extends Controller
     public function store(Request $request)
     {
         $validateData = $request->validate([
-            'name' => 'required',
-            'code' => 'required',
+            'name' => 'required|unique:raw_materials,name',
+            'code' => 'required|unique:raw_materials,code',
             'category' => 'required',
             'unit' => 'required',
         ]);
-
-         // Check if a raw material with the same name and category already exists
-        $existingRawMaterial = RawMaterial::where('name', $validateData['name'])
-        ->where('code', $validateData['code'])
-        ->first();
-
-        if ($existingRawMaterial) {
-            return response()->json([
-                'message' => 'The RawMaterials name or code already exists.'
-            ], 409);
-        }
 
         $rawMaterials = RawMaterial::create($validateData);
 
@@ -65,7 +54,15 @@ class RawMaterialController extends Controller
                 'message' => 'Raw material not found'
             ], 404);
         }
-        $raw_material->update($request->all());
+
+        $validateData = $request->validate([
+            'name' => 'required|unique:raw_materials,name',
+            'code' => 'required|unique:raw_materials,code',
+            'category' => 'required',
+            'unit' => 'required',
+        ]);
+
+        $raw_material->update($validateData);
         $updated_raw_material = $raw_material->fresh();
         return response()->json($updated_raw_material);
     }

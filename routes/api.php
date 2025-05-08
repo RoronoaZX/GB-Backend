@@ -171,6 +171,7 @@ Route::post('search-products', [BranchProductController::class, 'searchProducts'
 Route::post('search-branch',[ BranchController::class, 'searchBranch']);
 Route::post('search-warehouse',[ WarehouseController::class, 'searchWarehouse']);
 Route::post('search-employees', [EmployeeController::class, 'searchEmployees']);
+Route::post('search-employees-person-in-charge', [EmployeeController::class, 'searchPersonInCharge']);
 Route::post('searchEmployeesWithDesignation', [EmployeeController::class, 'searchEmployeesWithDesignation']);
 Route::post('dtr-data', [DailyTimeRecordController::class, 'getDTRData']);
 Route::post('search-drt', [DailyTimeRecordController::class, 'searchDTR']);

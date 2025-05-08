@@ -34,24 +34,20 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'name' => 'required|string',
+            'name' => 'required|string|unique:products',
             'category' => 'required|string',
         ]);
 
-        $existingProduct = Product::where('name', $validatedData['name'])->first();
-        if ($existingProduct) {
-            return response()->json([
-                'message' => 'The product already exists.'
-            ]);
-        }
         $product = Product::create([
             'name' => $validatedData['name'],
             'category' => $validatedData['category']
         ]);
 
+        $productResponseData =  $product->fresh();
+
         return response()->json([
             'message' => "Product saved successfully",
-            $product
+            $productResponseData
         ], 201);
     }
 
@@ -86,7 +82,13 @@ class ProductController extends Controller
         ], 404);
        }
 
-       $product->update($request->all());
+       $validatedData = $request->validate([
+        'name' => 'required|string|unique:products',
+        'category' => 'required|string',
+         ]);
+
+
+       $product->update($validatedData);
        $updated_product = $product->fresh();
        return response()->json($updated_product);
     }
