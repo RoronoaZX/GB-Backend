@@ -132,8 +132,10 @@ class BranchRecipeController extends Controller
     {
         $searchBranchRecipe = $request->input('keyword');
         $searchBranchRecipeId = $request->input('branch_id');
+        $perPage = $request->input('per_page', 12); // default 12 per page
 
-        $branchRecipe = BranchRecipe::with('recipe')
+        // Base query
+        $query = BranchRecipe::with('recipe')
             ->where('status', 'active')
             ->when($searchBranchRecipe !== null, function ($query) use ($searchBranchRecipe) {
                 $query->whereHas('recipe', function ($recipeQuery) use ($searchBranchRecipe) {
@@ -141,14 +143,23 @@ class BranchRecipeController extends Controller
                 });
             })
             ->when($searchBranchRecipeId !== null, function ($query) use ($searchBranchRecipeId) {
-                $query->where('branch_id', $searchBranchRecipeId); // Filter by branch ID if provided
+                $query->where('branch_id', $searchBranchRecipeId);
             })
             ->with(['breadGroups.bread', 'ingredientGroups.ingredient'])
             ->orderBy('created_at', 'desc')
-            ->take(12)
             ->get();
 
-        $formattedRecipes = $branchRecipe->map(function ($recipe) {
+        // Make recipes unique by recipe name (to avoid duplicates in result)
+        $uniqueRecipes = $query->unique(function ($item) {
+            return $item->recipe->name;
+        });
+
+        // Paginate manually
+        $page = $request->input('page', 1);
+        $paginated = $uniqueRecipes->forPage($page, $perPage)->values();
+
+        // Format the response
+        $formattedRecipes = $paginated->map(function ($recipe) {
             return [
                 'id' => $recipe->id,
                 'recipe_id' => $recipe->recipe->id,
@@ -169,7 +180,7 @@ class BranchRecipeController extends Controller
                         'quantity' => $ingredientGroup->quantity,
                         'unit' => $ingredientGroup->ingredient->unit,
                     ];
-                })
+                }),
             ];
         });
 
