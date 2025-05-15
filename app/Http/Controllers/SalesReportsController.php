@@ -32,7 +32,7 @@ class SalesReportsController extends Controller
         'denomination_total' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
         'expenses_total' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
         'products_total_sales' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
-        'charges_amount' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
+        'charges_amount' => 'required|numeric|min:0',
         'over_total' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
         'credit_total' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
         'breadReports' => 'required|array',
