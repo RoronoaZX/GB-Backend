@@ -26,15 +26,15 @@ class UsersTableSeeder extends Seeder
             // 'phone' => '1234567890',
             // 'role' => 'Super Admin',
             // 'name' => 'Cake Mak',
-            'employee_id' => '1',
-            'email' => 'cakemaker1@gmail.com',
-            'password' => Hash::make('password'),
+            'employee_id' => '157',
+            'email' => 'arguerro@gmail.com',
+            'password' => Hash::make('@Arguerro123'),
             // 'birthdate' => '1990-01-01',
             // 'address' => '123 Example St, City',
             // 'sex' => 'Male',
             // 'status' => 'Current',
             // 'phone' => '1234567890',
-            'role' => 'Cake Maker',
+            'role' => 'Super Admin',
         ]);
     }
 }
