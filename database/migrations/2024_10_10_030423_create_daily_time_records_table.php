@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('daily_time_records', function (Blueprint $table) {
             $table->id();
+            $table->string('device_uuid_in')->nullable();
+            $table->string('device_uuid_out')->nullable();
             $table->foreignId('employee_id')->references('id')->on('employees');
             $table->dateTime('time_in')->nullable();
             $table->dateTime('time_out')->nullable();

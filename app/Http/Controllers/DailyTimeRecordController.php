@@ -9,49 +9,176 @@ use Illuminate\Http\Client\ResponseSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
-
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class DailyTimeRecordController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    // public function index()
+    // {
+    //     $page = request()->get('page', 1);
+    //     $perPage = request()->get('per_page', 7);
+    //     $dtrQuery = DailyTimeRecord::with(['employee'])
+    //         ->orderBy('created_at', 'desc')
+    //         ->map(function ($record) {
+    //             // Format the dates in Manila timezone
+    //             $record->time_in = Carbon::parse($record->time_in)
+    //                 ->timezone('Asia/Manila')
+    //                 ->format('M. d, Y, g:i A'); // Example: "Sept. 14, 2024, 8:35 AM"
+
+    //             $record->time_out = $record->time_out ? Carbon::parse($record->time_out)
+    //                 ->timezone('Asia/Manila')
+    //                 ->format('M. d, Y, g:i A') : null;
+
+    //             $record->break_start = $record->break_start ? Carbon::parse($record->break_start)
+    //                 ->timezone('Asia/Manila')
+    //                 ->format('M. d, Y, g:i A') : null;
+
+    //             $record->break_end = $record->break_end ? Carbon::parse($record->break_end)
+    //                 ->timezone('Asia/Manila')
+    //                 ->format('M. d, Y, g:i A') : null;
+
+    //             $record->lunch_break_start = $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)
+    //                 ->timezone('Asia/Manila')
+    //                 ->format('M. d, Y, g:i A') : null;
+
+    //             $record->lunch_break_end = $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)
+    //                 ->timezone('Asia/Manila')
+    //                 ->format('M. d, Y, g:i A') : null;
+
+    //             return $record;
+    //         });
+
+    //     // return the paginated response
+
+    //     if ($perPage == 0) {
+    //         return response()->json([
+    //             'data' => $dtrQuery,
+    //             'total' => count($dtrQuery),
+    //             'per_page' => count($dtrQuery),
+    //             'current_page' => $page,
+    //             'last_page' => 1,
+    //         ]);
+    //     } else {
+    //         $paginator = new LengthAwarePaginator(
+    //             $dtrQuery,
+    //             $perPage,
+    //             $page,
+    //             ['path' => url()->current()]
+    //         );
+    //     }
+    //     return response()->json($paginator);
+    // }
+    // public function index()
+    // {
+    //     $page = request()->get('page', 1);
+    //     $perPage = request()->get('per_page', 5);
+    //     $search = request()->query('search', '');
+
+    //     // Paginate directly from the query
+    //     $paginator = DailyTimeRecord::with('employee', 'deviceIN.branch','deviceIN.warehouse','deviceOUT.branch','deviceOUT.warehouse',)
+    //         ->when($search, function ($query, $search) {
+    //             $query->whereHas('employee', function ($q) use ($search) {
+    //                 $q->where('firstname', 'LIKE', "%{$search}%")
+    //                 ->orWhere('lastname', 'LIKE', "%{$search}%");
+    //             });
+    //         })
+    //         ->orderBy('created_at', 'desc')
+    //         ->paginate($perPage, ['*'], 'page', $page);
+
+    //     // Format each record's date fields in Manila timezone
+    //      $formattedData = $paginator->getCollection()->map(function ($record) {
+    //     return [
+    //         'id' => $record->id,
+    //         'employee' => $record->employee,
+    //         'time_in' => Carbon::parse($record->time_in)->timezone('Asia/Manila')->format('M. d, Y, g:i A'),
+    //         'time_out' => $record->time_out ? Carbon::parse($record->time_out)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+    //         'break_start' => $record->break_start ? Carbon::parse($record->break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+    //         'break_end' => $record->break_end ? Carbon::parse($record->break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+    //         'lunch_break_start' => $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+    //         'lunch_break_end' => $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+    //         'device_in_designation' => $record->deviceIN->designation ?? null,
+    //         'device_in_reference_name' => $record->deviceIN->reference->name ?? null,
+    //         'device_out_designation' => $record->deviceOUT->designation ?? null,
+    //         'device_out_reference_name' => $record->deviceOUT->reference->name ?? null,
+    //     ];
+    // });
+
+
+    //     // Replace paginator's collection with the formatted data
+    //     $paginator->setCollection($formattedData);
+
+    //     return response()->json($paginator);
+    // }
+    public function index(Request $request)
     {
-        $dtr = DailyTimeRecord::with(['employee'])
-            ->orderBy('created_at', 'desc')
-            ->take(7)
-            ->get()
-            ->map(function ($record) {
-                // Format the dates in Manila timezone
-                $record->time_in = Carbon::parse($record->time_in)
-                    ->timezone('Asia/Manila')
-                    ->format('M. d, Y, g:i A'); // Example: "Sept. 14, 2024, 8:35 AM"
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 5);
+        $search = $request->query('search', '');
 
-                $record->time_out = $record->time_out ? Carbon::parse($record->time_out)
-                    ->timezone('Asia/Manila')
-                    ->format('M. d, Y, g:i A') : null;
+        $query = DailyTimeRecord::with([
+            'employee',
+            'deviceIN.branch',
+            'deviceIN.warehouse',
+            'deviceOUT.branch',
+            'deviceOUT.warehouse',
+        ])->orderBy('created_at', 'desc');
 
-                $record->break_start = $record->break_start ? Carbon::parse($record->break_start)
-                    ->timezone('Asia/Manila')
-                    ->format('M. d, Y, g:i A') : null;
+        if (!empty($search)) {
+            $query->whereHas('employee', function ($q) use ($search) {
+                $q->where('firstname', 'LIKE', "%$search%")
+                ->orWhere('lastname', 'LIKE', "%$search%")
+                ->orWhere('middlename', 'LIKE', "%$search%");
+            });
+        }
 
-                $record->break_end = $record->break_end ? Carbon::parse($record->break_end)
-                    ->timezone('Asia/Manila')
-                    ->format('M. d, Y, g:i A') : null;
-
-                $record->lunch_break_start = $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)
-                    ->timezone('Asia/Manila')
-                    ->format('M. d, Y, g:i A') : null;
-
-                $record->lunch_break_end = $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)
-                    ->timezone('Asia/Manila')
-                    ->format('M. d, Y, g:i A') : null;
-
-                return $record;
+        if ($perPage == 0) {
+            $data = $query->get()->map(function ($record) {
+                return $this->formatDTR($record);
             });
 
-        return response()->json($dtr);
+            return response()->json([
+                'data' => $data,
+                'total' => $data->count(),
+                'per_page' => $data->count(),
+                'current_page' => 1,
+                'last_page' => 1
+            ]);
+        }
+
+        $paginated = $query->paginate($perPage, ['*'], 'page', $page);
+
+        $formattedData = $paginated->getCollection()->map(function ($record) {
+            return $this->formatDTR($record);
+        });
+
+        return response()->json([
+            'data' => $formattedData,
+            'total' => $paginated->total(),
+            'per_page' => $paginated->perPage(),
+            'current_page' => $paginated->currentPage(),
+            'last_page' => $paginated->lastPage(),
+        ]);
+    }
+
+    protected function formatDTR($record)
+    {
+        return [
+            'id' => $record->id,
+            'employee' => $record->employee,
+            'time_in' => Carbon::parse($record->time_in)->timezone('Asia/Manila')->format('M. d, Y, g:i A'),
+            'time_out' => $record->time_out ? Carbon::parse($record->time_out)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+            'break_start' => $record->break_start ? Carbon::parse($record->break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+            'break_end' => $record->break_end ? Carbon::parse($record->break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+            'lunch_break_start' => $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+            'lunch_break_end' => $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+            'device_in_designation' => $record->deviceIN->designation ?? null,
+            'device_in_reference_name' => $record->deviceIN->reference->name ?? null,
+            'device_out_designation' => $record->deviceOUT->designation ?? null,
+            'device_out_reference_name' => $record->deviceOUT->reference->name ?? null,
+        ];
     }
 
     public function searchDTR(Request $request)
@@ -120,46 +247,109 @@ class DailyTimeRecordController extends Controller
     public function getDTRData(Request $request)
     {
         $employeeId = $request->input('employee_id');
-        $startDate = $request->input('start_date', date('Y-m-10'));
-        $endDate = $request->input('end_date', date('Y-m-25'));
+        $startDate = Carbon::parse($request->input('start_date', date('Y-m-10')))->startOfDay();
+        $endDate = Carbon::parse($request->input('end_date', date('Y-m-25')))->endOfDay();
 
-        // Fetch the DTR data for the employee within the date range
         $dtrData = DailyTimeRecord::with(['employee.branch'])
             ->where('employee_id', $employeeId)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->orderBy('created_at', 'desc')
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('time_in', [$startDate, $endDate])
+                    ->orWhereBetween('time_out', [$startDate, $endDate])
+                    ->orWhere(function ($q) use ($startDate, $endDate) {
+                        $q->where('time_in', '<', $startDate)
+                            ->where('time_out', '>', $endDate);
+                    });
+            })
+            ->orderBy('time_in', 'desc')
             ->get()
             ->map(function ($record) {
-                // Format the dates in Manila timezone
                 $record->time_in = Carbon::parse($record->time_in)
-                    ->timezone('Asia/Manila')
-                    ->format('M. d, Y, g:i A');
+                    ->timezone('Asia/Manila')->format('M. d, Y, g:i A');
 
-                $record->time_out = $record->time_out ? Carbon::parse($record->time_out)
-                    ->timezone('Asia/Manila')
-                    ->format('M. d, Y, g:i A') : null;
-
-                $record->break_start = $record->break_start ? Carbon::parse($record->break_start)
-                    ->timezone('Asia/Manila')
-                    ->format('M. d, Y, g:i A') : null;
-
-                $record->break_end = $record->break_end ? Carbon::parse($record->break_end)
-                    ->timezone('Asia/Manila')
-                    ->format('M. d, Y, g:i A') : null;
-
-                $record->lunch_break_start = $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)
-                    ->timezone('Asia/Manila')
-                    ->format('M. d, Y, g:i A') : null;
-
-                $record->lunch_break_end = $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)
-                    ->timezone('Asia/Manila')
-                    ->format('M. d, Y, g:i A') : null;
+                $record->time_out = $record->time_out ? Carbon::parse($record->time_out)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+                $record->break_start = $record->break_start ? Carbon::parse($record->break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+                $record->break_end = $record->break_end ? Carbon::parse($record->break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+                $record->lunch_break_start = $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+                $record->lunch_break_end = $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
 
                 return $record;
             });
 
         return response()->json($dtrData);
     }
+
+
+    // public function getDTRData(Request $request)
+    // {
+    //     $employeeId = $request->input('employee_id');
+    //     $startDate = Carbon::parse($request->input('start_date', date('Y-m-10')))->startOfDay();
+    //     $endDate = Carbon::parse($request->input('end_date', date('Y-m-25')))->endOfDay();
+
+    //     $dtrData = DailyTimeRecord::with(['employee.branch'])
+    //         ->where('employee_id', $employeeId)
+    //         ->whereBetween('time_in', [$startDate, $endDate])  // using time_in!
+    //         ->orderBy('time_in', 'desc')
+    //         ->get()
+    //         ->map(function ($record) {
+    //             $record->time_in = Carbon::parse($record->time_in)
+    //                 ->timezone('Asia/Manila')->format('M. d, Y, g:i A');
+
+    //             $record->time_out = $record->time_out ? Carbon::parse($record->time_out)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+    //             $record->break_start = $record->break_start ? Carbon::parse($record->break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+    //             $record->break_end = $record->break_end ? Carbon::parse($record->break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+    //             $record->lunch_break_start = $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+    //             $record->lunch_break_end = $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+
+    //             return $record;
+    //         });
+
+    //     return response()->json($dtrData);
+    // }
+
+
+    // public function getDTRData(Request $request)
+    // {
+    //     $employeeId = $request->input('employee_id');
+    //     $startDate = $request->input('start_date', date('Y-m-10'));
+    //     $endDate = $request->input('end_date', date('Y-m-25'));
+
+    //     // Fetch the DTR data for the employee within the date range
+    //     $dtrData = DailyTimeRecord::with(['employee.branch'])
+    //         ->where('employee_id', $employeeId)
+    //         ->whereBetween('time_in', [$startDate, $endDate])
+    //         ->orderBy('created_at', 'desc')
+    //         ->get()
+    //         ->map(function ($record) {
+    //             // Format the dates in Manila timezone
+    //             $record->time_in = Carbon::parse($record->time_in)
+    //                 ->timezone('Asia/Manila')
+    //                 ->format('M. d, Y, g:i A');
+
+    //             $record->time_out = $record->time_out ? Carbon::parse($record->time_out)
+    //                 ->timezone('Asia/Manila')
+    //                 ->format('M. d, Y, g:i A') : null;
+
+    //             $record->break_start = $record->break_start ? Carbon::parse($record->break_start)
+    //                 ->timezone('Asia/Manila')
+    //                 ->format('M. d, Y, g:i A') : null;
+
+    //             $record->break_end = $record->break_end ? Carbon::parse($record->break_end)
+    //                 ->timezone('Asia/Manila')
+    //                 ->format('M. d, Y, g:i A') : null;
+
+    //             $record->lunch_break_start = $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)
+    //                 ->timezone('Asia/Manila')
+    //                 ->format('M. d, Y, g:i A') : null;
+
+    //             $record->lunch_break_end = $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)
+    //                 ->timezone('Asia/Manila')
+    //                 ->format('M. d, Y, g:i A') : null;
+
+    //             return $record;
+    //         });
+
+    //     return response()->json($dtrData);
+    // }
 
     public function checkIdAndUuid(Request $request)
     {
@@ -181,7 +371,12 @@ class DailyTimeRecordController extends Controller
 
         if ($device && $user) {
             // Both UUID and ID match
-            return response()->json(['message' => 'OK']);
+            return response()->json([
+                'message' => 'OK',
+                'device' => [
+                            'uuid' => $device
+                        ]
+                ]);
         } else {
             // Log which check failed
             if (!$device) {
@@ -192,7 +387,12 @@ class DailyTimeRecordController extends Controller
             }
 
             // Either UUID or ID is not valid
-            return response()->json(['message' => 'Not Valid'], 400);
+            return response()->json([
+                'message' => 'Not Valid',
+                'data' => [
+                    'uuid' => $device
+                ]
+        ], 400);
         }
     }
 
@@ -223,6 +423,7 @@ class DailyTimeRecordController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'employee_id' => 'required|exists:employees,id',
+            'uuid' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -240,6 +441,7 @@ class DailyTimeRecordController extends Controller
 
         $dtr = new DailyTimeRecord();
         $dtr->employee_id = $request->employee_id;
+        $dtr->device_uuid_in = $request->uuid; // Store the UUID of the device
         $dtr->time_in = now();
         $dtr->save();
 
@@ -255,6 +457,7 @@ class DailyTimeRecordController extends Controller
         // Validate that the employee_id is provided in the request
         $request->validate([
             'employee_id' => 'required|exists:employees,id',
+            'uuid' => 'required|string', // Validate the UUID
         ]);
 
         // Find the most recent DTR record for the employee that doesn't have a time_out
@@ -270,6 +473,7 @@ class DailyTimeRecordController extends Controller
 
         // Mark the time_out
         $dtr->time_out = now();
+        $dtr->device_uuid_out = $request->uuid; // Store the UUID of the device for time out
         $dtr->save();
 
         return response()->json(['message' => 'Time Out marked successfully!', 'data' => $dtr]);
