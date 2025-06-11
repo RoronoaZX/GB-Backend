@@ -16,102 +16,6 @@ class DailyTimeRecordController extends Controller
     /**
      * Display a listing of the resource.
      */
-    // public function index()
-    // {
-    //     $page = request()->get('page', 1);
-    //     $perPage = request()->get('per_page', 7);
-    //     $dtrQuery = DailyTimeRecord::with(['employee'])
-    //         ->orderBy('created_at', 'desc')
-    //         ->map(function ($record) {
-    //             // Format the dates in Manila timezone
-    //             $record->time_in = Carbon::parse($record->time_in)
-    //                 ->timezone('Asia/Manila')
-    //                 ->format('M. d, Y, g:i A'); // Example: "Sept. 14, 2024, 8:35 AM"
-
-    //             $record->time_out = $record->time_out ? Carbon::parse($record->time_out)
-    //                 ->timezone('Asia/Manila')
-    //                 ->format('M. d, Y, g:i A') : null;
-
-    //             $record->break_start = $record->break_start ? Carbon::parse($record->break_start)
-    //                 ->timezone('Asia/Manila')
-    //                 ->format('M. d, Y, g:i A') : null;
-
-    //             $record->break_end = $record->break_end ? Carbon::parse($record->break_end)
-    //                 ->timezone('Asia/Manila')
-    //                 ->format('M. d, Y, g:i A') : null;
-
-    //             $record->lunch_break_start = $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)
-    //                 ->timezone('Asia/Manila')
-    //                 ->format('M. d, Y, g:i A') : null;
-
-    //             $record->lunch_break_end = $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)
-    //                 ->timezone('Asia/Manila')
-    //                 ->format('M. d, Y, g:i A') : null;
-
-    //             return $record;
-    //         });
-
-    //     // return the paginated response
-
-    //     if ($perPage == 0) {
-    //         return response()->json([
-    //             'data' => $dtrQuery,
-    //             'total' => count($dtrQuery),
-    //             'per_page' => count($dtrQuery),
-    //             'current_page' => $page,
-    //             'last_page' => 1,
-    //         ]);
-    //     } else {
-    //         $paginator = new LengthAwarePaginator(
-    //             $dtrQuery,
-    //             $perPage,
-    //             $page,
-    //             ['path' => url()->current()]
-    //         );
-    //     }
-    //     return response()->json($paginator);
-    // }
-    // public function index()
-    // {
-    //     $page = request()->get('page', 1);
-    //     $perPage = request()->get('per_page', 5);
-    //     $search = request()->query('search', '');
-
-    //     // Paginate directly from the query
-    //     $paginator = DailyTimeRecord::with('employee', 'deviceIN.branch','deviceIN.warehouse','deviceOUT.branch','deviceOUT.warehouse',)
-    //         ->when($search, function ($query, $search) {
-    //             $query->whereHas('employee', function ($q) use ($search) {
-    //                 $q->where('firstname', 'LIKE', "%{$search}%")
-    //                 ->orWhere('lastname', 'LIKE', "%{$search}%");
-    //             });
-    //         })
-    //         ->orderBy('created_at', 'desc')
-    //         ->paginate($perPage, ['*'], 'page', $page);
-
-    //     // Format each record's date fields in Manila timezone
-    //      $formattedData = $paginator->getCollection()->map(function ($record) {
-    //     return [
-    //         'id' => $record->id,
-    //         'employee' => $record->employee,
-    //         'time_in' => Carbon::parse($record->time_in)->timezone('Asia/Manila')->format('M. d, Y, g:i A'),
-    //         'time_out' => $record->time_out ? Carbon::parse($record->time_out)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
-    //         'break_start' => $record->break_start ? Carbon::parse($record->break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
-    //         'break_end' => $record->break_end ? Carbon::parse($record->break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
-    //         'lunch_break_start' => $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
-    //         'lunch_break_end' => $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
-    //         'device_in_designation' => $record->deviceIN->designation ?? null,
-    //         'device_in_reference_name' => $record->deviceIN->reference->name ?? null,
-    //         'device_out_designation' => $record->deviceOUT->designation ?? null,
-    //         'device_out_reference_name' => $record->deviceOUT->reference->name ?? null,
-    //     ];
-    // });
-
-
-    //     // Replace paginator's collection with the formatted data
-    //     $paginator->setCollection($formattedData);
-
-    //     return response()->json($paginator);
-    // }
     public function index(Request $request)
     {
         $page = $request->get('page', 1);
@@ -278,79 +182,6 @@ class DailyTimeRecordController extends Controller
         return response()->json($dtrData);
     }
 
-
-    // public function getDTRData(Request $request)
-    // {
-    //     $employeeId = $request->input('employee_id');
-    //     $startDate = Carbon::parse($request->input('start_date', date('Y-m-10')))->startOfDay();
-    //     $endDate = Carbon::parse($request->input('end_date', date('Y-m-25')))->endOfDay();
-
-    //     $dtrData = DailyTimeRecord::with(['employee.branch'])
-    //         ->where('employee_id', $employeeId)
-    //         ->whereBetween('time_in', [$startDate, $endDate])  // using time_in!
-    //         ->orderBy('time_in', 'desc')
-    //         ->get()
-    //         ->map(function ($record) {
-    //             $record->time_in = Carbon::parse($record->time_in)
-    //                 ->timezone('Asia/Manila')->format('M. d, Y, g:i A');
-
-    //             $record->time_out = $record->time_out ? Carbon::parse($record->time_out)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-    //             $record->break_start = $record->break_start ? Carbon::parse($record->break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-    //             $record->break_end = $record->break_end ? Carbon::parse($record->break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-    //             $record->lunch_break_start = $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-    //             $record->lunch_break_end = $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-
-    //             return $record;
-    //         });
-
-    //     return response()->json($dtrData);
-    // }
-
-
-    // public function getDTRData(Request $request)
-    // {
-    //     $employeeId = $request->input('employee_id');
-    //     $startDate = $request->input('start_date', date('Y-m-10'));
-    //     $endDate = $request->input('end_date', date('Y-m-25'));
-
-    //     // Fetch the DTR data for the employee within the date range
-    //     $dtrData = DailyTimeRecord::with(['employee.branch'])
-    //         ->where('employee_id', $employeeId)
-    //         ->whereBetween('time_in', [$startDate, $endDate])
-    //         ->orderBy('created_at', 'desc')
-    //         ->get()
-    //         ->map(function ($record) {
-    //             // Format the dates in Manila timezone
-    //             $record->time_in = Carbon::parse($record->time_in)
-    //                 ->timezone('Asia/Manila')
-    //                 ->format('M. d, Y, g:i A');
-
-    //             $record->time_out = $record->time_out ? Carbon::parse($record->time_out)
-    //                 ->timezone('Asia/Manila')
-    //                 ->format('M. d, Y, g:i A') : null;
-
-    //             $record->break_start = $record->break_start ? Carbon::parse($record->break_start)
-    //                 ->timezone('Asia/Manila')
-    //                 ->format('M. d, Y, g:i A') : null;
-
-    //             $record->break_end = $record->break_end ? Carbon::parse($record->break_end)
-    //                 ->timezone('Asia/Manila')
-    //                 ->format('M. d, Y, g:i A') : null;
-
-    //             $record->lunch_break_start = $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)
-    //                 ->timezone('Asia/Manila')
-    //                 ->format('M. d, Y, g:i A') : null;
-
-    //             $record->lunch_break_end = $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)
-    //                 ->timezone('Asia/Manila')
-    //                 ->format('M. d, Y, g:i A') : null;
-
-    //             return $record;
-    //         });
-
-    //     return response()->json($dtrData);
-    // }
-
     public function checkIdAndUuid(Request $request)
     {
         // Log received UUID and ID to debug
@@ -419,6 +250,45 @@ class DailyTimeRecordController extends Controller
         return response()->json(['dtrStatus' => 'not_timed_in']);
     }
 
+    public function checkOTDtrStatus(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|string',
+        ]);
+
+         $dtr = DailyTimeRecord::where('employee_id', $request->id)
+        ->orderBy('created_at', 'desc')
+        ->first();
+
+        if (!$dtr || !$dtr->time_out) {
+            return response()->json(['message' => 'Cannot start OT without regular time out'], 400);
+        }
+
+        // if (!$dtr->overtime_start) {
+        //     // Mark OT start
+        //     $dtr->overtime_start = now();
+        //     $dtr->save();
+        //     return response()->json(['message' => 'Overtime started']);
+        // }
+        if ($dtr && !$dtr->overtime_start && !$dtr->overtime_end) {
+            // Return message to the frontend to start overtime
+            return response()->json(['message' => 'ot_start']);
+
+        } else {
+            return response()->json(['message' => 'Overtime already started']);
+        }
+
+        // if (!$dtr->overtime_end) {
+        //     // Mark OT end
+        //     $dtr->overtime_end = now();
+        //     $dtr->save();
+        //     return response()->json(['message' => 'Overtime ended']);
+        // }
+
+        return response()->json(['message' => 'Overtime already recorded']);
+
+    }
+
     public function markTimeIn(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -478,6 +348,69 @@ class DailyTimeRecordController extends Controller
 
         return response()->json(['message' => 'Time Out marked successfully!', 'data' => $dtr]);
     }
+
+    public function markOvertimeIn(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'employee_id' => 'required|exists:employees,id',
+            'overtime_reason' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->messages()], 422);
+        }
+
+        $dtr = DailyTimeRecord::where('employee_id', $request->employee_id)
+            ->whereNotNull('time_out') // Regular work ended
+            ->whereNull('overtime_start')
+            ->whereNull('overtime_end')
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        // ❌ This was backward
+        if (!$dtr) {
+            return response()->json(['message' => 'No eligible record found to start overtime.'], 400);
+        }
+
+        // ✅ Proceed if record exists
+        $dtr->overtime_start = now();
+        $dtr->overtime_reason = $request->overtime_reason;
+        $dtr->ot_status = 'pending';
+        $dtr->save();
+
+        return response()->json([
+            'message' => 'Over Time In marked successfully!',
+            'dtrStatus' => 'overtime_in',
+            'data' => $dtr
+        ]);
+    }
+
+    public function markOvertimeOut(Request $request)
+    {
+        // Validate that the employee_id is provided in the request
+        $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+        ]);
+
+        // Find the most recent DTR record for the employee that doesn't have a time_out
+        $dtr = DailyTimeRecord::where('employee_id', $request->employee_id)
+                            ->whereNotNull('overtime_start') // Only records without time_out
+                            ->whereNull('overtime_end')
+                            ->latest('overtime_start') // Get the most recent one
+                            ->first();
+
+        // Check if a matching DTR record is found
+        if (!$dtr) {
+            return response()->json(['message' => 'No active time-in record found for this employee.'], 404);
+        }
+
+        // Mark the time_out
+        $dtr->overtime_end = now();
+        $dtr->save();
+
+        return response()->json(['message' => 'Time Out marked successfully!', 'data' => $dtr]);
+    }
+
 
     public function checkBreakStatus(Request $request)
     {

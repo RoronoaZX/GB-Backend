@@ -24,6 +24,9 @@ return new class extends Migration
             $table->dateTime('break_end')->nullable();
             $table->dateTime('overtime_start')->nullable();
             $table->dateTime('overtime_end')->nullable();
+            $table->string('overtime_reason')->nullable();
+            $table->string('ot_status')->nullable();
+            $table->string('approved_by')->nullable();
             $table->timestamps();
         });
     }

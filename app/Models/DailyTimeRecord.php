@@ -10,6 +10,8 @@ class DailyTimeRecord extends Model
     use HasFactory;
 
     protected $fillable = [
+        'device_uuid_in',
+        'device_uuid_out',
         'employee_id',
         'time_in',
         'time_out',
@@ -19,6 +21,9 @@ class DailyTimeRecord extends Model
         'break_end',
         'overtime_start',
         'overtime_end',
+        'overtime_reason',
+        'ot_status',
+        'approved_by',
     ];
 
 
