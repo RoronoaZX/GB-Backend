@@ -141,8 +141,10 @@ Route::post('search-allowance', [EmployeeAllowanceController::class, 'searchAllo
 Route::post('search-benefit', [EmployeeBenefitController::class, 'searchBenefit']);
 Route::post('search-uniform', [UniformController::class, 'searchUniform']);
 Route::post('search-cash-advance', [CashAdvanceController::class, 'searchCashAdvances']);
-Route::post('check-uuid-id', [DailyTimeRecordController::class, 'checkIdAndUuid']);
+Route::post('approveOvertime', [DailyTimeRecordController::class, 'approveOvertime']);
+Route::post('declineOvertime', [DailyTimeRecordController::class, 'declineOvertime']);
 Route::post('check-dtr-status', [DailyTimeRecordController::class, 'checkDtrStatus']);
+Route::post('check-uuid-id', [DailyTimeRecordController::class, 'checkIdAndUuid']);
 Route::post('check-dtr-ot-status', [DailyTimeRecordController::class, 'checkOTDtrStatus']);
 Route::post('markTimeIn', [DailyTimeRecordController::class, 'markTimeIn']);
 Route::post('markTimeOut', [DailyTimeRecordController::class, 'markTimeOut']);

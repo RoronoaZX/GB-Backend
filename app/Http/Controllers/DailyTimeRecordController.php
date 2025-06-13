@@ -28,6 +28,7 @@ class DailyTimeRecordController extends Controller
             'deviceIN.warehouse',
             'deviceOUT.branch',
             'deviceOUT.warehouse',
+            'approvedBy'
         ])->orderBy('created_at', 'desc');
 
         if (!empty($search)) {
@@ -78,6 +79,12 @@ class DailyTimeRecordController extends Controller
             'break_end' => $record->break_end ? Carbon::parse($record->break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
             'lunch_break_start' => $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
             'lunch_break_end' => $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+            'overtime_start' => $record->overtime_start ? Carbon::parse($record->overtime_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+            'overtime_end' => $record->overtime_end ? Carbon::parse($record->overtime_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+            'overtime_reason' => $record->overtime_reason,
+            'ot_status' => $record->ot_status,
+            'approvedBy' => $record->approvedBy,
+            'declined_reason' => $record->declined_reason,
             'device_in_designation' => $record->deviceIN->designation ?? null,
             'device_in_reference_name' => $record->deviceIN->reference->name ?? null,
             'device_out_designation' => $record->deviceOUT->designation ?? null,
@@ -146,6 +153,43 @@ class DailyTimeRecordController extends Controller
             'message' => 'Overtime data saved successfully.',
             'data' => $overtimeRecord ?? null,
         ], 200);
+    }
+
+    public function approveOvertime(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'approved_by' => 'required|exists:employees,id',
+        ]);
+
+        $dtr = DailyTimeRecord::find($request->id);
+
+        if ($dtr->ot_status !== 'pending' && $dtr->ot_status !== 'NULL') {
+            return response()->json(['message' => 'Overtime request is not pending or has already been processed.'], 400);
+        }
+        $dtr->ot_status = 'approved';
+        $dtr->approved_by = $request->approved_by;
+        $dtr->save();
+        return response()->json(['message' => 'Overtime request approved successfully!', 'data' => $dtr]);
+    }
+
+    public function declineOvertime(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'declined_by' => 'required|exists:employees,id',
+            'reason' => 'required|string|max:255',
+        ]);
+
+        $dtr = DailyTimeRecord::find($request->id);
+        if ($dtr->ot_status !== 'pending' && $dtr->ot_status !== 'NULL') {
+            return response()->json(['message' => 'Overtime request is not pending or has already been processed.'], 400);
+        }
+        $dtr->ot_status = 'declined';
+        $dtr->approved_by = $request->declined_by;
+        $dtr->declined_reason = $request->reason;
+        $dtr->save();
+        return response()->json(['message' => 'Overtime request declined successfully!', 'data' => $dtr]);
     }
 
     public function getDTRData(Request $request)

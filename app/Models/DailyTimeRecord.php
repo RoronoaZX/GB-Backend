@@ -24,6 +24,7 @@ class DailyTimeRecord extends Model
         'overtime_reason',
         'ot_status',
         'approved_by',
+        'declined_reason',
     ];
 
 
@@ -36,8 +37,14 @@ class DailyTimeRecord extends Model
     {
         return $this->belongsTo(Device::class, 'device_uuid_in', 'uuid');
     }
+
     public function deviceOUT()
     {
         return $this->belongsTo(Device::class, 'device_uuid_out', 'uuid');
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(Employee::class, 'approved_by', 'id');
     }
 }
