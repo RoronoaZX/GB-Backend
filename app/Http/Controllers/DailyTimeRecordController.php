@@ -300,38 +300,69 @@ class DailyTimeRecordController extends Controller
             'id' => 'required|string',
         ]);
 
-         $dtr = DailyTimeRecord::where('employee_id', $request->id)
-        ->orderBy('created_at', 'desc')
-        ->first();
+        $dtr = DailyTimeRecord::where('employee_id', $request->id)
+            ->orderBy('created_at', 'desc')
+            ->first();
 
         if (!$dtr || !$dtr->time_out) {
             return response()->json(['message' => 'Cannot start OT without regular time out'], 400);
         }
 
-        // if (!$dtr->overtime_start) {
-        //     // Mark OT start
-        //     $dtr->overtime_start = now();
-        //     $dtr->save();
-        //     return response()->json(['message' => 'Overtime started']);
-        // }
-        if ($dtr && !$dtr->overtime_start && !$dtr->overtime_end) {
-            // Return message to the frontend to start overtime
-            return response()->json(['message' => 'ot_start']);
+        // ✅ Only allow if the time_out is from today
+        $timeOutDate = Carbon::parse($dtr->time_out)->toDateString();
+        $currentDate = Carbon::now()->toDateString();
 
-        } else {
-            return response()->json(['message' => 'Overtime already started']);
+        if ($timeOutDate !== $currentDate) {
+            return response()->json(['message' => 'Overtime can only be filed on the same day as Time Out'], 400);
         }
 
-        // if (!$dtr->overtime_end) {
-        //     // Mark OT end
-        //     $dtr->overtime_end = now();
-        //     $dtr->save();
-        //     return response()->json(['message' => 'Overtime ended']);
-        // }
+        // ✅ If OT has not started and ended yet
+        if (!$dtr->overtime_start && !$dtr->overtime_end) {
+            return response()->json(['message' => 'ot_start']);
+        }
 
-        return response()->json(['message' => 'Overtime already recorded']);
-
+        // Already started or ended
+        return response()->json(['message' => 'Overtime already started or completed']);
     }
+
+    // public function checkOTDtrStatus(Request $request)
+    // {
+    //     $request->validate([
+    //         'id' => 'required|string',
+    //     ]);
+
+    //      $dtr = DailyTimeRecord::where('employee_id', $request->id)
+    //     ->orderBy('created_at', 'desc')
+    //     ->first();
+
+    //     if (!$dtr || !$dtr->time_out) {
+    //         return response()->json(['message' => 'Cannot start OT without regular time out'], 400);
+    //     }
+
+    //     // if (!$dtr->overtime_start) {
+    //     //     // Mark OT start
+    //     //     $dtr->overtime_start = now();
+    //     //     $dtr->save();
+    //     //     return response()->json(['message' => 'Overtime started']);
+    //     // }
+    //     if ($dtr && !$dtr->overtime_start && !$dtr->overtime_end) {
+    //         // Return message to the frontend to start overtime
+    //         return response()->json(['message' => 'ot_start']);
+
+    //     } else {
+    //         return response()->json(['message' => 'Overtime already started']);
+    //     }
+
+    //     // if (!$dtr->overtime_end) {
+    //     //     // Mark OT end
+    //     //     $dtr->overtime_end = now();
+    //     //     $dtr->save();
+    //     //     return response()->json(['message' => 'Overtime ended']);
+    //     // }
+
+    //     return response()->json(['message' => 'Overtime already recorded']);
+
+    // }
 
     public function markTimeIn(Request $request)
     {

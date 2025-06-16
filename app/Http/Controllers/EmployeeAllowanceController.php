@@ -62,6 +62,26 @@ class EmployeeAllowanceController extends Controller
         return response()->json($employeeAllowance, 201);
     }
 
+    public function updateEmployeeAllowance(Request $request, $id)
+    {
+        $validateData = $request->validate([
+            'amount' => 'required|numeric'
+        ]);
+
+        $employeeAllowance = EmployeeAllowance::find($id);
+
+        if (!$employeeAllowance) {
+            return response()->json(['error' => 'Employee allowance not found.'], 404);
+        }
+
+        $employeeAllowance->update([
+            'amount' => $validateData['amount']
+        ]);
+
+        return response()->json($employeeAllowance, 200);
+    }
+
+
     /**
      * Display the specified resource.
      */

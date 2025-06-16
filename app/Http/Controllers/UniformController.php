@@ -84,6 +84,62 @@ class UniformController extends Controller
         ], 201);
     }
 
+    public function updateUniform(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'employee_id' => 'required|integer|exists:employees,id',
+            'numberOfPayments' => 'required|integer',
+            'totalAmount' => 'required|integer',
+            'paymentPerPayroll' => 'required|integer',
+            'pantsPcs' => 'nullable|integer',
+            'pantsPrice' => 'nullable|numeric',
+            'pantsSize' => 'nullable|string',
+            'tShirtPcs' => 'nullable|integer',
+            'tShirtPrice' => 'nullable|numeric',
+            'tShirtsize' => 'nullable|string'
+        ]);
+
+        $uniform = Uniform::findOrFail($id);
+
+        // Update the uniform details
+        $uniform->update([
+            'employee_id' => $validatedData['employee_id'],
+            'number_of_payments' => $validatedData['numberOfPayments'],
+            'total_amount' => $validatedData['totalAmount'],
+            'payments_per_payroll' => $validatedData['paymentPerPayroll'],
+        ]);
+
+        //Handle Pants Update
+
+         if ($validatedData['pantsPcs'] && $validatedData['pantsPrice'] && $validatedData['pantsSize'])
+         {
+            $pants = $uniform->pants()->first();
+
+            if ($pants) {
+                $pants->update([
+                    'size' => $validatedData['pantsSize'],
+                    'pcs' => $validatedData['pantsPcs'],
+                    'price' => $validatedData['pantsPrice'],
+                ]);
+            } else {
+                UniformPants::create([
+                    'uniform_id' => $uniform->id,
+                    'size' => $validatedData['pantsSize'],
+                    'pcs' => $validatedData['pantsPcs'],
+                    'price' => $validatedData['pantsPrice'],
+                ]);
+            }
+        } else {
+            // Delete pants if previously existing but now removed
+            $uniform->pants()->delete();
+        }
+        //Handle T-Shirt Update
+         return response()->json([
+            'message' => 'Uniform updated successfully',
+            'uniform' => $uniform->fresh(['pants', 'tShirt']),
+         ]);
+    }
+
     /**
      * Display the specified resource.
      */

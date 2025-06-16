@@ -66,6 +66,40 @@ class EmployeeBenefitController extends Controller
 
     }
 
+    public function updateEmployeeSssBenefit(Request $request, $id)
+    {
+        $validateData = $request->validate([
+            'sss' => 'required|numeric'
+        ]);
+
+        $benefit = EmployeeBenefit::findOrFail($id);
+        $benefit->update($validateData);
+
+        return response()->json($benefit, 200);
+    }
+    public function updateEmployeeHdmfBenefit(Request $request, $id)
+    {
+        $validateData = $request->validate([
+            'hdmf' => 'required|numeric'
+        ]);
+
+        $benefit = EmployeeBenefit::findOrFail($id);
+        $benefit->update($validateData);
+
+        return response()->json($benefit, 200);
+    }
+    public function updateEmployeePhicBenefit(Request $request, $id)
+    {
+        $validateData = $request->validate([
+            'phic' => 'required|numeric'
+        ]);
+
+        $benefit = EmployeeBenefit::findOrFail($id);
+        $benefit->update($validateData);
+
+        return response()->json($benefit, 200);
+    }
+
 
 
     /**
