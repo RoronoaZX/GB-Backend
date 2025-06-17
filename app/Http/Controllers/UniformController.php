@@ -102,9 +102,14 @@ class UniformController extends Controller
             ]);
         }
 
+        $uniform->load('employee');
+
         return response()->json([
-            'message' => 'Uniform data saved successfully',
-            'uniform' => $uniform,
+           'data' => [$uniform],
+           'total' => 1,
+           'per_page' => 1,
+           'current_page' => 1,
+           'last_page' =>1
         ], 201);
     }
 
