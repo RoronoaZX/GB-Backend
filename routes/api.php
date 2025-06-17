@@ -201,6 +201,7 @@ Route::post('to-deliver-premix', [RequestPremixController::class, 'toDeliverPrem
 Route::post('to-receive-premix', [RequestPremixController::class, 'toReceivePremix']);
 Route::post('receive-premix', [RequestPremixController::class, 'receivePremix']);
 
+Route::put('update-employee-cash-advance/{id}', [CashAdvanceController::class, 'updateCashAdvanceAmount']);
 Route::put('update/uniform/{id}', [UniformController::class, 'updateUniform']);
 Route::put('update-employee-sss-benefit/{id}', [EmployeeBenefitController::class, 'updateEmployeeSssBenefit']);
 Route::put('update-employee-hdmf-benefit/{id}', [EmployeeBenefitController::class, 'updateEmployeeHdmfBenefit']);

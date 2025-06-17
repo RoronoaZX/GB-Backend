@@ -12,11 +12,35 @@ class UniformController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $uniform = Uniform::orderBy('created_at', 'desc')->with(['employee','tShirt','pants'])->take(7)->get();
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 7);
+        $search = $request->query('search', '');
 
-        return response()->json($uniform, 200);
+        $query = Uniform::orderBy('created_at', 'desc')->with(['employee','tShirt','pants']);
+
+        if (!empty($search)) {
+            $query->whereHas('employee', function ($q) use ($search) {
+                $q->where('firstname', 'like', "%$search%")
+                ->orWhere('lastname', 'like', "%$search%");
+            });
+        }
+
+        if ($perPage == 0) {
+            $data = $query->get();
+            return response()->json([
+                'data' => $data,
+                'total' => $data->count(),
+                'per_page' => $data->count(),
+                'current_page' => 1,
+                'last_page' => 1
+            ]);
+        }
+
+        $paginated = $query->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json($paginated, 200);
     }
 
     public function searchUniform(Request $request)

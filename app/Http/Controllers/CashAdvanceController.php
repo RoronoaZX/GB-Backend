@@ -10,11 +10,35 @@ class CashAdvanceController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $cashAdvance = CashAdvance::orderBy('created_at', 'desc')->with('employee')->take(7)->get();
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 7);
+        $search = $request->query('search', '');
 
-        return response()->json($cashAdvance, 200);
+        $query = CashAdvance::orderBy('created_at', 'desc')->with('employee');
+
+        if (!empty($search)) {
+            $query->whereHas('employee', function ($q) use ($search) {
+                $q->where('firstname', 'like', "%$search%")
+                ->orWhere('lastname', 'like', "%$search%");
+            });
+        }
+
+        if ($perPage == 0) {
+            $data = $query->get();
+            return response()->json([
+                'data' => $data,
+                'total' => $data->count(),
+                'per_page' => $data->count(),
+                'current_page' => 1,
+                'last_page' => 1
+            ]);
+        }
+
+        $paginated = $query->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json($paginated, 200);
     }
 
     /**
@@ -55,6 +79,24 @@ class CashAdvanceController extends Controller
         $cashAdvance = CashAdvance::create($validatedData);
 
         return response()->json($cashAdvance,201);
+    }
+
+    public function updateCashAdvanceAmount(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'amount' => 'required|numeric'
+        ]);
+
+        $cashAdvance = CashAdvance::find($id);
+
+        if (!$cashAdvance) {
+            return response()->json(['error' => 'Employee cash advance not found.'], 404);
+        }
+
+        $cashAdvance->update([
+            'amount' => $validatedData['amount']
+        ]);
+        return response()->json($cashAdvance, 200);
     }
 
     /**

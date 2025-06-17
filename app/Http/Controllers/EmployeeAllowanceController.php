@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Branch;
 use App\Models\EmployeeAllowance;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Redis;
 
 class EmployeeAllowanceController extends Controller
@@ -12,12 +13,69 @@ class EmployeeAllowanceController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        $employeeAllowance = EmployeeAllowance::orderBy('created_at', 'desc')->with('employee')->take(7)->get();
 
-        return response()->json($employeeAllowance, 200);
+     public function index(Request $request)
+    {
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 7);
+        $search = $request->query('search', '');
+
+        $query = EmployeeAllowance::with('employee')->orderBy('created_at', 'desc');
+
+        if (!empty($search)) {
+            $query->whereHas('employee', function ($q) use ($search) {
+                $q->where('firstname', 'like', "%$search%")
+                ->orWhere('lastname', 'like', "%$search%");
+            });
+        }
+
+        if ($perPage == 0) {
+            $data = $query->get();
+            return response()->json([
+                'data' => $data,
+                'total' => $data->count(),
+                'per_page' => $data->count(),
+                'current_page' => 1,
+                'last_page' => 1
+            ]);
+        }
+
+        $paginated = $query->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json($paginated);
     }
+
+    // public function index(Request $request)
+    // {
+    //     $page = $request->get('page', 1);
+    //     $perPage = $request->get('per_page', 7);
+    //     $search = $request->query('search', '');
+
+    //     $query = EmployeeAllowance::with('employee')->orderBy('created_at', 'desc');
+
+    //     if (!empty($search)) {
+    //         $query->whereHas('employee',function ($q) use ($search) {
+    //             $q->where('firstname', 'like', "%$search%")
+    //             ->orWhere('lastname', 'like', "%$search%");
+    //         });
+    //     }
+
+    //     if ($perPage == 0) {
+    //         $data = $query->get();
+    //         return response()->json([
+    //             'data' => $data,
+    //             'total' =>$data->count(),
+    //             'per_page' =>$data->count(),
+    //             'current_page' => 1,
+    //             'last_page' => 1
+    //         ]);
+    //     }
+
+    //     $paginated = $query->paginate($perPage, ['*'], 'page', $page);
+
+    //     return response()->json($paginated);
+
+    // }
 
     /**
      * Search a resource in storage.
@@ -58,8 +116,15 @@ class EmployeeAllowanceController extends Controller
             return response()->json(['error' => 'Allowance for this employee already exists.'], 409);
         }
 
-        $employeeAllowance = EmployeeAllowance::create($validateData);
-        return response()->json($employeeAllowance, 201);
+        $employeeAllowance = EmployeeAllowance::create($validateData)->load('employee');
+
+        return response()->json([
+            'data' => [$employeeAllowance],
+            'total' => 1,
+            'per_page' => 1,
+            'current_page' => 1,
+            'last_page' => 1,
+        ], 201);
     }
 
     public function updateEmployeeAllowance(Request $request, $id)

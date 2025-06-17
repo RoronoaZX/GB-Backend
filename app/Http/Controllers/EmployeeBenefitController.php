@@ -4,22 +4,50 @@ namespace App\Http\Controllers;
 
 use App\Models\EmployeeBenefit;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
 class EmployeeBenefitController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $benefit = EmployeeBenefit::orderBy('created_at', 'desc')->with('employee')->take(7)->get();
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 7);
+        $search = $request->query('search', '');
 
-        return response()->json($benefit, 200);
+        $query = EmployeeBenefit::with('employee')->orderBy('created_at', 'desc');
+
+        if (!empty($search)) {
+            $query->whereHas('employee',function ($q) use ($search) {
+                $q->where('firstname', 'like', "%$search%")
+                ->orWhere('lastname', 'like', "%$search%");
+            }
+        );
+        }
+
+        if ($perPage == 0) {
+            $data = $query->get();
+            return response()->json([
+            'data' => $data,
+            'total' => $data->count(),
+            'per_page' => $data->count(),
+            'current_page' => 1,
+            'last_page' => 1
+
+            ]);
+        }
+
+        $paginated = $query->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json($paginated, 200);
     }
 
     /**
      * Search a resource in storage.
      */
+
 
     public function searchBenefit(Request $request)
     {
@@ -54,17 +82,44 @@ class EmployeeBenefitController extends Controller
 
         $existingBenefits = EmployeeBenefit::where('employee_id', $validateData['employee_id'])->first();
 
-        if($existingBenefits) {
+        if ($existingBenefits) {
             return response()->json(['error' => 'Benefits for this employee already exists.'], 409);
         }
 
-        $benefit = EmployeeBenefit::create($validateData);
+        $benefit = EmployeeBenefit::create($validateData)->load('employee');
 
+        // Match the same format as index
         return response()->json([
-            $benefit, 201
-        ]);
-
+            'data' => [$benefit],
+            'total' => 1,
+            'per_page' => 1,
+            'current_page' => 1,
+            'last_page' => 1
+        ], 201);
     }
+
+    // public function store(Request $request)
+    // {
+    //     $validateData = $request->validate([
+    //         'employee_id' => 'required|exists:employees,id',
+    //         'sss' => 'required|numeric',
+    //         'hdmf' => 'required|numeric',
+    //         'phic' => 'required|numeric'
+    //     ]);
+
+    //     $existingBenefits = EmployeeBenefit::where('employee_id', $validateData['employee_id'])->first();
+
+    //     if($existingBenefits) {
+    //         return response()->json(['error' => 'Benefits for this employee already exists.'], 409);
+    //     }
+
+    //     $benefit = EmployeeBenefit::create($validateData);
+
+    //     return response()->json([
+    //         $benefit, 201
+    //     ]);
+
+    // }
 
     public function updateEmployeeSssBenefit(Request $request, $id)
     {
