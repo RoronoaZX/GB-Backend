@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CashAdvance;
+use Illuminate\Auth\Events\Validated;
 use Illuminate\Http\Request;
 
 class CashAdvanceController extends Controller
@@ -76,9 +77,15 @@ class CashAdvanceController extends Controller
             'reason' => 'required|string'
         ]);
 
-        $cashAdvance = CashAdvance::create($validatedData);
+        $cashAdvance = CashAdvance::create($validatedData)->load('employee');
 
-        return response()->json($cashAdvance,201);
+        return response()->json([
+            'data' => [$cashAdvance],
+            'total' => 1,
+            'per_page' => 1,
+            'curren_page' => 1,
+            'last_page' => 1
+        ], 201);
     }
 
     public function updateCashAdvanceAmount(Request $request, $id)
@@ -95,6 +102,24 @@ class CashAdvanceController extends Controller
 
         $cashAdvance->update([
             'amount' => $validatedData['amount']
+        ]);
+        return response()->json($cashAdvance, 200);
+    }
+
+    public function updateCashAdvanceReason(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'reason' => 'required|string|max:255'
+        ]);
+
+        $cashAdvance = CashAdvance::find($id);
+
+        if (!$cashAdvance) {
+            return response()->json(['error' => 'Employee cash advance not found.'], 404);
+        }
+
+        $cashAdvance->update([
+            'reason' => $validatedData['reason']
         ]);
         return response()->json($cashAdvance, 200);
     }
