@@ -61,6 +61,134 @@ class EmployeeController extends Controller
         return response()->json($paginated);
     }
 
+    // public function fetchEmployeeWithEmploymentTypeAndDesignation(Request $request)
+    // {
+    //     $page = $request->get('page', 0);
+    //     $perPage = $request->get('per_page', 0);
+    //     $search = $request->query('search', '');
+
+    //     // ✅ The main change is here: Eager load all necessary nested relationships.
+    //     $query = Employee::with([
+    //         'userDesignation',
+    //         'employmentType',           // The employee's employment type
+    //         'branchEmployee.branch',    // The employee's branch assignment AND the branch details
+    //         'warehouseEmployee.warehouse' // The employee's warehouse assignment AND the warehouse details
+    //     ])
+    //     ->where('position', '!=', 'super admin')
+    //     ->orderBy('created_at', 'desc'); // It's good practice to have a default order
+
+    //     if (!empty($search)) {
+    //         $query->where(function ($q) use ($search) {
+    //             $q->where('firstname', 'like', "%$search%")
+    //             ->orWhere('lastname', 'like', "%$search%");
+
+    //             // You can even make the search more powerful by searching the designation name!
+    //             // Note: This requires a more advanced query using whereHas.
+    //             // Example below for future reference.
+    //             /*
+    //             $q->orWhereHas('branchEmployee.branch', function ($branchQuery) use ($search) {
+    //                 $branchQuery->where('name', 'like', "%$search%");
+    //             })->orWhereHas('warehouseEmployee.warehouse', function ($warehouseQuery) use ($search) {
+    //                 $warehouseQuery->where('name', 'like', "%$search%");
+    //             });
+    //             */
+    //         });
+    //     }
+
+    //     if ($perPage == 0) {
+    //         $data = $query->get();
+    //         // The 'designation_name' and 'designation_type' attributes from your Employee model
+    //         // will be automatically added to the JSON response because of the $appends property.
+    //         return response()->json([
+    //             'data' => $data,
+    //             'total' => $data->count(),
+    //             'per_page' => $data->count(),
+    //             'current_page' => 1,
+    //             'last_page' => 1
+    //         ]);
+    //     }
+
+    //     // The paginate method will execute the query with the eager loading.
+    //     $paginated = $query->paginate($perPage, ['*'], 'page', $page);
+
+    //     return response()->json($paginated);
+    // }
+
+    public function fetchEmployeeWithEmploymentTypeAndDesignation(Request $request)
+    {
+        $search = $request->query('search', '');
+
+        $query = Employee::with([
+            'userDesignation',
+            'employmentType',
+            'branchEmployee.branch',
+            'warehouseEmployee.warehouse'
+        ])
+        ->where('position', '!=', 'super admin')
+        ->orderBy('created_at', 'desc');
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('firstname', 'like', "%$search%")
+                ->orWhere('lastname', 'like', "%$search%");
+            });
+        }
+
+        // Fetch all employees (no pagination)
+        $data = $query->get();
+
+        return response()->json([
+            'data' => $data,
+            'total' => $data->count(),
+        ]);
+    }
+
+
+    // public function fetchEmployeeWithEmploymentTypeAndDesignation(Request $request)
+    // {
+    //     // Search term is still useful, so we keep it.
+    //     $search = $request->query('search', '');
+
+    //     // The query builder remains the same.
+    //     $query = Employee::with([
+    //         'userDesignation',
+    //         'employmentType',
+    //         'branchEmployee.branch',
+    //         'warehouseEmployee.warehouse'
+    //     ])
+    //     ->where('position', '!=', 'super admin')
+    //     ->orderBy('created_at', 'desc');
+
+    //     // The search logic is also kept.
+    //     if (!empty($search)) {
+    //         $query->where(function ($q) use ($search) {
+    //             $q->where('firstname', 'like', "%$search%")
+    //             ->orWhere('lastname', 'like', "%$search%")
+    //             // This is a good place to uncomment the advanced search now
+    //             ->orWhereHas('branchEmployee.branch', function ($branchQuery) use ($search) {
+    //                 $branchQuery->where('name', 'like', "%$search%");
+    //             })
+    //             ->orWhereHas('warehouseEmployee.warehouse', function ($warehouseQuery) use ($search) {
+    //                 $warehouseQuery->where('name', 'like', "%$search%");
+    //             });
+    //         });
+    //     }
+
+    //     // --- MODIFICATION ---
+    //     // We remove all pagination logic and ALWAYS fetch all results.
+    //     $data = $query->get();
+
+    //     // We return the data in the consistent wrapper object that your
+    //     // original "fetch all" logic used.
+    //     return response()->json([
+    //         'data' => $data,
+    //         'total' => $data->count(),
+    //         'per_page' => $data->count(),
+    //         'current_page' => 1,
+    //         'last_page' => 1
+    //     ]);
+    // }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -110,6 +238,7 @@ class EmployeeController extends Controller
 
         return response()->json($employees, 200);
     }
+
     public function searchPersonInCharge(Request $request)
     {
         $keyword = $request->input('keyword');
@@ -135,7 +264,6 @@ class EmployeeController extends Controller
 
         return response()->json($employees, 200);
     }
-
 
     public function searchEmployeesWithDesignation(Request $request)
     {
@@ -171,6 +299,7 @@ class EmployeeController extends Controller
             'address' => 'required|string|max:255',
             'sex' => 'required|string|in:Male,Female',
             'position' =>  'required|string|max:255',
+            'status' =>  'required|string|max:25',
         ]);
 
         // Create the employee

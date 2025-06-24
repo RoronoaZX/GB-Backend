@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->string('sex')->nullable();
             $table->string('position')->nullable();
+            $table->string('status')->nullable();
             $table->timestamps();
         });
     }
