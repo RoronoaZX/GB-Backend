@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BranchEmployee;
 use App\Models\Employee;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\ModelNotFoundException; // Import the exception class
 
 class EmployeeController extends Controller
 {
@@ -141,6 +142,56 @@ class EmployeeController extends Controller
             'data' => $data,
             'total' => $data->count(),
         ]);
+    }
+    public function fetchCertianEmployeeWithEmploymentTypeAndDesignation($id)
+    {
+
+        // $query = Employee::with([
+        //     'userDesignation',
+        //     'employmentType',
+        //     'branchEmployee.branch',
+        //     'warehouseEmployee.warehouse'
+        // ])
+        // ->where('position', '!=', 'super admin')
+        // ->orderBy('created_at', 'desc');
+
+        // if (!empty($search)) {
+        //     $query->where(function ($q) use ($search) {
+        //         $q->where('firstname', 'like', "%$search%")
+        //         ->orWhere('lastname', 'like', "%$search%");
+        //     });
+        // }
+
+        // // Fetch all employees (no pagination)
+        // $data = $query->get();
+
+        // return response()->json([
+        //     'data' => $data,
+        //     'total' => $data->count(),
+        // ]);
+         try {
+            // Use findOrFail to get the model or automatically throw a 404 exception.
+            // We chain the 'with' and 'where' clauses before the final find.
+            $employee = Employee::with([
+                    'userDesignation',
+                    'employmentType',
+                    'branchEmployee.branch',
+                    'warehouseEmployee.warehouse'
+                ])
+                ->where('position', '!=', 'super admin') // Prevents fetching super admins
+                ->findOrFail($id); // This is the key change!
+
+            // If found, return the employee data with a 200 OK status.
+            return response()->json($employee);
+
+        } catch (ModelNotFoundException $e) {
+
+            // If findOrFail fails, it throws an exception. We catch it here.
+            // Return a standard 404 Not Found JSON response.
+            return response()->json([
+                'message' => 'Employee not found.'
+            ], 404);
+        }
     }
 
 
