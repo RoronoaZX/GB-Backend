@@ -22,13 +22,15 @@ class WarehouseEmployeeController extends Controller
         $request->validate([
             'employee_id' => 'required|exists:employees,id',
             'warehouse_id' => 'required|exists:warehouses,id',
-            'time_shift' => 'required|date_format:h:i A',
+            'time_in' => 'required|string|max:10',
+            'time_out' => 'required|string|max:10'
         ]);
 
         $warehouseEmployee = WarehouseEmployee::create([
             'warehouse_id' => $request->warehouse_id,
             'employee_id' => $request->employee_id,
-            'time_shift' => date('H:i:s', strtotime( $request->time_shift))
+            'time_in' => $request->time_in,
+            'time_out' => $request->time_out
         ]);
 
         return response()->json([

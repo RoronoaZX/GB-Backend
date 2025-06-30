@@ -17,7 +17,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('warehouse_id')->references('id')->on('warehouse');
             $table->foreignId('employee_id')->references('id')->on('employees');
-            $table->time('time_shift');
+            $table->string('time_in')->nullable();
+            $table->string('time_out')->nullable();
             $table->timestamps();
         });
     }

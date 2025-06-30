@@ -57,13 +57,15 @@ class BranchEmployeeController extends Controller
         $request->validate([
             'employee_id' => 'required|exists:employees,id',
             'branch_id' => 'required|exists:branches,id',
-            'time_shift' => 'required|date_format:h:i A',
+            'time_in' => 'required|string|max:10',
+            'time_out' => 'required|string|max:10',
         ]);
 
         $branchEmployee = BranchEmployee::create([
             'branch_id' => $request->branch_id,
             'employee_id' => $request->employee_id,
-            'time_shift' => date('H:i:s', strtotime( $request->time_shift))
+            'time_in' => $request->time_in,
+            'time_out' => $request->time_out,
          ]);
 
          return response()->json([

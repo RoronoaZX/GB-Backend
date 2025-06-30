@@ -19,7 +19,8 @@ return new class extends Migration
             $table->foreign('branch_id')->references('id')->on('branches');
             $table->bigInteger('employee_id')->unsigned();
             $table->foreign('employee_id')->references('id')->on('employees');
-            $table->time('time_shift');
+            $table->string('time_in')->nullable();
+            $table->string('time_out')->nullable();
             $table->timestamps();
         });
     }

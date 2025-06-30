@@ -12,7 +12,8 @@ class BranchEmployee extends Model
     protected $fillable = [
         'branch_id',
         'employee_id',
-        'time_shift',
+        'time_in',
+        'time_out',
     ];
 
     public function user()

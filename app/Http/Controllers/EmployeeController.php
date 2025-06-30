@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\BranchEmployee;
 use App\Models\Employee;
+use App\Models\WarehouseEmployee;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException; // Import the exception class
+use PhpParser\Node\Stmt\TryCatch;
 
 class EmployeeController extends Controller
 {
@@ -33,7 +35,13 @@ class EmployeeController extends Controller
         $perPage = $request->get('per_page', 5);
         $search = $request->query('search', '');
 
-        $query = Employee::with('employmentType')->where('position', '!=', 'super admin');
+        $query = Employee::with(
+            'userDesignation',
+            'employmentType',
+            'branchEmployee.branch',
+            'warehouseEmployee.warehouse'
+            )
+            ->where('position', '!=', 'super admin');
 
         // $employees = Employee::with('employmentType')->orderBy('created_at', 'desc')->take(7)->get();
         // return response()->json($employees, 201);
@@ -465,6 +473,119 @@ class EmployeeController extends Controller
             'message' => 'Employee fullname updated successfully',
             'employee' => $employee
         ], 200);
+    }
+
+    public function updateEmployeeDesignation(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'designation_id' => 'required|integer',
+            'designation_type' => 'required',
+        ]);
+
+        $employeeType = $validatedData['designation_type'];
+        $designationId = $validatedData['designation_id'];
+        try{
+            if ($employeeType === 'branch') {
+                $employee = BranchEmployee::findOrFail($id);
+                $employee->branch_id = $designationId;
+                $employee->save();
+
+                return response()->json([
+                    'message' => 'Employee designation updated successfully!'
+                ]
+                );
+            }
+            if ($employeeType === 'warehouse') {
+                $employee = WarehouseEmployee::findOrFail($id);
+                $employee->warehouse_id = $designationId;
+                $employee->save();
+            }
+        }catch (ModelNotFoundException $e) {
+            // 4. Handle the case where the ID was not found in the specified table
+            return response()->json([
+                'error' => "No employee found with ID {$id} for designation '{$employeeType}'."
+            ], 404); // 404 Not Found
+        }
+
+    }
+
+    public function updateEmployeeTimeIn(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'designation_type' => 'required|string|in:branch,warehouse',
+            'time_in' => 'required|string|max:10',
+        ]);
+
+        $employee = null;
+        $employeeType = $validatedData['designation_type'];
+
+        try{
+            if ($employeeType === 'branch') {
+                $employee = BranchEmployee::findOrFail($id);
+            }
+
+            else if ( $employeeType === 'warehouse') {
+                $employee = WarehouseEmployee::findOrFail($id);
+            }
+
+            if ($employee) {
+                $employee->time_in = $validatedData['time_in'];
+                $employee->save();
+
+               return response()->json([
+                    'message' => 'Employee time-in updated successfully.',
+                    'employee' => $employee
+               ]);
+            }
+        } catch (ModelNotFoundException $e) {
+            // 4. Handle the case where the ID was not found in the specified table
+            return response()->json([
+                'error' => "No employee found with ID {$id} for designation '{$employeeType}'."
+            ], 404); // 404 Not Found
+        }
+
+
+        // This part is unlikely to be reached due to validation, but it's good practice
+        return response()->json(['error' => 'Invalid designation type provided.'], 400);
+    }
+    public function updateEmployeeTimeOut(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'designation_type' => 'required|string|in:branch,warehouse',
+            'time_out' => 'required|string|max:10',
+        ]);
+
+        $employee = null;
+        $employeeType = $validatedData['designation_type'];
+
+        try{
+            if ($employeeType === 'branch') {
+                $employee = BranchEmployee::findOrFail($id);
+            }
+
+            else if ( $employeeType === 'warehouse') {
+                $employee = WarehouseEmployee::findOrFail($id);
+            }
+
+            if ($employee) {
+                $employee->time_out = $validatedData['time_out'];
+                $employee->save();
+
+               return response()->json([
+                    'message' => 'Employee time-out updated successfully.',
+                    'employee' => $employee
+               ]);
+            }
+        } catch (ModelNotFoundException $e) {
+            // 4. Handle the case where the ID was not found in the specified table
+            return response()->json([
+                'error' => "No employee found with ID {$id} for designation '{$employeeType}'."
+            ], 404); // 404 Not Found
+        }
+
+
+        // This part is unlikely to be reached due to validation, but it's good practice
+        return response()->json(['error' => 'Invalid designation type provided.'], 400);
     }
 
     /**
