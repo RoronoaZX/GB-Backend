@@ -657,7 +657,23 @@ class DailyTimeRecordController extends Controller
             $formattedRecords = $recordsForPeriod->map(function ($record) {
                 $record->time_in = Carbon::parse($record->time_in)->timezone('Asia/Manila')->format('M. d, Y, g:i A');
                 $record->time_out = $record->time_out ? Carbon::parse($record->time_out)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+                $record->lunch_break_start = $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+                $record->lunch_break_end = $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+                $record->break_start = $record->break_start ? Carbon::parse($record->break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+                $record->break_end = $record->break_end ? Carbon::parse($record->break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+                $record->overtime_start = $record->overtime_start ? Carbon::parse($record->overtime_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+                $record->overtime_end = $record->overtime_end ? Carbon::parse($record->overtime_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+
+
                 // ... add other date formatting here ...
+        //          'time_in',
+        // 'time_out',
+        // 'lunch_break_start',
+        // 'lunch_break_end',
+        // 'break_start',
+        // 'break_end',
+        // 'overtime_start',
+        // 'overtime_end',
                 return $record;
             });
 
