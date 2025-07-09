@@ -148,6 +148,7 @@ Route::post('check-uuid-id', [DailyTimeRecordController::class, 'checkIdAndUuid'
 Route::post('check-dtr-ot-status', [DailyTimeRecordController::class, 'checkOTDtrStatus']);
 Route::post('markTimeIn', [DailyTimeRecordController::class, 'markTimeIn']);
 Route::post('markTimeOut', [DailyTimeRecordController::class, 'markTimeOut']);
+Route::post('markHalfDayOut', [DailyTimeRecordController::class, 'markHalfDayOut']);
 Route::post('markOvertimeIn', [DailyTimeRecordController::class, 'markOvertimeIn']);
 Route::post('markOvertimeOut', [DailyTimeRecordController::class, 'markOvertimeOut']);
 Route::post('checkBreakStatus', [DailyTimeRecordController::class, 'checkBreakStatus']);

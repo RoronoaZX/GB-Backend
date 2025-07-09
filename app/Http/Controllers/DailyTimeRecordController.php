@@ -89,6 +89,8 @@ class DailyTimeRecordController extends Controller
             'device_in_reference_name' => $record->deviceIN->reference->name ?? null,
             'device_out_designation' => $record->deviceOUT->designation ?? null,
             'device_out_reference_name' => $record->deviceOUT->reference->name ?? null,
+            'half_day_reason' => $record->half_day_reason,
+            'shift_status' =>$record->shift_status
         ];
     }
 
@@ -419,6 +421,37 @@ class DailyTimeRecordController extends Controller
         // Mark the time_out
         $dtr->time_out = now();
         $dtr->device_uuid_out = $request->uuid; // Store the UUID of the device for time out
+        $dtr->save();
+
+        return response()->json(['message' => 'Time Out marked successfully!', 'data' => $dtr]);
+    }
+
+    public function markHalfDayOut(Request $request)
+    {
+        // Validate that the employee_id is provided in the request
+        $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'uuid' => 'required|string', // Validate the UUID
+            'shift_status' => 'required|string',
+            'half_day_reason' => 'required|string|max:255'
+        ]);
+
+        // Find the most recent DTR record for the employee that doesn't have a time_out
+        $dtr = DailyTimeRecord::where('employee_id', $request->employee_id)
+                            ->whereNull('time_out') // Only records without time_out
+                            ->latest('time_in') // Get the most recent one
+                            ->first();
+
+        // Check if a matching DTR record is found
+        if (!$dtr) {
+            return response()->json(['message' => 'No active time-in record found for this employee.'], 404);
+        }
+
+        // Mark the time_out
+        $dtr->time_out = now();
+        $dtr->device_uuid_out = $request->uuid; // Store the UUID of the device for time out
+        $dtr->shift_status = $request->shift_status;
+        $dtr->half_day_reason = $request->half_day_reason;
         $dtr->save();
 
         return response()->json(['message' => 'Time Out marked successfully!', 'data' => $dtr]);
