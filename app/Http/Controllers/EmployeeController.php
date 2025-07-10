@@ -134,7 +134,7 @@ class EmployeeController extends Controller
             'warehouseEmployee.warehouse'
         ])
         ->where('position', '!=', 'super admin')
-        ->orderBy('created_at', 'desc');
+        ->orderBy('firstname', 'asc');
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
