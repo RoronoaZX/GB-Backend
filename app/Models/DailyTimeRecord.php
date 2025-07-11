@@ -26,7 +26,9 @@ class DailyTimeRecord extends Model
         'approved_by',
         'declined_reason',
         'half_day_reason',
-        'shift_status'
+        'shift_status',
+        'schedule_in',
+        'schedule_out'
     ];
 
 

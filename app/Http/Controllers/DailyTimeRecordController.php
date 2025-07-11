@@ -9,6 +9,7 @@ use Illuminate\Http\Client\ResponseSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class DailyTimeRecordController extends Controller
@@ -90,7 +91,9 @@ class DailyTimeRecordController extends Controller
             'device_out_designation' => $record->deviceOUT->designation ?? null,
             'device_out_reference_name' => $record->deviceOUT->reference->name ?? null,
             'half_day_reason' => $record->half_day_reason,
-            'shift_status' =>$record->shift_status
+            'shift_status' =>$record->shift_status,
+            'schedule_in' => $record->schedule_in,
+            'schedule_out' => $record->schedule_out
         ];
     }
 
@@ -194,6 +197,40 @@ class DailyTimeRecordController extends Controller
         return response()->json(['message' => 'Overtime request declined successfully!', 'data' => $dtr]);
     }
 
+    public function updateDtrScheduleIn(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'schedule_in' => 'required|string|max:10'
+        ]);
+
+        $dtr = DailyTimeRecord::findOrFail($id);
+        $dtr->schedule_in = $validatedData['schedule_in'];
+
+        $dtr->save();
+
+        return response()->json([
+            'message' => 'DTR schedule in updated successfully',
+            'dtr' => $dtr
+        ], 200);
+    }
+
+    public function  updateDtrScheduleOut(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'schedule_out' => 'required|string'
+        ]);
+
+        $dtr = DailyTimeRecord::findOrFail($id);
+        $dtr->schedule_out = $validatedData['schedule_out'];
+
+        $dtr->save();
+
+        return response()->json([
+            'message' => 'DTR schedule in updated successfully',
+            'dtr' => $dtr
+        ], 200);
+    }
+
     public function getDTRData(Request $request)
     {
         $employeeId = $request->input('employee_id');
@@ -228,11 +265,64 @@ class DailyTimeRecordController extends Controller
         return response()->json($dtrData);
     }
 
+    // public function checkIdAndUuid(Request $request)
+    // {
+    //     // Log received UUID and ID to debug
+    //     Log::info('Received UUID: ' . $request->uuid);
+    //     Log::info('Received ID: ' . $request->id);
+
+    //     // Validate the incoming data
+    //     $request->validate([
+    //         'uuid' => 'required|string',
+    //         'id' => 'required|string',
+    //     ]);
+
+    //     // Check if the device exists with the given UUID
+    //     $device = Device::where('uuid', $request->uuid)->first();
+
+    //     // Check if the user exists with the given ID
+    //     $employee = Employee::with('userDesignation')->where('id', $request->id)->first();
+
+    //     if ($device && $employee) {
+    //         // Both UUID and ID match
+
+    //         return response()->json([
+    //             'message' => 'OK',
+    //             'device' => [
+    //                         'uuid' => $device
+    //             ],
+    //             'employee' => [
+    //                 'id' => $employee->id,
+    //                 'fullname' => $employee->fullname,
+    //                 'position' => $employee->position,
+    //                 'user_designation' => $userDesignation, // Now directly from the related User model
+    //                 // Add any other employee fields you need here
+    //             ]
+    //             ]);
+    //     } else {
+    //         // Log which check failed
+    //         if (!$device) {
+    //             Log::warning('No device found for UUID: ' . $request->uuid);
+    //         }
+    //         if (!$employee) {
+    //             Log::warning('No user found for ID: ' . $request->id);
+    //         }
+
+    //         // Either UUID or ID is not valid
+    //         return response()->json([
+    //             'message' => 'Not Valid',
+    //             'data' => [
+    //                 'uuid' => $device
+    //             ]
+    //     ], 400);
+    //     }
+    // }
+
     public function checkIdAndUuid(Request $request)
     {
-        // Log received UUID and ID to debug
-        \Log::info('Received UUID: ' . $request->uuid);
-        \Log::info('Received ID: ' . $request->id);
+        // Log received UUID and ID for debugging
+        Log::info('Received UUID: ' . $request->uuid);
+        Log::info('Received ID: ' . $request->id);
 
         // Validate the incoming data
         $request->validate([
@@ -243,33 +333,43 @@ class DailyTimeRecordController extends Controller
         // Check if the device exists with the given UUID
         $device = Device::where('uuid', $request->uuid)->first();
 
-        // Check if the user exists with the given ID
-        $user = Employee::where('id', $request->id)->first();
+        // Check if the user (employee) exists with the given ID
+        // Eager load necessary relationships for the 'designation' accessor
+        $employee = Employee::with(['branchEmployee.branch', 'warehouseEmployee.warehouse'])->where('id', $request->id)->first();
 
-        if ($device && $user) {
+        if ($device && $employee) {
             // Both UUID and ID match
             return response()->json([
                 'message' => 'OK',
                 'device' => [
-                            'uuid' => $device
-                        ]
-                ]);
+                    'uuid' => $device->uuid // Only return the uuid string if that's all you need from the device
+                ],
+                'employee' => [ // Add an 'employee' key to return employee data
+                    'id' => $employee->id,
+                    'firstname' => $employee->firstname,
+                    'middlename' => $employee->middlename,
+                    'lastname' => $employee->lastname,
+                    'position' => $employee->position,
+                    'designation' => $employee->designation, // This will use the accessor
+                    // Add any other employee fields you need here
+                ]
+            ]);
         } else {
             // Log which check failed
             if (!$device) {
-                \Log::warning('No device found for UUID: ' . $request->uuid);
+                Log::warning('No device found for UUID: ' . $request->uuid);
             }
-            if (!$user) {
-                \Log::warning('No user found for ID: ' . $request->id);
+            if (!$employee) {
+                Log::warning('No employee found for ID: ' . $request->id);
             }
 
             // Either UUID or ID is not valid
             return response()->json([
                 'message' => 'Not Valid',
                 'data' => [
-                    'uuid' => $device
+                    'uuid' => $device ? $device->uuid : null // Return uuid if device exists, otherwise null
                 ]
-        ], 400);
+            ], 400);
         }
     }
 
@@ -371,6 +471,8 @@ class DailyTimeRecordController extends Controller
         $validator = Validator::make($request->all(), [
             'employee_id' => 'required|exists:employees,id',
             'uuid' => 'required|string',
+            'schedule_in' => 'required|string',
+            'schedule_out' => 'required|string'
         ]);
 
         if ($validator->fails()) {
@@ -389,6 +491,8 @@ class DailyTimeRecordController extends Controller
         $dtr = new DailyTimeRecord();
         $dtr->employee_id = $request->employee_id;
         $dtr->device_uuid_in = $request->uuid; // Store the UUID of the device
+        $dtr->schedule_in = $request->schedule_in;
+        $dtr->schedule_out = $request->schedule_out;
         $dtr->time_in = now();
         $dtr->save();
 

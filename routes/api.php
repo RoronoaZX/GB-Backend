@@ -210,6 +210,8 @@ Route::put('update-employee-hdmf-benefit/{id}', [EmployeeBenefitController::clas
 Route::put('update-employee-phic-benefit/{id}', [EmployeeBenefitController::class, 'updateEmployeePhicBenefit']);
 Route::put('update-employee-allowance/{id}', [EmployeeAllowanceController::class, 'updateEmployeeAllowance']);
 Route::put('update-employee-birthdate/{id}', [EmployeeController::class, 'updateEmployeeBirthdate']);
+Route::put('update-dtr-schedule-in/{id}', [DailyTimeRecordController::class, 'updateDtrScheduleIn']);
+Route::put('update-dtr-schedule-out/{id}', [DailyTimeRecordController::class, 'updateDtrScheduleOut']);
 Route::put('update-employee-designation/{id}', [EmployeeController::class, 'updateEmployeeDesignation']);
 Route::put('update-employee-time-in/{id}', [EmployeeController::class, 'updateEmployeeTimeIn']);
 Route::put('update-employee-time-out/{id}', [EmployeeController::class, 'updateEmployeeTimeOut']);
