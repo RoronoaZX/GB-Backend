@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('name', 255)->nullable();
             $table->date('date');
-            $table->string('type', 25)->nullable();
-            $table->string('scope', 25)->nullable();
+            $table->string('type', 191)->nullable();
+            $table->string('scope', 191)->nullable();
             $table->timestamps();
         });
     }
