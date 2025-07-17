@@ -15,4 +15,8 @@ class Holiday extends Model
         'type',
         'scope'
     ];
+
+    protected $casts = [
+        'date' => 'date'
+    ];
 }

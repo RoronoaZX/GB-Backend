@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DailyTimeRecord;
 use App\Models\Device;
 use App\Models\Employee;
+use App\Models\Holiday;
 use Illuminate\Http\Client\ResponseSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -767,30 +768,34 @@ class DailyTimeRecordController extends Controller
     {
         $query = DailyTimeRecord::with(['employee.branch']);
 
-        // The main filter is now the employee ID from the route parameter.
-        // This is no longer optional.
         $query->where('employee_id', $id);
 
-        // Optional: We can still allow filtering by year as a query parameter.
-        // This is useful for viewing historical data.
         $year = $request->input('year', date('Y'));
         $query->whereYear('time_in', $year);
 
-        // 1. Fetch all records for the specified employee, sorted newest first.
         $dtrRecords = $query->orderBy('time_in', 'desc')->get();
 
-         // 2. Group the collection by the payroll period key.
         $groupedDtr = $dtrRecords->groupBy(function ($record) {
             return $this->getPayrollPeriodKey(Carbon::parse($record->time_in));
         });
 
-        // 3. Transform the grouped collection into the desired array structure.
         $structuredData = $groupedDtr->map(function ($recordsForPeriod, $periodKey) {
-
-            // Extract the start and end dates from our unique key.
             list($startDateStr, $endDateStr) = explode('_', $periodKey);
 
-            // Format the DTR records within this period.
+            $startDate = Carbon::parse($startDateStr)->startOfDay();
+            $endDate = Carbon::parse($endDateStr)->endOfDay();
+
+            // Fetch holidays for the current cutoff period
+            $holidays = Holiday::whereBetween('date', [$startDate, $endDate])
+                               ->get()
+                               ->map(function ($holiday) {
+                                   return [
+                                       'date' => $holiday->date->format('F d, Y'),
+                                       'name' => $holiday->name,
+                                       'type' => $holiday->type
+                                   ];
+                               });
+
             $formattedRecords = $recordsForPeriod->map(function ($record) {
                 $record->time_in = Carbon::parse($record->time_in)->timezone('Asia/Manila')->format('M. d, Y, g:i A');
                 $record->time_out = $record->time_out ? Carbon::parse($record->time_out)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
@@ -801,30 +806,82 @@ class DailyTimeRecordController extends Controller
                 $record->overtime_start = $record->overtime_start ? Carbon::parse($record->overtime_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
                 $record->overtime_end = $record->overtime_end ? Carbon::parse($record->overtime_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
 
-
-                // ... add other date formatting here ...
-        //          'time_in',
-        // 'time_out',
-        // 'lunch_break_start',
-        // 'lunch_break_end',
-        // 'break_start',
-        // 'break_end',
-        // 'overtime_start',
-        // 'overtime_end',
                 return $record;
             });
 
-            // Return the final object structure for this period.
             return [
-                'from' => Carbon::parse($startDateStr)->format('F d, Y'),
-                'end' => Carbon::parse($endDateStr)->format('F d, Y'),
+                'from' => $startDate->format('F d, Y'),
+                'end' => $endDate->format('F d, Y'),
                 'records' => $formattedRecords,
+                'holidays' => $holidays, // Add the holidays for this period
             ];
         });
 
-        // 4. Return the final data as a clean JSON array.
         return response()->json($structuredData->values());
     }
+
+    // public function getDtrByStructuredCutoff(Request $request, $id)
+    // {
+    //     $query = DailyTimeRecord::with(['employee.branch']);
+
+    //     // The main filter is now the employee ID from the route parameter.
+    //     // This is no longer optional.
+    //     $query->where('employee_id', $id);
+
+    //     // Optional: We can still allow filtering by year as a query parameter.
+    //     // This is useful for viewing historical data.
+    //     $year = $request->input('year', date('Y'));
+    //     $query->whereYear('time_in', $year);
+
+    //     // 1. Fetch all records for the specified employee, sorted newest first.
+    //     $dtrRecords = $query->orderBy('time_in', 'desc')->get();
+
+    //      // 2. Group the collection by the payroll period key.
+    //     $groupedDtr = $dtrRecords->groupBy(function ($record) {
+    //         return $this->getPayrollPeriodKey(Carbon::parse($record->time_in));
+    //     });
+
+    //     // 3. Transform the grouped collection into the desired array structure.
+    //     $structuredData = $groupedDtr->map(function ($recordsForPeriod, $periodKey) {
+
+    //         // Extract the start and end dates from our unique key.
+    //         list($startDateStr, $endDateStr) = explode('_', $periodKey);
+
+    //         // Format the DTR records within this period.
+    //         $formattedRecords = $recordsForPeriod->map(function ($record) {
+    //             $record->time_in = Carbon::parse($record->time_in)->timezone('Asia/Manila')->format('M. d, Y, g:i A');
+    //             $record->time_out = $record->time_out ? Carbon::parse($record->time_out)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+    //             $record->lunch_break_start = $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+    //             $record->lunch_break_end = $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+    //             $record->break_start = $record->break_start ? Carbon::parse($record->break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+    //             $record->break_end = $record->break_end ? Carbon::parse($record->break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+    //             $record->overtime_start = $record->overtime_start ? Carbon::parse($record->overtime_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+    //             $record->overtime_end = $record->overtime_end ? Carbon::parse($record->overtime_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+
+
+    //             // ... add other date formatting here ...
+    //     //          'time_in',
+    //     // 'time_out',
+    //     // 'lunch_break_start',
+    //     // 'lunch_break_end',
+    //     // 'break_start',
+    //     // 'break_end',
+    //     // 'overtime_start',
+    //     // 'overtime_end',
+    //             return $record;
+    //         });
+
+    //         // Return the final object structure for this period.
+    //         return [
+    //             'from' => Carbon::parse($startDateStr)->format('F d, Y'),
+    //             'end' => Carbon::parse($endDateStr)->format('F d, Y'),
+    //             'records' => $formattedRecords,
+    //         ];
+    //     });
+
+    //     // 4. Return the final data as a clean JSON array.
+    //     return response()->json($structuredData->values());
+    // }
 
       /**
      * Helper function to determine the payroll period as a machine-readable key.
