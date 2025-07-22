@@ -59,6 +59,11 @@ class Employee extends Model
         return $this->hasOne(BranchEmployee::class, 'employee_id','id');
     }
 
+    public function employeeAllowance()
+    {
+        return $this->hasOne(EmployeeAllowance::class, 'employee_id', 'id');
+    }
+
     public function warehouseEmployee()
     {
         return $this->hasOne(WarehouseEmployee::class, 'employee_id','id');
@@ -78,6 +83,7 @@ class Employee extends Model
         // The designation logic will use the 'branchEmployee' relationship instead.
         return $this->hasOne(Branch::class, 'employee_id', 'id');
     }
+
 
     // --- NEW ACCESSORS FOR DESIGNATION ---
 

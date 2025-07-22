@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('device_uuid_in')->nullable();
             $table->string('device_uuid_out')->nullable();
             $table->foreignId('employee_id')->references('id')->on('employees');
+            $table->integer('employee_allowance')->nullable();
             $table->dateTime('time_in')->nullable();
             $table->dateTime('time_out')->nullable();
             $table->dateTime('lunch_break_start')->nullable();
@@ -28,6 +29,10 @@ return new class extends Migration
             $table->string('ot_status')->nullable();
             $table->bigInteger('approved_by')->nullable();
             $table->string('declined_reason')->nullable();
+            $table->string('half_day_reason')->nullable();
+            $table->string('shift_status')->nullable();
+            $table->string('schedule_in')->nullable();
+            $table->string('schedule_out')->nullable();
             $table->timestamps();
         });
     }

@@ -13,6 +13,7 @@ class DailyTimeRecord extends Model
         'device_uuid_in',
         'device_uuid_out',
         'employee_id',
+        'employee_allowance',
         'time_in',
         'time_out',
         'lunch_break_start',

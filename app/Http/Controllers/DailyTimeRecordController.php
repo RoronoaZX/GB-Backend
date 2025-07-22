@@ -336,7 +336,7 @@ class DailyTimeRecordController extends Controller
 
         // Check if the user (employee) exists with the given ID
         // Eager load necessary relationships for the 'designation' accessor
-        $employee = Employee::with(['branchEmployee.branch', 'warehouseEmployee.warehouse'])->where('id', $request->id)->first();
+        $employee = Employee::with(['branchEmployee.branch', 'warehouseEmployee.warehouse', 'employeeAllowance'])->where('id', $request->id)->first();
 
         if ($device && $employee) {
             // Both UUID and ID match
@@ -352,6 +352,7 @@ class DailyTimeRecordController extends Controller
                     'lastname' => $employee->lastname,
                     'position' => $employee->position,
                     'designation' => $employee->designation, // This will use the accessor
+                    'employee_allowance' => $employee->employeeAllowance, // This will use the accessor
                     // Add any other employee fields you need here
                 ]
             ]);
@@ -473,7 +474,8 @@ class DailyTimeRecordController extends Controller
             'employee_id' => 'required|exists:employees,id',
             'uuid' => 'required|string',
             'schedule_in' => 'required|string',
-            'schedule_out' => 'required|string'
+            'schedule_out' => 'required|string',
+            'employee_allowance' => 'required|numeric',
         ]);
 
         if ($validator->fails()) {
@@ -491,6 +493,7 @@ class DailyTimeRecordController extends Controller
 
         $dtr = new DailyTimeRecord();
         $dtr->employee_id = $request->employee_id;
+        $dtr->employee_allowance = $request->employee_allowance;
         $dtr->device_uuid_in = $request->uuid; // Store the UUID of the device
         $dtr->schedule_in = $request->schedule_in;
         $dtr->schedule_out = $request->schedule_out;
@@ -797,16 +800,16 @@ class DailyTimeRecordController extends Controller
                                });
 
             $formattedRecords = $recordsForPeriod->map(function ($record) {
-                $record->time_in = Carbon::parse($record->time_in)->timezone('Asia/Manila')->format('M. d, Y, g:i A');
-                $record->time_out = $record->time_out ? Carbon::parse($record->time_out)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-                $record->lunch_break_start = $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-                $record->lunch_break_end = $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-                $record->break_start = $record->break_start ? Carbon::parse($record->break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-                $record->break_end = $record->break_end ? Carbon::parse($record->break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-                $record->overtime_start = $record->overtime_start ? Carbon::parse($record->overtime_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-                $record->overtime_end = $record->overtime_end ? Carbon::parse($record->overtime_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+            $record->time_in = Carbon::parse($record->time_in)->timezone('Asia/Manila')->format('M. d, Y, g:i A');
+            $record->time_out = $record->time_out ? Carbon::parse($record->time_out)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+            $record->lunch_break_start = $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+            $record->lunch_break_end = $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+            $record->break_start = $record->break_start ? Carbon::parse($record->break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+            $record->break_end = $record->break_end ? Carbon::parse($record->break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+            $record->overtime_start = $record->overtime_start ? Carbon::parse($record->overtime_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+            $record->overtime_end = $record->overtime_end ? Carbon::parse($record->overtime_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
 
-                return $record;
+            return $record;
             });
 
             return [
