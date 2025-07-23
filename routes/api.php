@@ -250,6 +250,7 @@ Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportControlle
 Route::put('update-warehouse-rawMaterials/{id}', [WarehouseRawMaterialsReportController::class, 'updateStocks' ]);
 Route::put('update/branch-baker-report/{id}', [InitialBakerreportsController::class, 'updateBakersReport']);
 
+Route::get('fetch-employee-credits-per-cut-off/{from}/{to}/{employee_id}', [EmployeeCreditsController::class, 'fetchCreditsPerCutOff']);
 Route::get('fetch-drt-payroll-per-cut-off/{id}', [DailyTimeRecordController::class, 'getDtrByStructuredCutoff']);
 Route::get('warehouse/{warehouseId}/added-stocks-history', [WarehouseStockReportsController::class, 'fetchWarehouseAddedStocks']);
 Route::get('fetch-branch-data-for-bir-report/{branchId}', [BirReportController::class, 'fetchBranchDataForReports']);

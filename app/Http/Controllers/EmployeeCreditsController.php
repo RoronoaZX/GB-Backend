@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\EmployeeCreditProducts;
 use App\Models\EmployeeCredits;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use PhpParser\Node\Stmt\TryCatch;
 
 class EmployeeCreditsController extends Controller
 {
@@ -18,12 +20,126 @@ class EmployeeCreditsController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Fetch credits data per cut off.
      */
-    public function create()
+    public function fetchCreditsPerCutOff($from, $to, $employee_id)
     {
-        //
+        try {
+            // Parse incoming date strings like "May 26, 2025"
+            $fromDate = Carbon::parse($from)->startOfDay();
+            $toDate = Carbon::parse($to)->endOfDay();
+
+            // Get employee credits with related products and product info
+            $credits = EmployeeCredits::with(['creditProducts.product', 'creditUserId'])
+                ->where('credit_user_id', $employee_id)
+                ->whereBetween('created_at', [$fromDate, $toDate])
+                ->get();
+
+            // Build response
+            $response = [
+                'employee_id' => $employee_id,
+                'employee_name' => optional($credits->first()?->creditUserId)->full_name ?? 'N/A',
+                'total_credits' => $credits->sum('total_amount'),
+                'credit_records' => $credits->map(function ($credit) {
+                    return [
+                        'id' => $credit->id,
+                        'branch_id' => $credit->branch_id,
+                        'total_amount' => $credit->total_amount,
+                        'description' => $credit->description,
+                        'created_at' => $credit->created_at->format('Y-m-d H:i:s'),
+                        'products' => $credit->creditProducts->map(function ($product) {
+                            return [
+                                'product_id' => $product->product_id,
+                                'product_name' => optional($product->product)->name ?? 'N/A',
+                                'price' => $product->price,
+                                'pieces' => $product->pieces,
+                                'total_price' => $product->price * $product->pieces,
+                            ];
+                        })
+                    ];
+                }),
+            ];
+
+            return response()->json($response);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to fetch employee credits',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
+
+
+    // public function fetchCreditsPerCutOff($from, $to, $employee_id)
+    // {
+    //     try {
+    //         // Parse incoming date strings
+    //         $fromDate = Carbon::parse($from)->startOfDay();
+    //         $toDate = Carbon::parse($to)->endOfDay();
+
+    //         // Fetch credits for a specific employee in the date range
+    //         $creditIds = EmployeeCredits::where('credit_user_id', $employee_id)
+    //             ->whereBetween('created_at', [$fromDate, $toD])
+    //         // $credits = EmployeeCredits::with(['creditProducts.product', 'creditUserId'])
+    //         //     ->where('credit_user_id', $employee_id)
+    //         //     ->whereBetween('created_at', [$fromDate, $toDate])
+    //         //     ->get();
+
+    //         // Build structured response
+    //         $response = [
+    //             'employee_id' => $employee_id,
+    //             'employee_name' => optional($credits->first()?->creditUserId)->full_name ?? 'N/A',
+    //             'total_credits' => $credits->sum('total_amount'),
+    //             'credit_records' => $credits->map(function ($credit) {
+    //                 return [
+    //                     'id' => $credit->id,
+    //                     'branch_id' => $credit->branch_id,
+    //                     'total_amount' => $credit->total_amount,
+    //                     'description' => $credit->description,
+    //                     'created_at' => $credit->created_at,
+    //                     'products' => $credit->creditProducts->map(function ($product) {
+    //                         return [
+    //                             'product_id' => $product->product_id,
+    //                             'product_name' => optional($product->product)->name,
+    //                             'price' => $product->price,
+    //                             'pieces' => $product->pieces,
+    //                             'total_price' => $product->price * $product->pieces,
+    //                         ];
+    //                     })
+    //                 ];
+    //             })
+    //         ];
+
+    //         return response()->json($response);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'error' => 'Failed to fetch employee credits',
+    //             'message' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+    // public function fetchCreditsPerCutOff($from, $to, $employee_id)
+    // {
+    //     try {
+    //         // Fetch credits for a specific employee in the date range
+    //         $credits = EmployeeCredits::with(['creditProducts.product', 'creditUserId'])
+    //             ->where('credit_user_id', $employee_id)
+    //             ->whereBetween('created_at', [$from, $to])
+    //             ->get();
+
+    //         // Build structured response
+    //         $response = [
+    //             'employee_id' => $employee_id,
+    //             'total_credits' => $credits->sum('total_amount'),
+    //             'credit_records' => $credits->map(function ($credit) {
+    //                 return [
+    //                     'id' =>
+    //                 ]
+    //             })
+    //         ]
+    //     }
+    // }
 
     public function saveCreditReport(Request $request)
     {
