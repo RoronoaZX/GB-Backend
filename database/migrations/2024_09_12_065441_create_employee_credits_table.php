@@ -23,6 +23,7 @@ return new class extends Migration
             $table->foreign('sales_report_id')->references('id')->on('sales_reports');
             $table->decimal('total_amount',10,2)->nullable();
             $table->string('description', 191)->nullable();
+            $table->string('status', 191)->nullable();
             $table->timestamps();
         });
     }

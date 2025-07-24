@@ -32,6 +32,10 @@ class EmployeeCreditsController extends Controller
             // Get employee credits with related products and product info
             $credits = EmployeeCredits::with(['creditProducts.product', 'creditUserId'])
                 ->where('credit_user_id', $employee_id)
+                ->where(function ($query) {
+                    $query->where('status', '!=', 'paid')
+                        ->orWhereNull('status');
+                })
                 ->whereBetween('created_at', [$fromDate, $toDate])
                 ->get();
 

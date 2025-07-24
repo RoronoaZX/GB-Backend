@@ -43,6 +43,18 @@ class UniformController extends Controller
         return response()->json($paginated, 200);
     }
 
+    public function fetchUniformForDeduction($employeeId)
+    {
+        $uniform = Uniform::where('employee_id', $employeeId)
+                        ->with(['tShirt', 'pants'])
+                        ->get();
+        if (!$uniform) {
+            return response()->json(['message' => 'Uniform record not found for the specified emnployee.'], 404);
+        }
+
+        return response()->json($uniform);
+    }
+
     public function searchUniform(Request $request)
     {
         $keyword = $request->input('keyword');

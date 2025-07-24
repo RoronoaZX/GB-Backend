@@ -15,7 +15,8 @@ class EmployeeCredits extends Model
         'credit_user_id',
         'sales_report_id',
         'total_amount',
-        'description'
+        'description',
+        'status'
     ];
 
     public function user()
