@@ -15,8 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('employee_id')->references('id')->on('employees');
             $table->integer('number_of_payments')->nullable();
-            $table->integer('total_amount')->nullable();
-            $table->integer('payments_per_payroll')->nullable();
+            $table->decimal('total_amount', 10,2)->nullable();
+            $table->decimal('payments_per_payroll', 10,2)->nullable();
+            $table->decimal('remaining_payments', 10,2)->nullable();
             $table->timestamps();
         });
     }

@@ -47,9 +47,10 @@ class UniformController extends Controller
     {
         $uniform = Uniform::where('employee_id', $employeeId)
                         ->with(['tShirt', 'pants'])
+                        ->where('remaining_payments', '>', 0)
                         ->get();
         if (!$uniform) {
-            return response()->json(['message' => 'Uniform record not found for the specified emnployee.'], 404);
+            return response()->json(['message' => 'Uniform record not found for the specified employee.'], 404);
         }
 
         return response()->json($uniform);
@@ -79,13 +80,14 @@ class UniformController extends Controller
         $validatedData = $request->validate([
             'employee_id' => 'required|integer|exists:employees,id',
             'numberOfPayments' => 'required|integer',
-            'totalAmount' => 'required|integer',
-            'paymentPerPayroll' => 'required|integer',
+            'totalAmount' => 'required|numeric',
+            'paymentPerPayroll' => 'required|numeric',
+            'remaining_payments' => 'required|numeric',
             'pantsPcs' => 'nullable|integer',
-            'pantsPrice' => 'nullable|integer',
+            'pantsPrice' => 'nullable|numeric',
             'pantsSize' => 'nullable|string',
             'tShirtPcs' => 'nullable|integer',
-            'tShirtPrice' => 'nullable|integer',
+            'tShirtPrice' => 'nullable|numeric',
             'tShirtsize' => 'nullable|string'
         ]);
 
@@ -94,6 +96,7 @@ class UniformController extends Controller
             'number_of_payments' => $validatedData['numberOfPayments'],
             'total_amount' => $validatedData['totalAmount'],
             'payments_per_payroll' => $validatedData['paymentPerPayroll'],
+            'remaining_payments' => $validatedData['remaining_payments']
         ]);
 
         if ($validatedData['pantsPcs'] && $validatedData['pantsPrice'] && $validatedData['pantsSize']) {
@@ -130,8 +133,9 @@ class UniformController extends Controller
         $validatedData = $request->validate([
             'employee_id' => 'required|integer|exists:employees,id',
             'numberOfPayments' => 'required|integer',
-            'totalAmount' => 'required|integer',
-            'paymentPerPayroll' => 'required|integer',
+            'totalAmount' => 'required|numeric',
+            'paymentPerPayroll' => 'required|numeric',
+            'remaining_payments' => 'required|numeric',
             'pantsPcs' => 'nullable|integer',
             'pantsPrice' => 'nullable|numeric',
             'pantsSize' => 'nullable|string',
@@ -148,10 +152,33 @@ class UniformController extends Controller
             'number_of_payments' => $validatedData['numberOfPayments'],
             'total_amount' => $validatedData['totalAmount'],
             'payments_per_payroll' => $validatedData['paymentPerPayroll'],
+            'remaining_payments' => $validatedData['remaining_payments']
         ]);
 
-        //Handle Pants Update
+        //Handle T-Shirt Update
+        if ($validatedData['tShirtPcs'] && $validatedData['tShirtPrice'] && $validatedData['tShirtsize']) {
+            $tShirt = $uniform->tShirt()->first();
 
+            if ($tShirt) {
+                $tShirt->update([
+                    'size' => $validatedData['tShirtsize'],
+                    'pcs' => $validatedData['tShirtPcs'],
+                    'price' => $validatedData['tShirtPrice']
+                ]);
+            } else {
+                UniformTshirt::create([
+                    'uniform_id' => $uniform->id,
+                    'size' => $validatedData['tShirtsize'],
+                    'pcs' => $validatedData['tShirtPcs'],
+                    'price' => $validatedData['tShirtPrice']
+                ]);
+            }
+        } else {
+            // Delete t-shirts if previously existing but now removed
+            $uniform->tShirt()->delete();
+        }
+
+        //Handle Pants Update
          if ($validatedData['pantsPcs'] && $validatedData['pantsPrice'] && $validatedData['pantsSize'])
          {
             $pants = $uniform->pants()->first();

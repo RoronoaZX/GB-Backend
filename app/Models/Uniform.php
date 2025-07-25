@@ -14,6 +14,7 @@ class Uniform extends Model
         'number_of_payments',
         'total_amount',
         'payments_per_payroll',
+        'remaining_payments'
 
     ];
 
