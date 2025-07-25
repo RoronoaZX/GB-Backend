@@ -12,6 +12,9 @@ class CashAdvance extends Model
     protected $fillable = [
         'employee_id',
         'amount',
+        'number_of_payments',
+        'payment_per_payroll',
+        'remaining_payments',
         'reason'
     ];
 
