@@ -42,6 +42,17 @@ class CashAdvanceController extends Controller
         return response()->json($paginated, 200);
     }
 
+    public function fetchCashAdvanceForDeduction($employee_id)
+    {
+        $cashAdvances = CashAdvance::where(['employee_id' => $employee_id])
+        ->where(function ($query) {
+            $query->where('remaining_payments', '>', 0.00);
+        })
+        ->get();
+
+        return response()->json($cashAdvances);
+    }
+
     /**
      * Store a resource in storage.
      */
@@ -74,6 +85,9 @@ class CashAdvanceController extends Controller
         $validatedData = $request->validate([
             'employee_id' => 'required|exists:employees,id',
             'amount' => 'required|numeric',
+            'number_of_payments' => 'required|integer',
+            'payment_per_payroll' => 'required|numeric',
+            'remaining_payments' => 'required|numeric',
             'reason' => 'required|string'
         ]);
 
