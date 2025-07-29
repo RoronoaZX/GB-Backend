@@ -250,6 +250,7 @@ Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportControlle
 Route::put('update-warehouse-rawMaterials/{id}', [WarehouseRawMaterialsReportController::class, 'updateStocks' ]);
 Route::put('update/branch-baker-report/{id}', [InitialBakerreportsController::class, 'updateBakersReport']);
 
+Route::get('employee-benefits-for-deduction/{employee_id}', [EmployeeBenefitController::class, 'fetchEmployeeBenefitsForDeduction']);
 Route::get('fetch-cash-advance-for-deduction/{employee_id}', [CashAdvanceController::class, 'fetchCashAdvanceForDeduction']);
 Route::get('fetch-uniform-for-deduction/{employee_id}', [UniformController::class, 'fetchUniformForDeduction']);
 Route::get('fetch-employee-credits-per-cut-off/{from}/{to}/{employee_id}', [EmployeeCreditsController::class, 'fetchCreditsPerCutOff']);

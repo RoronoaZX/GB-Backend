@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\EmployeeBenefit;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
@@ -43,6 +44,19 @@ class EmployeeBenefitController extends Controller
 
         return response()->json($paginated, 200);
     }
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function fetchEmployeeBenefitsForDeduction($employee_id)
+    {
+       $employeeBenefits = EmployeeBenefit::with('employee')
+                            ->where('employee_id', $employee_id)
+                            ->first();
+
+        return response()->json($employeeBenefits);
+    }
+
 
     /**
      * Search a resource in storage.
