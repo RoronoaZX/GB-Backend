@@ -29,6 +29,12 @@ class EmployeeController extends Controller
         return response()->json($employee, 201);
     }
 
+    public function fetchEmployeeUserID($employee_id)
+    {
+        $employeeUserID = Employee::with('user')->where('id', $employee_id)->first();
+        return response()->json($employeeUserID);
+    }
+
     public function fetchEmployeeWithEmploymentType(Request $request)
     {
         $page = $request->get('page', 1);

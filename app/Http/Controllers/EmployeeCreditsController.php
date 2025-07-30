@@ -58,6 +58,7 @@ class EmployeeCreditsController extends Controller
                                 'price' => $product->price,
                                 'pieces' => $product->pieces,
                                 'total_price' => $product->price * $product->pieces,
+                                'created_at' => $product->created_at->format('Y-m-d H:i:s')
                             ];
                         })
                     ];

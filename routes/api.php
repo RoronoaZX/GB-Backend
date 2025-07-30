@@ -319,9 +319,11 @@ Route::get('search-products', [ProductController::class, 'searchProducts']);
 Route::get('search-rawMaterials', [RawMaterialController::class, 'searchRawMaterials']);
 Route::get('fetchBranchWithEmployee', [BranchController::class, 'fetchBranchWithEmployee']);
 Route::get('fetchWarehouseWithEmployee', [WarehouseController::class, 'fetchWarehouseWithEmployee']);
+Route::get('fetchEmployeeUserID/{employee_id}', [EmployeeController::class, 'fetchEmployeeUserID']);
 Route::get('fetchAllEmployee', [EmployeeController::class, 'fetchAllEmployee']);
 Route::get('fetchSupervisorUnderBranch/{employee_id}', [SupervisorController::class, 'fetchSupervisorUnderBranch']);
 Route::get('fetchEmployeeWithEmploymentType', [EmployeeController::class, 'fetchEmployeeWithEmploymentType']);
 Route::get('fetchEmployeeWithEmploymentTypeAndDesignation', [EmployeeController::class, 'fetchEmployeeWithEmploymentTypeAndDesignation']);
 Route::get('fetchCertianEmployeeWithEmploymentTypeAndDesignation/{id}', [EmployeeController::class, 'fetchCertianEmployeeWithEmploymentTypeAndDesignation']);
+Route::get('employee-charges/{from}/{to}/{employee_id}', [SalesReportsController::class, 'fetchEmployeeCharges']);
 

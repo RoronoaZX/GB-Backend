@@ -46,7 +46,7 @@ class Employee extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'employee_id', 'id');
+        return $this->hasOne(User::class, 'employee_id', 'id');
     }
 
     public function userDesignation()
