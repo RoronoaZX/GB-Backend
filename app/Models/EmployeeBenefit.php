@@ -11,8 +11,11 @@ class EmployeeBenefit extends Model
 
     protected $fillable = [
         'employee_id',
+        'sss_number',
         'sss',
+        'hdmf_number',
         'hdmf',
+        'phic_number',
         'phic',
     ];
 

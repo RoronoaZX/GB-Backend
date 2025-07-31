@@ -196,8 +196,11 @@ Route::post('receive-premix', [RequestPremixController::class, 'receivePremix'])
 Route::put('update-employee-cash-advance-reason/{id}', [CashAdvanceController::class, 'updateCashAdvanceReason']);
 Route::put('update-employee-cash-advance/{id}', [CashAdvanceController::class, 'updateCashAdvanceAmount']);
 Route::put('update/uniform/{id}', [UniformController::class, 'updateUniform']);
+Route::put('update-employee-sss-number-benefit/{id}', [EmployeeBenefitController::class, 'updateEmployeeSssNumberBenefit']);
 Route::put('update-employee-sss-benefit/{id}', [EmployeeBenefitController::class, 'updateEmployeeSssBenefit']);
+Route::put('update-employee-hdmf-number-benefit/{id}', [EmployeeBenefitController::class, 'updateEmployeeHdmfNumberBenefit']);
 Route::put('update-employee-hdmf-benefit/{id}', [EmployeeBenefitController::class, 'updateEmployeeHdmfBenefit']);
+Route::put('update-employee-phic-number-benefit/{id}', [EmployeeBenefitController::class, 'updateEmployeePhicNumberBenefit']);
 Route::put('update-employee-phic-benefit/{id}', [EmployeeBenefitController::class, 'updateEmployeePhicBenefit']);
 Route::put('update-employee-allowance/{id}', [EmployeeAllowanceController::class, 'updateEmployeeAllowance']);
 Route::put('update-employee-birthdate/{id}', [EmployeeController::class, 'updateEmployeeBirthdate']);

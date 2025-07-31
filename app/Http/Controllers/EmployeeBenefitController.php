@@ -89,8 +89,11 @@ class EmployeeBenefitController extends Controller
     {
         $validateData = $request->validate([
             'employee_id' => 'required|exists:employees,id',
+            'sss_number' => 'required|string',
             'sss' => 'required|numeric',
+            'hdmf_number' => 'required|string',
             'hdmf' => 'required|numeric',
+            'phic_number' => 'required|string',
             'phic' => 'required|numeric'
         ]);
 
@@ -135,10 +138,35 @@ class EmployeeBenefitController extends Controller
 
     // }
 
+    public function updateEmployeeSssNumberBenefit(Request $request, $id)
+    {
+        $validateData = $request->validate([
+            'sss_number' => 'required|string'
+        ]);
+
+        $benefit = EmployeeBenefit::findOrFail($id);
+        $benefit->update($validateData);
+
+        return response()->json($benefit, 200);
+    }
+
     public function updateEmployeeSssBenefit(Request $request, $id)
     {
         $validateData = $request->validate([
             'sss' => 'required|numeric'
+        ]);
+
+        $benefit = EmployeeBenefit::findOrFail($id);
+        $benefit->update($validateData);
+
+        return response()->json($benefit, 200);
+    }
+
+    public function updateEmployeeHdmfNumberBenefit(Request $request, $id)
+    {
+
+        $validateData = $request->validate([
+            'hdmf_number' => 'required|string'
         ]);
 
         $benefit = EmployeeBenefit::findOrFail($id);
@@ -157,6 +185,20 @@ class EmployeeBenefitController extends Controller
 
         return response()->json($benefit, 200);
     }
+
+    public function updateEmployeePhicNumberBenefit(Request $request, $id)
+    {
+        $validateData = $request->validate([
+            'phic_number' => 'required|string'
+        ]);
+
+        $benefit = EmployeeBenefit::findOrFail($id);
+        $benefit->update($validateData);
+
+        return response()->json($benefit, 200);
+
+    }
+
     public function updateEmployeePhicBenefit(Request $request, $id)
     {
         $validateData = $request->validate([
