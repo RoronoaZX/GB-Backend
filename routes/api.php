@@ -30,6 +30,7 @@ use App\Http\Controllers\EmploymentTypeController;
 use App\Http\Controllers\ExpencesReportController;
 use App\Http\Controllers\HistoryLogController;
 use App\Http\Controllers\HolidayController;
+use App\Http\Controllers\IncentivesBasesController;
 use App\Http\Controllers\InitialBakerReportController;
 use App\Http\Controllers\InitialBakerreportsController;
 use App\Http\Controllers\OtherAddedStocksController;
@@ -116,6 +117,7 @@ Route::apiResource('sending-bread-to-branch', BreadAddedController::class);
 Route::apiResource('delivery-receipt', BirReportController::class);
 Route::apiResource('history-logs', HistoryLogController::class);
 Route::apiResource('holiday', HolidayController::class);
+Route::apiResource('incentives-bases', IncentivesBasesController::class);
 
 Route::post('branch/raw-materials/bulk-create', [BranchRawMaterialsReportController::class, 'bulkStore']);
 Route::post('update-branch-date-for-bir-report/{id}', [BirReportController::class, 'updateDateForReports']);

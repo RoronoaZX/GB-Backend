@@ -6,6 +6,9 @@ use App\Models\BakerReports;
 use App\Models\BranchProduct;
 use App\Models\BranchRawMaterialsReport;
 use App\Models\BreadProductionReport;
+use App\Models\IncentiveEmployeeReports;
+use App\Models\IncentivesBases;
+use App\Models\IncentivesReports;
 use App\Models\InitialBakerreports;
 use App\Models\InitialFillingBakerreports;
 use Illuminate\Http\Request;
@@ -21,29 +24,29 @@ class InitialBakerreportsController extends Controller
      */
     public function index()
     {
-    $reports = InitialBakerreports::orderBy('created_at', 'desc')->get();
+        $reports = InitialBakerreports::orderBy('created_at', 'desc')->get();
 
-    // Loop through each report to load relationships conditionally
-    foreach ($reports as $report) {
-        if (strtolower($report->recipe_category) === 'dough') {
-            $report->load(['branch','user','branchRecipe','ingredientBakersReports', 'breadBakersReports']);
-        } elseif (strtolower($report->recipe_category) === 'filling') {
-            $report->load(['branch','user','recipe','ingredientBakersReports', 'fillingBakersReports']);
-        }
+        // Loop through each report to load relationships conditionally
+        foreach ($reports as $report) {
+            if (strtolower($report->recipe_category) === 'dough') {
+                $report->load(['branch','user','branchRecipe','ingredientBakersReports', 'breadBakersReports']);
+            } elseif (strtolower($report->recipe_category) === 'filling') {
+                $report->load(['branch','user','recipe','ingredientBakersReports', 'fillingBakersReports']);
+            }
+            }
+
+        // Return the response as JSON
+        return response()->json($reports);
     }
 
-    // Return the response as JSON
-    return response()->json($reports);
-}
+    public function getInitialReportsData()
+    {
+        $reports = InitialBakerreports::with(['branch', 'user', 'branchRecipe', 'breadBakersReports'])
+                                    ->orderBy('created_at', 'desc')
+                                    ->get();
 
-public function getInitialReportsData()
-{
-    $reports = InitialBakerreports::with(['branch', 'user', 'branchRecipe', 'breadBakersReports'])
-                                  ->orderBy('created_at', 'desc')
-                                  ->get();
-
-    return response()->json($reports);
-}
+        return response()->json($reports);
+    }
 
     public function getReportsByUserId(Request $request, $userId)
     {
@@ -299,7 +302,21 @@ public function getInitialReportsData()
     {
         $validator = Validator::make($request->all(), [
             'reports' => 'required|array',
+            'employee_in_shift' => 'required|array',
+            'overall_kilo' => 'required|numeric',
+            'total_employees' => 'required|numeric',
         ]);
+
+        $incentiveBase = IncentivesBases::where('number_of_employees', $request->total_employees)->first();
+
+        if (!$incentiveBase) {
+             return response()->json([
+                'status' => 'error',
+                'message' => 'Incentive base not found for the specified number of employees.',
+            ], 404);
+        }
+
+        $overKilo = $request->overall_kilo - $incentiveBase->target;
 
         if ($validator->fails()) {
             return response()->json([
@@ -375,6 +392,26 @@ public function getInitialReportsData()
             }
         }
 
+        // Creater incentives_reports record
+        $incentiveReport = IncentivesReports::create([
+            'initial_bakerreports_id' => $bakerReport->id,
+            'user_employee_id' => $request->employee_in_shift[0]['user_employee_id'],
+            'over_kilo' => $overKilo,
+            'total_employees' => $request->total_employees,
+            'status' => 'pending'
+        ]);
+
+        foreach ($request->employee_in_shift as $shift) {
+
+            // Create incentive_employee_reports records(s)
+            IncentiveEmployeeReports::create([
+                'incentive_reports_id' => $incentiveReport->id,
+                'employee_id' => $shift['employee_id'],
+                'designation' => $shift['designation'],
+                'shift_status' => $shift['shift_status']
+            ]);
+        }
+
         return response()->json([
             'status' => 'success',
             'message' => 'Reports stored successfully',
@@ -433,9 +470,10 @@ public function getInitialReportsData()
         }
             }
 
-
             $initialReport->status = 'confirmed';
             $initialReport->save();
+
+            IncentivesReports::where('initial_bakerreports_id', $initialReport->id)->update(['status' => 'confirmed']);
 
             return response()->json(['message' => 'Report confirmed and inventory updated successfully'], 200);
         }
@@ -456,6 +494,7 @@ public function getInitialReportsData()
             $initialReport->status = 'declined';
             $initialReport->remark = $request->remark;
             $initialReport->save();
+
 
             return response()->json(['message' => 'Report declined successfully']);
         }
