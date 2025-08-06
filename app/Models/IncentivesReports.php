@@ -12,8 +12,9 @@ class IncentivesReports extends Model
     protected $fillable = [
         'initial_bakerreports_id',
         'user_employee_id',
-        'over_kilo',
-        'total_employees',
+        'branch_id',
+        'branch_recipe_id',
+        'kilo',
         'status'
     ];
 

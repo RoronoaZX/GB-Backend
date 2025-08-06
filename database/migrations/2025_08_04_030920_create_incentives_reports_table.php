@@ -15,8 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('initial_bakerreports_id')->references('id')->on('initial_bakerreports');
             $table->foreignId('user_employee_id')->references('id')->on('employees');
-            $table->decimal('over_kilo')->nullable();
-            $table->integer('total_employees')->nullable();
+            $table->foreignId('branch_id')->references('id')->on('branches');
+            $table->foreignId('branch_recipe_id')->references('id')->on('branch_recipes');
+            $table->decimal('kilo')->nullable();
+            $table->string('status')->nullable();
             $table->timestamps();
         });
     }

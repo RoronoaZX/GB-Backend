@@ -316,8 +316,6 @@ class InitialBakerreportsController extends Controller
             ], 404);
         }
 
-        $overKilo = $request->overall_kilo - $incentiveBase->target;
-
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
@@ -396,7 +394,6 @@ class InitialBakerreportsController extends Controller
         $incentiveReport = IncentivesReports::create([
             'initial_bakerreports_id' => $bakerReport->id,
             'user_employee_id' => $request->employee_in_shift[0]['user_employee_id'],
-            'over_kilo' => $overKilo,
             'total_employees' => $request->total_employees,
             'status' => 'pending'
         ]);

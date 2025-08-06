@@ -51,6 +51,40 @@ class IncentivesBasesController extends Controller
 
     }
 
+    public function updateNumberEmployee(Request $request, $id)
+    {
+        $validateData = $request->validate([
+            'number_of_employees' => 'required|numeric',
+        ]);
+
+        $incentivesBases = IncentivesBases::find($id);
+
+        if (!$incentivesBases) {
+            return response()->json([
+                'error' => 'Incentives bases not found.'
+            ], 404);
+        }
+
+        $alreadyExists = IncentivesBases::where('number_of_employees', $validateData['number_of_employees'])
+            ->where('id', '!=', $id)
+            ->exists();
+
+        if ($alreadyExists) {
+            return response()->json([
+                'error' => 'The number of employees already exists in another record.'
+            ], 422);
+        }
+
+        $incentivesBases->update([
+            'number_of_employees' => $validateData['number_of_employees']
+        ]);
+
+        return response()->json([
+            'message' => 'Number of employees updated successfully. ',
+            'data' => $incentivesBases
+        ], 200);
+    }
+
     /**
      * Display the specified resource.
      */
