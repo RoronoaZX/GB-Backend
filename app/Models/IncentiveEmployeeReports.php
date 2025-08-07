@@ -10,16 +10,12 @@ class IncentiveEmployeeReports extends Model
     use HasFactory;
 
     protected $fillable = [
-        'incentive_reports_id',
+        'branch_id',
         'employee_id',
+        'number_of_employees',
         'designation',
         'shift_status',
     ];
-
-    public function incentiveReports()
-    {
-        return $this->belongsTo(IncentivesReports::class);
-    }
 
     public function employee()
     {

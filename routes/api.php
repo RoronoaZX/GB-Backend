@@ -30,6 +30,7 @@ use App\Http\Controllers\EmploymentTypeController;
 use App\Http\Controllers\ExpencesReportController;
 use App\Http\Controllers\HistoryLogController;
 use App\Http\Controllers\HolidayController;
+use App\Http\Controllers\IncentiveEmployeeReportsController;
 use App\Http\Controllers\IncentivesBasesController;
 use App\Http\Controllers\InitialBakerReportController;
 use App\Http\Controllers\InitialBakerreportsController;
@@ -118,6 +119,7 @@ Route::apiResource('delivery-receipt', BirReportController::class);
 Route::apiResource('history-logs', HistoryLogController::class);
 Route::apiResource('holiday', HolidayController::class);
 Route::apiResource('incentives-bases', IncentivesBasesController::class);
+Route::apiResource('incentive-employee', IncentiveEmployeeReportsController::class);
 
 Route::post('branch/raw-materials/bulk-create', [BranchRawMaterialsReportController::class, 'bulkStore']);
 Route::post('update-branch-date-for-bir-report/{id}', [BirReportController::class, 'updateDateForReports']);
@@ -256,6 +258,7 @@ Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportControlle
 Route::put('update-warehouse-rawMaterials/{id}', [WarehouseRawMaterialsReportController::class, 'updateStocks' ]);
 Route::put('update/branch-baker-report/{id}', [InitialBakerreportsController::class, 'updateBakersReport']);
 
+Route::get('fetch-employee-incentives-per-cut-off/{from}/{to}/{employee_id}', [IncentiveEmployeeReportsController::class, 'getIncentiveEmployeeReportsPerDtrCutOff']);
 Route::get('employee-benefits-for-deduction/{employee_id}', [EmployeeBenefitController::class, 'fetchEmployeeBenefitsForDeduction']);
 Route::get('fetch-cash-advance-for-deduction/{employee_id}', [CashAdvanceController::class, 'fetchCashAdvanceForDeduction']);
 Route::get('fetch-uniform-for-deduction/{employee_id}', [UniformController::class, 'fetchUniformForDeduction']);

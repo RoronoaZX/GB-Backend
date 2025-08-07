@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('incentive_employee_reports', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('incentive_reports_id')->references('id')->on('incentives_reports');
+            $table->foreignId('branch_id')->references('id')->on('branches');
             $table->foreignId('employee_id')->references('id')->on('employees');
+            $table->integer('number_of_employees')->nullable();
             $table->string('designation')->nullable();
             $table->string('shift_status')->nullable();
             $table->timestamps();

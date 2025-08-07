@@ -307,15 +307,6 @@ class InitialBakerreportsController extends Controller
             'total_employees' => 'required|numeric',
         ]);
 
-        $incentiveBase = IncentivesBases::where('number_of_employees', $request->total_employees)->first();
-
-        if (!$incentiveBase) {
-             return response()->json([
-                'status' => 'error',
-                'message' => 'Incentive base not found for the specified number of employees.',
-            ], 404);
-        }
-
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
@@ -390,20 +381,15 @@ class InitialBakerreportsController extends Controller
             }
         }
 
-        // Creater incentives_reports record
-        $incentiveReport = IncentivesReports::create([
-            'initial_bakerreports_id' => $bakerReport->id,
-            'user_employee_id' => $request->employee_in_shift[0]['user_employee_id'],
-            'total_employees' => $request->total_employees,
-            'status' => 'pending'
-        ]);
+        // Get branch_id form the first report (assuming al reports have the same branch_id)
+        $branch_id = $request->reports[0]['branch_id'];
 
         foreach ($request->employee_in_shift as $shift) {
-
             // Create incentive_employee_reports records(s)
             IncentiveEmployeeReports::create([
-                'incentive_reports_id' => $incentiveReport->id,
+                'branch_id' => $branch_id,
                 'employee_id' => $shift['employee_id'],
+                'number_of_employees' => $request->total_employees,
                 'designation' => $shift['designation'],
                 'shift_status' => $shift['shift_status']
             ]);
@@ -469,8 +455,6 @@ class InitialBakerreportsController extends Controller
 
             $initialReport->status = 'confirmed';
             $initialReport->save();
-
-            IncentivesReports::where('initial_bakerreports_id', $initialReport->id)->update(['status' => 'confirmed']);
 
             return response()->json(['message' => 'Report confirmed and inventory updated successfully'], 200);
         }
