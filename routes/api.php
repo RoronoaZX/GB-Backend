@@ -37,6 +37,7 @@ use App\Http\Controllers\InitialBakerreportsController;
 use App\Http\Controllers\OtherAddedStocksController;
 use App\Http\Controllers\OtherProductsController;
 use App\Http\Controllers\OtherStocksReportController;
+use App\Http\Controllers\PayslipController;
 use App\Http\Controllers\RequestPremixController;
 use App\Http\Controllers\SalesReportsController;
 use App\Http\Controllers\SelectaAddedStockController;
@@ -120,6 +121,7 @@ Route::apiResource('history-logs', HistoryLogController::class);
 Route::apiResource('holiday', HolidayController::class);
 Route::apiResource('incentives-bases', IncentivesBasesController::class);
 Route::apiResource('incentive-employee', IncentiveEmployeeReportsController::class);
+Route::apiResource('payslip', PayslipController::class);
 
 Route::post('branch/raw-materials/bulk-create', [BranchRawMaterialsReportController::class, 'bulkStore']);
 Route::post('update-branch-date-for-bir-report/{id}', [BirReportController::class, 'updateDateForReports']);

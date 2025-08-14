@@ -5,14 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PayslipDtr extends Model
+class PayslipDtrHolidays extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'payslip_id',
-        'from',
-        'to',
-        'release_date',
+        'payslip_dtr_id',
+        'date',
+        'name',
+        'type',
     ];
 }
