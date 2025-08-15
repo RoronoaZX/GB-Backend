@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('sales_report_id')->references('id')->on('sales_reports');
             $table->foreignId('user_id')->references('id')->on('users');
             $table->foreignId('branch_id')->references('id')->on('branches');
+            $table->date('date')->nullable();
             $table->decimal('charges_amount', 10,2)->nullable();
             $table->timestamps();
         });

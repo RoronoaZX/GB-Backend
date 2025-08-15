@@ -4,11 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Payslip;
 use App\Models\PayslipBakerReport;
+use App\Models\PayslipDeductionBenefits;
+use App\Models\PayslipDeductionCa;
+use App\Models\PayslipDeductionCharges;
+use App\Models\PayslipDeductions;
+use App\Models\PayslipDeductionUniformPants;
+use App\Models\PayslipDeductionUniforms;
+use App\Models\PayslipDeductionUniformTshirt;
 use App\Models\PayslipDtr;
 use App\Models\PayslipDtrHolidays;
 use App\Models\PayslipDtrRecord;
 use App\Models\PayslipEarnings;
+use App\Models\PayslipHolidaySummary;
 use App\Models\PayslipIncentive;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -30,18 +39,22 @@ class PayslipController extends Controller
     {
         // 1️⃣ Validate the request before doing anything
         $validator = Validator::make($request->all(), [
-            'employee_id'            => 'required|integer|exists:employees,id',
-            'from'                   => 'required|string',
-            'to'                     => 'required|string',
-            'payroll_release_date'   => 'required|string',
-            'rate_per_day'           => 'required|numeric|min:0',
-            'total_days'             => 'required|integer|min:0',
-            'uniform_balance'        => 'required|numeric|min:0',
-            'credit_balance'         => 'required|numeric|min:0',
-            'cash_advance_balance'   => 'required|numeric|min:0',
-            'total_earnings'         => 'required|numeric|min:0',
-            'total_deductions'       => 'required|numeric|min:0',
-            'net_income'             => 'required|numeric|min:0',
+            'employee_id'               => 'required|integer|exists:employees,id',
+            'from'                      => 'required|string',
+            'to'                        => 'required|string',
+            'payroll_release_date'      => 'required|string',
+            'rate_per_day'              => 'required|numeric|min:0',
+            'total_days'                => 'required|integer|min:0',
+            'uniform_balance'           => 'required|numeric|min:0',
+            'credit_balance'            => 'required|numeric|min:0',
+            'cash_advance_balance'      => 'required|numeric|min:0',
+            'total_earnings'            => 'required|numeric|min:0',
+            'total_deductions'          => 'required|numeric|min:0',
+            'net_income'                => 'required|numeric|min:0',
+            'payslip_earnings'          => 'nullable|array',
+            'payslip_dtr'               => 'nullable|array',
+            'payslip_holiday_summary'   => 'nullable|array',
+            'payslip_deductions'       => 'nullable|array',
 
             // Nested object validation
             'payslip_earnings.working_hours_pay'     => 'required|numeric|min:0',
@@ -84,8 +97,8 @@ class PayslipController extends Controller
             'payslip_dtr.end'                    => 'required|string',
             'payslip_dtr.from'                   => 'required|string',
             'payslip_dtr.release_date'           => 'required|string',
-            'payslip_dtr.holidays'               => 'required|array',
-            'payslip_dtr.payslip_dtr_record'    => 'required|array',
+            'payslip_dtr.holidays'               => 'nullable|array',
+            'payslip_dtr.payslip_dtr_record'     => 'required|array',
 
             // Payslip DTR Holidays
             'payslip_dtr.holidays.*.date'        => 'required|string',
@@ -93,27 +106,96 @@ class PayslipController extends Controller
             'payslip_dtr.holidays.*.type'        => 'required|string',
 
             // Payslip DTR Records
-            'payslip_dtr.payslipr_dtr_record.*.id'                       => 'required|integer|exists:daily_time_records,id',
-            'payslip_dtr.payslipr_dtr_record.*.device_uuid_in'           => 'required|string',
-            'payslip_dtr.payslipr_dtr_record.*.device_uuid_out'          => 'required|string',
-            'payslip_dtr.payslipr_dtr_record.*.employee_id'              => 'required|integer|exists:employees,id',
-            'payslip_dtr.payslipr_dtr_record.*.employee_allowance'       => 'required|numeric|min:0',
-            'payslip_dtr.payslipr_dtr_record.*.time_in'                  => 'required|string',
-            'payslip_dtr.payslipr_dtr_record.*.time_out'                 => 'required|string',
-            'payslip_dtr.payslipr_dtr_record.*.lunch_break_start'        => 'required|string',
-            'payslip_dtr.payslipr_dtr_record.*.lunch_break_end'          => 'required|string',
-            'payslip_dtr.payslipr_dtr_record.*.break_start'              => 'required|string',
-            'payslip_dtr.payslipr_dtr_record.*.break_end'                => 'required|string',
-            'payslip_dtr.payslipr_dtr_record.*.overtime_start'           => 'required|string',
-            'payslip_dtr.payslipr_dtr_record.*.overtime_end'             => 'required|string',
-            'payslip_dtr.payslipr_dtr_record.*.overtime_reason'          => 'required|string',
-            'payslip_dtr.payslipr_dtr_record.*.ot_status'                => 'required|string',
-            'payslip_dtr.payslipr_dtr_record.*.approved_by'              => 'required|integer|exists:users,id',
-            'payslip_dtr.payslipr_dtr_record.*.declined_reason'          => 'nullable|string',
-            'payslip_dtr.payslipr_dtr_record.*.half_day_reason'          => 'nullable|string',
-            'payslip_dtr.payslipr_dtr_record.*.shift_status'             => 'required|string',
-            'payslip_dtr.payslipr_dtr_record.*.schedule_in'              => 'required|string',
-            'payslip_dtr.payslipr_dtr_record.*.schedule_out'             => 'required|string',
+            'payslip_dtr.payslip_dtr_record.*.id'                       => 'required|integer|exists:daily_time_records,id',
+            'payslip_dtr.payslip_dtr_record.*.device_uuid_in'           => 'required|string',
+            'payslip_dtr.payslip_dtr_record.*.device_uuid_out'          => 'required|string',
+            'payslip_dtr.payslip_dtr_record.*.employee_id'              => 'required|integer|exists:employees,id',
+            'payslip_dtr.payslip_dtr_record.*.employee_allowance'       => 'nullable|numeric|min:0',
+            'payslip_dtr.payslip_dtr_record.*.time_in'                  => 'required|string',
+            'payslip_dtr.payslip_dtr_record.*.time_out'                 => 'required|string',
+            'payslip_dtr.payslip_dtr_record.*.lunch_break_start'        => 'nullable|string',
+            'payslip_dtr.payslip_dtr_record.*.lunch_break_end'          => 'nullable|string',
+            'payslip_dtr.payslip_dtr_record.*.break_start'              => 'nullable|string',
+            'payslip_dtr.payslip_dtr_record.*.break_end'                => 'nullable|string',
+            'payslip_dtr.payslip_dtr_record.*.overtime_start'           => 'nullable|string',
+            'payslip_dtr.payslip_dtr_record.*.overtime_end'             => 'nullable|string',
+            'payslip_dtr.payslip_dtr_record.*.overtime_reason'          => 'nullable|string',
+            'payslip_dtr.payslip_dtr_record.*.ot_status'                => 'nullable|string',
+            'payslip_dtr.payslip_dtr_record.*.approved_by'              => 'nullable|integer',
+            'payslip_dtr.payslip_dtr_record.*.declined_reason'          => 'nullable|string',
+            'payslip_dtr.payslip_dtr_record.*.half_day_reason'          => 'nullable|string',
+            'payslip_dtr.payslip_dtr_record.*.shift_status'             => 'nullable|string',
+            'payslip_dtr.payslip_dtr_record.*.schedule_in'              => 'nullable|string',
+            'payslip_dtr.payslip_dtr_record.*.schedule_out'             => 'nullable|string',
+
+            // Payslip Holiday Summary
+            'payslip_holiday_summary.dtr_summary'                    => 'required|array',
+            'payslip_holiday_summary.dtr_summary.*.id'               => 'required|string',
+            'payslip_holiday_summary.dtr_summary.*.additionalPay'    => 'required|numeric|min:0',
+            'payslip_holiday_summary.dtr_summary.*.date'             => 'required|string',
+            'payslip_holiday_summary.dtr_summary.*.holidayRateText'  => 'required|string',
+            'payslip_holiday_summary.dtr_summary.*.holidayType'      => 'required|string',
+            'payslip_holiday_summary.dtr_summary.*.type'             => 'required|string',
+            'payslip_holiday_summary.dtr_summary.*.workedHours'      => 'required|numeric|min:0',
+
+            // Payslip Deductions
+            'payslip_deductions.benefits_total'                 => 'nullable|numeric|min:0',
+            'payslip_deductions.cash_advance_total'             => 'nullable|numeric|min:0',
+            'payslip_deductions.credit_total'                   => 'nullable|numeric|min:0',
+            'payslip_deductions.employee_charge_total'          => 'nullable|numeric|min:0',
+            'payslip_deductions.total_deductions'               => 'nullable|numeric|min:0',
+            'payslip_deductions.uniform_total'                  => 'nullable|numeric|min:0',
+            'payslip_deductions.payslip_deduction_benefits'     => 'nullable',
+            'payslip_deductions.payslip_deduction_ca'           => 'nullable|array',
+            'payslip_deductions.payslip_deduction_charges'      => 'nullable|array',
+            'payslip_deductions.payslip_deduction_credits'      => 'nullable|array',
+            'payslip_deductions.payslip_deduction_uniforms'     => 'nullable',
+
+            // Payslip Deduction Benefits
+            'payslip_deductions.payslip_deduction_benefits.hdmf'    => 'nullable|numeric|min:0',
+            'payslip_deductions.payslip_deduction_benefits.phic'    => 'nullable|numeric|min:0',
+            'payslip_deductions.payslip_deduction_benefits.sss'     => 'nullable|numeric|min:0',
+
+            // Payslip Deduction CA
+            'payslip_deductions.payslip_deduction_ca.*.id'                    => 'required|integer|exists:cash_advances,id',
+            'payslip_deductions.payslip_deduction_ca.*.created_at'            => 'required|date',
+            'payslip_deductions.payslip_deduction_ca.*.employee_id'           => 'required|integer|exists:employees,id',
+            'payslip_deductions.payslip_deduction_ca.*.number_of_payments'    => 'required|integer|min:0',
+            'payslip_deductions.payslip_deduction_ca.*.payment_per_payroll'   => 'required|numeric|min:0',
+            'payslip_deductions.payslip_deduction_ca.*.reason'                => 'required|string',
+            'payslip_deductions.payslip_deduction_ca.*.remaining_payments'    => 'required|numeric|min:0',
+
+            // Payslip Deduction Charges
+            'payslip_deductions.payslip_deduction_charges.*.id'                    => 'required|integer|exists:sales_reports,id',
+            'payslip_deductions.payslip_deduction_charges.*.user_id'               => 'required|integer|exists:users,id',
+            'payslip_deductions.payslip_deduction_charges.*.created_at'            => 'required|date',
+            'payslip_deductions.payslip_deduction_charges.*.branch_id'             => 'required|integer|exists:branches,id',
+            'payslip_deductions.payslip_deduction_charges.*.charges_amount'        => 'required|numeric|min:0',
+
+            // Payslip Deduction Uniforms
+            'payslip_deductions.payslip_deduction_uniforms.id'                   => 'nullable|integer',
+            'payslip_deductions.payslip_deduction_uniforms.date'                 => 'nullable|date',
+            'payslip_deductions.payslip_deduction_uniforms.employee_id'          => 'nullable|integer',
+            'payslip_deductions.payslip_deduction_uniforms.numberOfPayments'     => 'nullable|integer|min:0',
+            'payslip_deductions.payslip_deduction_uniforms.paymentsPerPayroll'   => 'nullable|numeric|min:0',
+            'payslip_deductions.payslip_deduction_uniforms.reason'               => 'nullable|string',
+            'payslip_deductions.payslip_deduction_uniforms.remainingPayments'    => 'nullable|numeric|min:0',
+            'payslip_deductions.payslip_deduction_uniforms.pants'                => 'nullable|array',
+            'payslip_deductions.payslip_deduction_uniforms.t_shirts'             => 'nullable|array',
+
+            // Payslip Deduction Uniform Pants
+            'payslip_deductions.payslip_deduction_uniforms.pants.*.id'             => 'nullable|integer|exists:uniform_pants,id',
+            'payslip_deductions.payslip_deduction_uniforms.pants.*.created_at'     => 'nullable|date',
+            'payslip_deductions.payslip_deduction_uniforms.pants.*.pcs'            => 'nullable|integer|min:0',
+            'payslip_deductions.payslip_deduction_uniforms.pants.*.price'          => 'nullable|numeric|min:0',
+            'payslip_deductions.payslip_deduction_uniforms.pants.*.size'           => 'nullable|string',
+
+            // Payslip Deduction Uniform T-Shirts
+            'payslip_deductions.payslip_deduction_uniforms.t_shirts.*.id'             => 'nullable|integer|exists:uniform_tshirts,id',
+            'payslip_deductions.payslip_deduction_uniforms.t_shirts.*.created_at'     => 'nullable|date',
+            'payslip_deductions.payslip_deduction_uniforms.t_shirts.*.pcs'            => 'nullable|integer|min:0',
+            'payslip_deductions.payslip_deduction_uniforms.t_shirts.*.price'          => 'nullable|numeric|min:0',
+            'payslip_deductions.payslip_deduction_uniforms.t_shirts.*.size'           => 'nullable|string',
 
         ]);
 
@@ -124,6 +206,17 @@ class PayslipController extends Controller
             ], 422);
         }
 
+        // 🔍 Check if payslip already exists
+        $existingPayslip = Payslip::where('employee_id', $request->employee_id)
+                            ->where('payroll_release_date', $request->payroll_release_date)
+                            ->first();
+
+        if ($existingPayslip) {
+            return response()->json([
+                'message' => 'Payslip already exists'
+            ], 409); // Using a 409 Conflict status code is more appropriate here
+        }
+        // ✅ Transaction starts only if no duplicate payslip is found
         // 2️⃣ Run all DB writes in a single transaction
         DB::transaction(function () use ($request) {
 
@@ -157,7 +250,6 @@ class PayslipController extends Controller
 
             // Incentives
             $payslipIncentives = $request->input('payslip_earnings.payslip_incentives', []);
-
             foreach ($payslipIncentives as $incentive) {
                 $payslipIncentive = PayslipIncentive::create([
                     'payslip_earning_id'     => $earningSummary->id,
@@ -216,7 +308,7 @@ class PayslipController extends Controller
             }
 
             // DTR Records
-            $dtrRecords = $request->input('payslip_dtr.payslipr_dtr_record', []);
+            $dtrRecords = $request->input('payslip_dtr.payslip_dtr_record', []);
             foreach ($dtrRecords as $record) {
                 PayslipDtrRecord::create([
                     'payslip_dtr_id'        => $dtr->id,
@@ -242,6 +334,136 @@ class PayslipController extends Controller
                     'schedule_in'           => $record['schedule_in'],
                     'schedule_out'          => $record['schedule_out'],
                 ]);
+            }
+
+            // Payslip Holiday Summary
+            $dtrHolidaysSummary = $request->input('payslip_holiday_summary.dtr_summary', []);
+            foreach ($dtrHolidaysSummary as $summary) {
+                PayslipHolidaySummary::create([
+                    'payslip_id'            => $payslip->id,
+                    'label'                 => $summary['id'],
+                    'additional_pay'        => $summary['additionalPay'],
+                    'date'                  => $summary['date'],
+                    'holiday_rate'          => $summary['holidayRateText'],
+                    'holiday_type'          => $summary['holidayType'],
+                    'type'                  => $summary['type'],
+                    'worked_hours'          => $summary['workedHours'],
+                ]);
+            }
+
+            // Payslip Deductions
+            $payslipDeductions = PayslipDeductions::create([
+                'payslip_id'                => $payslip->id,
+                'benefits_total'            => $request->payslip_deductions['benefits_total'],
+                'cash_advance_total'        => $request->payslip_deductions['cash_advance_total'],
+                'credit_total'              => $request->payslip_deductions['credit_total'],
+                'employee_charge_total'     => $request->payslip_deductions['employee_charge_total'],
+                'total_deduction'           => $request->payslip_deductions['total_deductions'],
+                'uniform_total'             => $request->payslip_deductions['uniform_total'],
+            ]);
+
+            // Payslip Deduction Benefits
+            $deductionBenefits = $request->input('payslip_deductions.payslip_deduction_benefits', []);
+            PayslipDeductionBenefits::create([
+                'payslip_deduction_id'      => $payslipDeductions->id,
+                'employee_id'               => $request->employee_id,
+                'hdmf'                      => $deductionBenefits['hdmf'] ?? 0, // Use array access and null coalescing
+                'phic'                      => $deductionBenefits['phic'] ?? 0,
+                'sss'                       => $deductionBenefits['sss'] ?? 0,
+            ]);
+
+            // Payslip Deduction CASH ADVANCE
+            $cashAdvance = $request->input('payslip_deductions.payslip_deduction_ca', []);
+
+            foreach ($cashAdvance as $ca) {
+                PayslipDeductionCa::create([
+                    'payslip_deduction_id'      => $payslipDeductions->id,
+                    'cash_advance_id'           => $ca['id'],
+                    'employee_id'               => $ca['employee_id'],
+                    'date'                      => Carbon::parse($ca['created_at'])->timezone('Asia/Manila'),
+                    'amount'                    => $ca['amount'],
+                    'number_of_payment'         => $ca['number_of_payments'],
+                    'payment_per_payroll'       => $ca['payment_per_payroll'],
+                    'remaining_payments'        => $ca['remaining_payments'],
+                    'reason'                    => $ca['reason'],
+                ]);
+            }
+
+            // Payslip Deduction CHARGES
+            $deductionCharges = $request->input('payslip_deductions.payslip_deduction_charges', []);
+            foreach ($deductionCharges as $charge) {
+                PayslipDeductionCharges::create([
+                    'payslip_deduction_id'      => $payslipDeductions->id,
+                    'sales_report_id'           => $charge['id'],
+                    'user_id'                   => $charge['user_id'],
+                    'date'                      => Carbon::parse($charge['created_at'])->timezone('Asia/Manila'),
+                    'branch_id'                 => $charge['branch_id'],
+                    'charges_amount'            => $charge['charges_amount'],
+                ]);
+            }
+
+            // Payslip Deductions Uniforms
+            $deductionUniforms = $request->input('payslip_deductions.payslip_deduction_uniforms', []);
+
+            if (!empty(array_filter($deductionUniforms))) {
+                $uniforms =PayslipDeductionUniforms::create([
+                    'payslip_deduction_id'      => $payslipDeductions->id,
+                    'uniform_id'                => $deductionUniforms['id'],
+                    'employee_id'               => $deductionUniforms['employee_id'],
+                    'date'                      => Carbon::parse($deductionUniforms['date'])->timezone('Asia/Manila'),
+                    'number_of_payments'        => $deductionUniforms['numberOfPayments'],
+                    'payments_per_payroll'      => $deductionUniforms['paymentsPerPayroll'],
+                    'remaining_payments'        => $deductionUniforms['remainingPayments'],
+                    'total_amount'              => $deductionUniforms['totalAmount'],
+                ]);
+
+                // Pants
+                 $deductionUniformsPants = $request->input('payslip_deductions.payslip_deduction_uniforms.pants', []);
+                    if (is_array($deductionUniformsPants) && !empty($deductionUniformsPants)) {
+                        foreach ($deductionUniformsPants as $pants) {
+                            PayslipDeductionUniformPants::create([
+                                'payslip_deduction_uniform_id'  => $uniforms->id,
+                                'uniform_pant_id'               => $pants['id'],
+                                'date'                          => Carbon::parse($pants['created_at'])->timezone('Asia/Manila'),
+                                'pcs'                           => $pants['pcs'],
+                                'price'                         => $pants['price'],
+                                'size'                          => $pants['size'],
+                            ]);
+                        }
+                    }
+
+                // T-Shirts
+                $deductionUniformsTShirts = $deductionUniforms['t_shirts'] ?? [];
+                if (!empty($deductionUniformsTShirts)) {
+                    foreach ($deductionUniformsTShirts as $tShirt) {
+                        PayslipDeductionUniformTshirt::create([
+                            'payslip_deduction_uniform_id' => $uniforms->id,
+                            'uniform_tshirt_id'            => $tShirt['id'] ?? null,
+                            'date'                         => !empty($tShirt['created_at'])
+                                                                ? Carbon::parse($tShirt['created_at'])->timezone('Asia/Manila')
+                                                                : null,
+                            'pcs'                          => $tShirt['pcs'] ?? null,
+                            'price'                        => $tShirt['price'] ?? null,
+                            'size'                         => $tShirt['size'] ?? null,
+                        ]);
+                    }
+                }
+            }
+
+
+
+            $deductionuniformsTShirt = $request->input('payslip_deductions.payslip_deduction_uniforms.t_shirts', []);
+            if (is_array($deductionuniformsTShirt) && !empty($deductionuniformsTShirt)) {
+                foreach ($deductionuniformsTShirt as $tShirt) {
+                    PayslipDeductionUniformTshirt::create([
+                        'payslip_deduction_uniform_id'  => $uniforms->id,
+                        'uniform_tshirt_id'             => $tShirt['id'],
+                        'date'                          => Carbon::parse($tShirt['created_at'])->timezone('Asia/Manila'),
+                        'pcs'                           => $tShirt['pcs'],
+                        'price'                         => $tShirt['price'],
+                        'size'                          => $tShirt['size'],
+                    ]);
+                }
             }
 
         });

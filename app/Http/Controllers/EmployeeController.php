@@ -187,6 +187,7 @@ class EmployeeController extends Controller
             // Use findOrFail to get the model or automatically throw a 404 exception.
             // We chain the 'with' and 'where' clauses before the final find.
             $employee = Employee::with([
+                    'user',
                     'userDesignation',
                     'employmentType',
                     'branchEmployee.branch',
