@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CashAdvance;
 use App\Models\Payslip;
 use App\Models\PayslipBakerReport;
 use App\Models\PayslipDeductionBenefits;
@@ -17,6 +18,8 @@ use App\Models\PayslipDtrRecord;
 use App\Models\PayslipEarnings;
 use App\Models\PayslipHolidaySummary;
 use App\Models\PayslipIncentive;
+use App\Models\Uniform;
+use App\Models\UniformTshirt;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -35,6 +38,10 @@ class PayslipController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    // public function store(StorePayslipRequest $request)
+    // {
+    //     // Check
+    // }
     public function store(Request $request)
     {
         // 1️⃣ Validate the request before doing anything
@@ -375,18 +382,34 @@ class PayslipController extends Controller
             // Payslip Deduction CASH ADVANCE
             $cashAdvance = $request->input('payslip_deductions.payslip_deduction_ca', []);
 
+
             foreach ($cashAdvance as $ca) {
-                PayslipDeductionCa::create([
-                    'payslip_deduction_id'      => $payslipDeductions->id,
-                    'cash_advance_id'           => $ca['id'],
-                    'employee_id'               => $ca['employee_id'],
-                    'date'                      => Carbon::parse($ca['created_at'])->timezone('Asia/Manila'),
-                    'amount'                    => $ca['amount'],
-                    'number_of_payment'         => $ca['number_of_payments'],
-                    'payment_per_payroll'       => $ca['payment_per_payroll'],
-                    'remaining_payments'        => $ca['remaining_payments'],
-                    'reason'                    => $ca['reason'],
-                ]);
+
+                // atomically find and update the cash advance record
+                $cashAdvance = CashAdvance::find($ca['id']);
+
+                if ($cashAdvance) {
+
+                    // Calculate the new remaining payments
+                    $newRemainingPayments = $cashAdvance->remaining_payments - $cashAdvance->payments_per_payroll;
+
+                    // Ensure remaining payments doesn't go below zero
+                    $cashAdvance->remaining_payments = max(0, $newRemainingPayments);
+                    $cashAdvance->save();
+
+                    // Create the payslip deduction record
+                    PayslipDeductionCa::create([
+                        'payslip_deduction_id'      => $payslipDeductions->id,
+                        'cash_advance_id'           => $ca['id'],
+                        'employee_id'               => $ca['employee_id'],
+                        'date'                      => Carbon::parse($ca['created_at'])->timezone('Asia/Manila'),
+                        'amount'                    => $ca['amount'],
+                        'number_of_payment'         => $ca['number_of_payments'],
+                        'payment_per_payroll'       => $ca['payment_per_payroll'],
+                        'remaining_payments'        => $ca['remaining_payments'],
+                        'reason'                    => $ca['reason'],
+                    ]);
+                }
             }
 
             // Payslip Deduction CHARGES
@@ -405,64 +428,60 @@ class PayslipController extends Controller
             // Payslip Deductions Uniforms
             $deductionUniforms = $request->input('payslip_deductions.payslip_deduction_uniforms', []);
 
-            if (!empty(array_filter($deductionUniforms))) {
-                $uniforms =PayslipDeductionUniforms::create([
-                    'payslip_deduction_id'      => $payslipDeductions->id,
-                    'uniform_id'                => $deductionUniforms['id'],
-                    'employee_id'               => $deductionUniforms['employee_id'],
-                    'date'                      => Carbon::parse($deductionUniforms['date'])->timezone('Asia/Manila'),
-                    'number_of_payments'        => $deductionUniforms['numberOfPayments'],
-                    'payments_per_payroll'      => $deductionUniforms['paymentsPerPayroll'],
-                    'remaining_payments'        => $deductionUniforms['remainingPayments'],
-                    'total_amount'              => $deductionUniforms['totalAmount'],
-                ]);
+            foreach ($deductionUniforms as $deductionUniform) {
+                $uniforms = Uniform::find($deductionUniform['id']);
 
-                // Pants
-                 $deductionUniformsPants = $request->input('payslip_deductions.payslip_deduction_uniforms.pants', []);
-                    if (is_array($deductionUniformsPants) && !empty($deductionUniformsPants)) {
-                        foreach ($deductionUniformsPants as $pants) {
-                            PayslipDeductionUniformPants::create([
-                                'payslip_deduction_uniform_id'  => $uniforms->id,
-                                'uniform_pant_id'               => $pants['id'],
-                                'date'                          => Carbon::parse($pants['created_at'])->timezone('Asia/Manila'),
-                                'pcs'                           => $pants['pcs'],
-                                'price'                         => $pants['price'],
-                                'size'                          => $pants['size'],
+                if (is_array($deductionUniform) && !empty($deductionUniform)) {
+
+                    $newRemainingPayments = $uniforms->remaining_payments - $uniforms->payments_per_payroll;
+
+                    $uniforms->remaining_payments = max(0, $newRemainingPayments);
+                    $uniforms->save();
+
+                    $payslipUniforms = PayslipDeductionUniforms::create([
+                        'payslip_deduction_id'      => $payslipDeductions->id,
+                        'uniform_id'                => $deductionUniform['id'],
+                        'employee_id'               => $deductionUniform['employee_id'],
+                        'date'                      => !empty($deductionUniform['created_at'])
+                                                        ? Carbon::parse($deductionUniform['created_at'])->timezone('Asia/Manila')
+                                                        : null,
+                        'number_of_payments'        => $deductionUniform['number_of_payments'],
+                        'payments_per_payroll'      => $deductionUniform['payments_per_payroll'],
+                        'remaining_payments'        => $deductionUniform['remaining_payments'],
+                        'total_amount'              => $deductionUniform['total_amount'],
+                    ]);
+
+                    // Pants
+                     $deductionUniformsPants = $deductionUniform['pants'] ?? [];
+                        if (is_array($deductionUniformsPants) && !empty($deductionUniformsPants)) {
+                            foreach ($deductionUniformsPants as $pants) {
+                                PayslipDeductionUniformPants::create([
+                                    'payslip_deduction_uniform_id'  => $payslipUniforms->id,
+                                    'uniform_pant_id'               => $pants['id'],
+                                    'date'                          => Carbon::parse($pants['created_at'])->timezone('Asia/Manila'),
+                                    'pcs'                           => $pants['pcs'],
+                                    'price'                         => $pants['price'],
+                                    'size'                          => $pants['size'],
+                                ]);
+                            }
+                        }
+
+                    // T-Shirts
+                    $deductionUniformsTShirts = $deductionUniform['t_shirts'] ?? [];
+                    if (!empty($deductionUniformsTShirts)) {
+                        foreach ($deductionUniformsTShirts as $tShirt) {
+                            PayslipDeductionUniformTshirt::create([
+                                'payslip_deduction_uniform_id' => $payslipUniforms->id,
+                                'uniform_tshirt_id'            => $tShirt['id'] ?? null,
+                                'date'                         => !empty($tShirt['created_at'])
+                                                                    ? Carbon::parse($tShirt['created_at'])->timezone('Asia/Manila')
+                                                                    : null,
+                                'pcs'                          => $tShirt['pcs'] ?? null,
+                                'price'                        => $tShirt['price'] ?? null,
+                                'size'                         => $tShirt['size'] ?? null,
                             ]);
                         }
                     }
-
-                // T-Shirts
-                $deductionUniformsTShirts = $deductionUniforms['t_shirts'] ?? [];
-                if (!empty($deductionUniformsTShirts)) {
-                    foreach ($deductionUniformsTShirts as $tShirt) {
-                        PayslipDeductionUniformTshirt::create([
-                            'payslip_deduction_uniform_id' => $uniforms->id,
-                            'uniform_tshirt_id'            => $tShirt['id'] ?? null,
-                            'date'                         => !empty($tShirt['created_at'])
-                                                                ? Carbon::parse($tShirt['created_at'])->timezone('Asia/Manila')
-                                                                : null,
-                            'pcs'                          => $tShirt['pcs'] ?? null,
-                            'price'                        => $tShirt['price'] ?? null,
-                            'size'                         => $tShirt['size'] ?? null,
-                        ]);
-                    }
-                }
-            }
-
-
-
-            $deductionuniformsTShirt = $request->input('payslip_deductions.payslip_deduction_uniforms.t_shirts', []);
-            if (is_array($deductionuniformsTShirt) && !empty($deductionuniformsTShirt)) {
-                foreach ($deductionuniformsTShirt as $tShirt) {
-                    PayslipDeductionUniformTshirt::create([
-                        'payslip_deduction_uniform_id'  => $uniforms->id,
-                        'uniform_tshirt_id'             => $tShirt['id'],
-                        'date'                          => Carbon::parse($tShirt['created_at'])->timezone('Asia/Manila'),
-                        'pcs'                           => $tShirt['pcs'],
-                        'price'                         => $tShirt['price'],
-                        'size'                          => $tShirt['size'],
-                    ]);
                 }
             }
 
