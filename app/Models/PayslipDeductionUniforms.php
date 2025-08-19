@@ -13,6 +13,7 @@ class PayslipDeductionUniforms extends Model
         'payslip_deduction_id',
         'uniform_id',
         'employee_id',
+        'date',
         'number_of_payments',
         'payments_per_payroll',
         'remaining_payments',

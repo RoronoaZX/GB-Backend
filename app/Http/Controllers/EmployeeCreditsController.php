@@ -50,9 +50,13 @@ class EmployeeCreditsController extends Controller
                         'branch_id' => $credit->branch_id,
                         'total_amount' => $credit->total_amount,
                         'description' => $credit->description,
+                        'status' => $credit->status,
+                        'sales_report_id' => $credit->sales_report_id,
                         'created_at' => $credit->created_at->format('Y-m-d H:i:s'),
+                        'employee_id' => $credit->credit_user_id,
                         'products' => $credit->creditProducts->map(function ($product) {
                             return [
+                                'id' => $product->id,
                                 'product_id' => $product->product_id,
                                 'product_name' => optional($product->product)->name ?? 'N/A',
                                 'price' => $product->price,

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\CashAdvance;
+use App\Models\EmployeeCredits;
 use App\Models\Payslip;
 use App\Models\PayslipBakerReport;
 use App\Models\PayslipDeductionBenefits;
 use App\Models\PayslipDeductionCa;
 use App\Models\PayslipDeductionCharges;
+use App\Models\PayslipDeductionCredit;
 use App\Models\PayslipDeductions;
 use App\Models\PayslipDeductionUniformPants;
 use App\Models\PayslipDeductionUniforms;
@@ -188,7 +190,7 @@ class PayslipController extends Controller
             'payslip_deductions.payslip_deduction_uniforms.reason'               => 'nullable|string',
             'payslip_deductions.payslip_deduction_uniforms.remainingPayments'    => 'nullable|numeric|min:0',
             'payslip_deductions.payslip_deduction_uniforms.pants'                => 'nullable|array',
-            'payslip_deductions.payslip_deduction_uniforms.t_shirts'             => 'nullable|array',
+            'payslip_deductions.payslip_deduction_uniforms.t_shirt'             => 'nullable|array',
 
             // Payslip Deduction Uniform Pants
             'payslip_deductions.payslip_deduction_uniforms.pants.*.id'             => 'nullable|integer|exists:uniform_pants,id',
@@ -203,6 +205,20 @@ class PayslipController extends Controller
             'payslip_deductions.payslip_deduction_uniforms.t_shirts.*.pcs'            => 'nullable|integer|min:0',
             'payslip_deductions.payslip_deduction_uniforms.t_shirts.*.price'          => 'nullable|numeric|min:0',
             'payslip_deductions.payslip_deduction_uniforms.t_shirts.*.size'           => 'nullable|string',
+
+            // Payslip Deduction Credit
+            'payslip_deductions.payslip_deduction_credits.*.id'                    => 'nullable|integer|exists:employee_credit_products,id',
+            'payslip_deductions.payslip_deduction_credits.*.branch_id'             => 'nullable|integer|exists:branches,id',
+            'payslip_deductions.payslip_deduction_credits.*.sales_report_id'       => 'nullable|integer',
+            'payslip_deductions.payslip_deduction_credits.*.employee_id'           => 'nullable|integer|exists:employees,id',
+            'payslip_deductions.payslip_deduction_credits.*.product_id'            => 'nullable|integer|exists:products,id',
+            'payslip_deductions.payslip_deduction_credits.*.employee_credit_id'    => 'nullable|integer|exists:employee_credits,id',
+            'payslip_deductions.payslip_deduction_credits.*.pieces'                => 'nullable|integer|min:0',
+            'payslip_deductions.payslip_deduction_credits.*.price'                 => 'nullable|numeric|min:0',
+            'payslip_deductions.payslip_deduction_credits.*.product_name'          => 'nullable|string',
+            'payslip_deductions.payslip_deduction_credits.*.total_price'           => 'nullable|numeric|min:0',
+            'payslip_deductions.payslip_deduction_credits.*.total_amount'          => 'nullable|numeric|min:0',
+            'payslip_deductions.payslip_deduction_credits.*.created_at'            => 'nullable|date',
 
         ]);
 
@@ -381,11 +397,9 @@ class PayslipController extends Controller
 
             // Payslip Deduction CASH ADVANCE
             $cashAdvance = $request->input('payslip_deductions.payslip_deduction_ca', []);
-
-
             foreach ($cashAdvance as $ca) {
 
-                // atomically find and update the cash advance record
+                // automically find and update the cash advance record
                 $cashAdvance = CashAdvance::find($ca['id']);
 
                 if ($cashAdvance) {
@@ -467,7 +481,7 @@ class PayslipController extends Controller
                         }
 
                     // T-Shirts
-                    $deductionUniformsTShirts = $deductionUniform['t_shirts'] ?? [];
+                    $deductionUniformsTShirts = $deductionUniform['t_shirt'] ?? [];
                     if (!empty($deductionUniformsTShirts)) {
                         foreach ($deductionUniformsTShirts as $tShirt) {
                             PayslipDeductionUniformTshirt::create([
@@ -483,6 +497,34 @@ class PayslipController extends Controller
                         }
                     }
                 }
+            }
+
+            // Payslip Deductions Credits
+            $deductionCredits = $request->input('payslip_deductions.payslip_deduction_credits', []);
+            foreach ($deductionCredits as $deductionCredit) {
+
+                // automically find and update the cash advance record
+                $credit = EmployeeCredits::find($deductionCredit['employee_credit_id']);
+                if ($credit) {
+                    $credit->status = 'paid'; // set status to "paid"
+                    $credit->save();
+                }
+
+
+                PayslipDeductionCredit::create([
+                    'payslip_deduction_id'           => $payslipDeductions->id,
+                    'branch_id'                      => $deductionCredit['branch_id'],
+                    'sales_report_id'                => $deductionCredit['sales_report_id'],
+                    'employee_credit_id'             => $deductionCredit['employee_credit_id'],
+                    'employee_credit_product_id'     => $deductionCredit['id'],
+                    'employee_id'                    => $deductionCredit['employee_id'],
+                    'product_id'                     => $deductionCredit['product_id'],
+                    'date'                           => Carbon::parse($deductionCredit['created_at'])->timezone('Asia/Manila'),
+                    'pieces'                         => $deductionCredit['pieces'],
+                    'price'                          => $deductionCredit['price'],
+                    'product_name'                   => $deductionCredit['product_name'],
+                    'total_price'                    => $deductionCredit['total_price'],
+                ]);
             }
 
         });

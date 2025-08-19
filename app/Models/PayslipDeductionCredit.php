@@ -11,10 +11,17 @@ class PayslipDeductionCredit extends Model
 
     protected $fillable = [
         'payslip_deduction_id',
+        'branch_id',
+        'sales_report_id',
+        'employee_credit_id',
+        'employee_credit_product_id',
+        'employee_id',
         'product_id',
+        'date',
         'pieces',
         'price',
         'product_name',
         'total_price',
+        'total_amount'
     ];
 }
