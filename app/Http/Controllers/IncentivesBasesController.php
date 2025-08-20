@@ -85,6 +85,99 @@ class IncentivesBasesController extends Controller
         ], 200);
     }
 
+    public function updateTarget(Request $request, $id)
+    {
+        $request->validate([
+            'target' => 'required|numeric'
+        ]);
+
+        $incentiveBase = IncentivesBases::find($id);
+
+        if  (!$incentiveBase) {
+            return response()->json([
+                'error' => 'Incentives base not found.'
+            ], 404);
+        }
+
+        $incentiveBase->update([
+            'target' => $request->target
+        ]);
+
+        return response()->json([
+            'message' => 'Target updated successfully.'
+        ]);
+    }
+    public function updateBakerMultipier(Request $request, $id)
+    {
+        $request->validate([
+            'baker_multiplier' => 'required|numeric',
+        ]);
+
+        $incentiveBases = IncentivesBases::find($id);
+
+        if (!$incentiveBases) {
+            return response()->json([
+                'error' => 'Incentives bases not found.'
+            ], 404);
+        }
+
+        $incentiveBases->update([
+            'baker_multiplier' => $request->baker_multiplier
+        ]);
+
+        return response()->json([
+            'message' => 'Target updated successfully.',
+            'data' => $incentiveBases
+        ]);
+    }
+
+    public function updateLamesadorMultipier(Request $request, $id)
+    {
+        $request->validate([
+            'lamesador_multiplier' => 'required|numeric',
+        ]);
+
+        $incentiveBases = IncentivesBases::find($id);
+
+        if (!$incentiveBases) {
+            return response()->json([
+                'error' => 'Incentives bases not found.'
+            ], 404);
+        }
+
+        $incentiveBases->update([
+            'lamesador_multiplier' => $request->lamesador_multiplier
+        ]);
+
+        return response()->json([
+            'message' => 'Lamesador multiplier updated successfully.',
+            'data' => $incentiveBases
+        ]);
+    }
+
+    public function updateHorneroIncentives(Request $request, $id)
+    {
+        $request->validate([
+            'hornero_incentives' => 'required|numeric',
+        ]);
+
+        $incentiveBases = IncentivesBases::find($id);
+
+        if (!$incentiveBases) {
+            return response()->json([
+                'error' => 'Incentives bases not found.'
+            ], 404);
+        }
+
+        $incentiveBases->update([
+            'hornero_incentives' => $request->hornero_incentives
+        ]);
+
+        return response()->json([
+            'message' => 'Hornero incentives updated successfully. ',
+            'data' => $incentiveBases
+        ], 200);
+    }
     /**
      * Display the specified resource.
      */

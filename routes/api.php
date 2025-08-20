@@ -200,6 +200,10 @@ Route::post('to-receive-premix', [RequestPremixController::class, 'toReceivePrem
 Route::post('receive-premix', [RequestPremixController::class, 'receivePremix']);
 
 Route::put('incentives-bases/update-number-employee/{id}', [IncentivesBasesController::class, 'updateNumberEmployee']);
+Route::put('incentives-bases/update-target/{id}', [IncentivesBasesController::class, 'updateTarget']);
+Route::put('incentives-bases/update-baker-multipier/{id}', [IncentivesBasesController::class, 'updateBakerMultipier']);
+Route::put('incentives-bases/update-lamesador-multipier/{id}', [IncentivesBasesController::class, 'updateLamesadorMultipier']);
+Route::put('incentives-bases/update-hornero-incentives/{id}', [IncentivesBasesController::class, 'updateHorneroIncentives']);
 Route::put('update-employee-cash-advance-reason/{id}', [CashAdvanceController::class, 'updateCashAdvanceReason']);
 Route::put('update-employee-cash-advance/{id}', [CashAdvanceController::class, 'updateCashAdvanceAmount']);
 Route::put('update/uniform/{id}', [UniformController::class, 'updateUniform']);
