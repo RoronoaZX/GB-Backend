@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Branch;
 use App\Models\DailyTimeRecord;
 use App\Models\Device;
 use App\Models\Employee;
 use App\Models\Holiday;
+use App\Models\Warehouse;
 use Illuminate\Http\Client\ResponseSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -67,6 +69,84 @@ class DailyTimeRecordController extends Controller
             'per_page' => $paginated->perPage(),
             'current_page' => $paginated->currentPage(),
             'last_page' => $paginated->lastPage(),
+        ]);
+    }
+
+    public function getBranchWithWarehouses(Request $request)
+    {
+        // Get warehouse devices
+        $warehouses = Warehouse::get()->map(function ($warehouse) {
+            $warehouse->devices = Device::where('reference_id', $warehouse->id)
+                                        ->where('designation', 'warehouse')
+                                        ->get();
+            return $warehouse;
+        });
+
+        $branches = Branch::get()->map(function ($branch) {
+            $branch->devices = Device::where('reference_id', $branch->id)
+                                    ->where('designation', 'branch')
+                                    ->get();
+            return $branch;
+        });
+
+            // Merge both
+
+            $result = $warehouses->merge($branches);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $result // reindex the array
+        ]);
+    }
+
+    public function updateDTRWhereIN(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'device_uuid_in' => 'required|string',
+        ]);
+
+        $dtr = DailyTimeRecord::find($request->id);
+        $dtr->device_uuid_in = $request->device_uuid_in;
+        $dtr->save();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $dtr
+        ]);
+    }
+
+    public function updateDTRWhereOUT(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'device_uuid_out' => 'required|string',
+        ]);
+
+        $dtr = DailyTimeRecord::find($request->id);
+        $dtr->device_uuid_out = $request->device_uuid_out;
+        $dtr->save();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $dtr
+        ]);
+    }
+
+    public function updateDTRShiftStatus(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'shift_status' => 'required|string',
+        ]);
+
+        $dtr = DailyTimeRecord::find($request->id);
+        $dtr->shift_status = $request->shift_status;
+        $dtr->save();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $dtr
         ]);
     }
 
@@ -266,59 +346,6 @@ class DailyTimeRecordController extends Controller
         return response()->json($dtrData);
     }
 
-    // public function checkIdAndUuid(Request $request)
-    // {
-    //     // Log received UUID and ID to debug
-    //     Log::info('Received UUID: ' . $request->uuid);
-    //     Log::info('Received ID: ' . $request->id);
-
-    //     // Validate the incoming data
-    //     $request->validate([
-    //         'uuid' => 'required|string',
-    //         'id' => 'required|string',
-    //     ]);
-
-    //     // Check if the device exists with the given UUID
-    //     $device = Device::where('uuid', $request->uuid)->first();
-
-    //     // Check if the user exists with the given ID
-    //     $employee = Employee::with('userDesignation')->where('id', $request->id)->first();
-
-    //     if ($device && $employee) {
-    //         // Both UUID and ID match
-
-    //         return response()->json([
-    //             'message' => 'OK',
-    //             'device' => [
-    //                         'uuid' => $device
-    //             ],
-    //             'employee' => [
-    //                 'id' => $employee->id,
-    //                 'fullname' => $employee->fullname,
-    //                 'position' => $employee->position,
-    //                 'user_designation' => $userDesignation, // Now directly from the related User model
-    //                 // Add any other employee fields you need here
-    //             ]
-    //             ]);
-    //     } else {
-    //         // Log which check failed
-    //         if (!$device) {
-    //             Log::warning('No device found for UUID: ' . $request->uuid);
-    //         }
-    //         if (!$employee) {
-    //             Log::warning('No user found for ID: ' . $request->id);
-    //         }
-
-    //         // Either UUID or ID is not valid
-    //         return response()->json([
-    //             'message' => 'Not Valid',
-    //             'data' => [
-    //                 'uuid' => $device
-    //             ]
-    //     ], 400);
-    //     }
-    // }
-
     public function checkIdAndUuid(Request $request)
     {
         // Log received UUID and ID for debugging
@@ -428,45 +455,6 @@ class DailyTimeRecordController extends Controller
         // Already started or ended
         return response()->json(['message' => 'Overtime already started or completed']);
     }
-
-    // public function checkOTDtrStatus(Request $request)
-    // {
-    //     $request->validate([
-    //         'id' => 'required|string',
-    //     ]);
-
-    //      $dtr = DailyTimeRecord::where('employee_id', $request->id)
-    //     ->orderBy('created_at', 'desc')
-    //     ->first();
-
-    //     if (!$dtr || !$dtr->time_out) {
-    //         return response()->json(['message' => 'Cannot start OT without regular time out'], 400);
-    //     }
-
-    //     // if (!$dtr->overtime_start) {
-    //     //     // Mark OT start
-    //     //     $dtr->overtime_start = now();
-    //     //     $dtr->save();
-    //     //     return response()->json(['message' => 'Overtime started']);
-    //     // }
-    //     if ($dtr && !$dtr->overtime_start && !$dtr->overtime_end) {
-    //         // Return message to the frontend to start overtime
-    //         return response()->json(['message' => 'ot_start']);
-
-    //     } else {
-    //         return response()->json(['message' => 'Overtime already started']);
-    //     }
-
-    //     // if (!$dtr->overtime_end) {
-    //     //     // Mark OT end
-    //     //     $dtr->overtime_end = now();
-    //     //     $dtr->save();
-    //     //     return response()->json(['message' => 'Overtime ended']);
-    //     // }
-
-    //     return response()->json(['message' => 'Overtime already recorded']);
-
-    // }
 
     public function markTimeIn(Request $request)
     {
@@ -823,69 +811,6 @@ class DailyTimeRecordController extends Controller
         return response()->json($structuredData->values());
     }
 
-    // public function getDtrByStructuredCutoff(Request $request, $id)
-    // {
-    //     $query = DailyTimeRecord::with(['employee.branch']);
-
-    //     // The main filter is now the employee ID from the route parameter.
-    //     // This is no longer optional.
-    //     $query->where('employee_id', $id);
-
-    //     // Optional: We can still allow filtering by year as a query parameter.
-    //     // This is useful for viewing historical data.
-    //     $year = $request->input('year', date('Y'));
-    //     $query->whereYear('time_in', $year);
-
-    //     // 1. Fetch all records for the specified employee, sorted newest first.
-    //     $dtrRecords = $query->orderBy('time_in', 'desc')->get();
-
-    //      // 2. Group the collection by the payroll period key.
-    //     $groupedDtr = $dtrRecords->groupBy(function ($record) {
-    //         return $this->getPayrollPeriodKey(Carbon::parse($record->time_in));
-    //     });
-
-    //     // 3. Transform the grouped collection into the desired array structure.
-    //     $structuredData = $groupedDtr->map(function ($recordsForPeriod, $periodKey) {
-
-    //         // Extract the start and end dates from our unique key.
-    //         list($startDateStr, $endDateStr) = explode('_', $periodKey);
-
-    //         // Format the DTR records within this period.
-    //         $formattedRecords = $recordsForPeriod->map(function ($record) {
-    //             $record->time_in = Carbon::parse($record->time_in)->timezone('Asia/Manila')->format('M. d, Y, g:i A');
-    //             $record->time_out = $record->time_out ? Carbon::parse($record->time_out)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-    //             $record->lunch_break_start = $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-    //             $record->lunch_break_end = $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-    //             $record->break_start = $record->break_start ? Carbon::parse($record->break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-    //             $record->break_end = $record->break_end ? Carbon::parse($record->break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-    //             $record->overtime_start = $record->overtime_start ? Carbon::parse($record->overtime_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-    //             $record->overtime_end = $record->overtime_end ? Carbon::parse($record->overtime_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-
-
-    //             // ... add other date formatting here ...
-    //     //          'time_in',
-    //     // 'time_out',
-    //     // 'lunch_break_start',
-    //     // 'lunch_break_end',
-    //     // 'break_start',
-    //     // 'break_end',
-    //     // 'overtime_start',
-    //     // 'overtime_end',
-    //             return $record;
-    //         });
-
-    //         // Return the final object structure for this period.
-    //         return [
-    //             'from' => Carbon::parse($startDateStr)->format('F d, Y'),
-    //             'end' => Carbon::parse($endDateStr)->format('F d, Y'),
-    //             'records' => $formattedRecords,
-    //         ];
-    //     });
-
-    //     // 4. Return the final data as a clean JSON array.
-    //     return response()->json($structuredData->values());
-    // }
-
       /**
      * Helper function to determine the payroll period as a machine-readable key.
      * This function remains unchanged.
@@ -915,6 +840,4 @@ class DailyTimeRecordController extends Controller
             return $startDate->toDateString() . '_' . $endDate->toDateString();
         }
     }
-
-
 }

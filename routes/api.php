@@ -263,7 +263,11 @@ Route::put('update-branch-products-beginnings/{id}', [BranchProductController::c
 Route::put('update-branch-rawMaterials/{id}', [BranchRawMaterialsReportController::class, 'updateStocks' ]);
 Route::put('update-warehouse-rawMaterials/{id}', [WarehouseRawMaterialsReportController::class, 'updateStocks' ]);
 Route::put('update/branch-baker-report/{id}', [InitialBakerreportsController::class, 'updateBakersReport']);
+Route::put('updateDTRWhereIN', [DailyTimeRecordController::class, 'updateDTRWhereIN']);
+Route::put('updateDTRWhereOUT', [DailyTimeRecordController::class, 'updateDTRWhereOUT']);
+Route::put('updateDTRShiftStatus', [DailyTimeRecordController::class, 'updateDTRShiftStatus']);
 
+Route::get('getBranchWithWarehouses', [DailyTimeRecordController::class, 'getBranchWithWarehouses']);
 Route::get('fetch-employee-incentives-per-cut-off/{from}/{to}/{employee_id}', [IncentiveEmployeeReportsController::class, 'getIncentiveEmployeeReportsPerDtrCutOff']);
 Route::get('employee-benefits-for-deduction/{employee_id}', [EmployeeBenefitController::class, 'fetchEmployeeBenefitsForDeduction']);
 Route::get('fetch-cash-advance-for-deduction/{employee_id}', [CashAdvanceController::class, 'fetchCashAdvanceForDeduction']);
