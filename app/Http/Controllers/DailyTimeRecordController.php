@@ -12,6 +12,7 @@ use Illuminate\Http\Client\ResponseSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -147,6 +148,130 @@ class DailyTimeRecordController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => $dtr
+        ]);
+    }
+
+    public function updateDTRDateIN(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'time_in' => 'required|string',
+        ]);
+
+        // Parse as Manila time
+        $parsedTimeIn = Carbon::createFromFormat(
+            'M. d, Y, h:i A',
+            $request->time_in,
+            'Asia/Manila'
+        );
+
+        // Convert to UTC for saving
+        $parsedTimeInUtc = $parsedTimeIn->copy()->setTimezone('UTC');
+
+        $dtr = DailyTimeRecord::find($request->id);
+        $dtr->time_in = $parsedTimeInUtc;
+        $dtr->save();
+
+        return response()->json([
+            'status' => 'success',
+            // Send back in Manila time for UI
+            'data' => [
+                'id' => $dtr->id,
+                'time_in' => $dtr->time_in->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+            ]
+        ]);
+    }
+
+    public function updateDTRTimeIN(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'time_in' => 'required|string',
+        ]);
+
+        // Parse as Manila time
+        $parsedTimeIn = Carbon::createFromFormat(
+            'M. d, Y, h:i A',
+            $request->time_in,
+            'Asia/Manila'
+        );
+
+        // Convert to UTC for saving
+        $parsedTimeInUtc = $parsedTimeIn->copy()->setTimezone('UTC');
+
+        $dtr = DailyTimeRecord::find($request->id);
+        $dtr->time_in = $parsedTimeInUtc;
+        $dtr->save();
+
+        return response()->json([
+            'status' => 'success',
+            // Send back in Manila time for UI
+            'data' => [
+                'id' => $dtr->id,
+                'time_in' => $dtr->time_in->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+            ]
+        ]);
+    }
+
+    public function updateDTROUT(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'time_out' => 'required|string',
+        ]);
+
+        // Parse as Manila time
+        $parsedTimeOut = Carbon::createFromFormat(
+            'M. d, Y, h:i A',
+            $request->time_out,
+            'Asia/Manila'
+        );
+
+        // Convert to UTC for saving
+        $parsedTimeOutUtc = $parsedTimeOut->copy()->setTimezone('UTC');
+
+        $dtr = DailyTimeRecord::find($request->id);
+        $dtr->time_out = $parsedTimeOutUtc;
+        $dtr->save();
+
+        return response()->json([
+            'status' => 'success',
+            // Send back in Manila time for UI
+            'data' => [
+                'id' => $dtr->id,
+                'time_out' => $dtr->time_out->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+            ]
+            ]);
+    }
+
+    public function updateDTRTimeOUT(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'time_out' => 'required|string',
+        ]);
+
+        // Parse as Manila time
+        $parsedTimeOut = Carbon::createFromFormat(
+            'M. d, Y, h:i A',
+            $request->time_out,
+            'Asia/Manila'
+        );
+
+        // Convert to UTC for saving
+        $parsedTimeOutUtc = $parsedTimeOut->copy()->setTimezone('UTC');
+
+        $dtr = DailyTimeRecord::find($request->id);
+        $dtr->time_out = $parsedTimeOutUtc;
+        $dtr->save();
+
+        return response()->json([
+            'status' => 'success',
+            // Send back in Manila time for UI
+            'data' => [
+                'id' => $dtr->id,
+                'time_in' => $dtr->time_out->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+            ]
         ]);
     }
 

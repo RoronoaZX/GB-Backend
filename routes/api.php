@@ -266,6 +266,10 @@ Route::put('update/branch-baker-report/{id}', [InitialBakerreportsController::cl
 Route::put('updateDTRWhereIN', [DailyTimeRecordController::class, 'updateDTRWhereIN']);
 Route::put('updateDTRWhereOUT', [DailyTimeRecordController::class, 'updateDTRWhereOUT']);
 Route::put('updateDTRShiftStatus', [DailyTimeRecordController::class, 'updateDTRShiftStatus']);
+Route::put('updateDTRDateIN', [DailyTimeRecordController::class, 'updateDTRDateIN']);
+Route::put('updateDTRTimeIN', [DailyTimeRecordController::class, 'updateDTRTimeIN']);
+Route::put('updateDTROUT', [DailyTimeRecordController::class, 'updateDTROUT']);
+Route::put('updateDTRTimeOUT', [DailyTimeRecordController::class, 'updateDTRTimeOUT']);
 
 Route::get('getBranchWithWarehouses', [DailyTimeRecordController::class, 'getBranchWithWarehouses']);
 Route::get('fetch-employee-incentives-per-cut-off/{from}/{to}/{employee_id}', [IncentiveEmployeeReportsController::class, 'getIncentiveEmployeeReportsPerDtrCutOff']);
