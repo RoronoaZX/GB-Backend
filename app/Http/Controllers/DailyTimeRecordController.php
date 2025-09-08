@@ -275,6 +275,131 @@ class DailyTimeRecordController extends Controller
         ]);
     }
 
+    public function updateDTRLunchBreakStart(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'lunch_break_start' => 'required|string',
+        ]);
+
+        // Parse as Manila time
+        $parsedLunchBreakStart = Carbon::createFromFormat(
+            'M. d, Y, h:i A',
+            $request->lunch_break_start,
+            'Asia/Manila'
+        );
+
+        // Convert to UTC from saving
+        $parsedLunchBreakStartUtc = $parsedLunchBreakStart->copy()->setTimezone('UTC');
+
+        $dtr = DailyTimeRecord::find($request->id);
+        $dtr->lunch_break_start = $parsedLunchBreakStartUtc;
+        $dtr->save();
+
+        return response()->json([
+            'status' => 'success',
+            // Send back in Manila time for UI
+            'data' => [
+                'id' => $dtr->id,
+                'lunch_break_start' => $dtr->lunch_break_start->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+            ]
+            ]);
+    }
+
+    public function updateDTRLunchBreakEnd(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'lunch_break_end' => 'required|string',
+        ]);
+
+        // Parse as Manila time
+        $parsedLunchBreakEnd = Carbon::createFromFormat(
+            'M. d, Y, h:i A',
+            $request->lunch_break_end,
+            'Asia/Manila'
+        );
+
+        // Convert to UTC from saving
+        $parsedLunchBreakEndUtc = $parsedLunchBreakEnd->copy()->setTimezone('UTC');
+
+        $dtr = DailyTimeRecord::find($request->id);
+        $dtr->lunch_break_end = $parsedLunchBreakEndUtc;
+        $dtr->save();
+
+        return response()->json([
+            'status' => 'success',
+            // Send back in Manila time for UI
+            'data' => [
+                'id' => $dtr->id,
+                'lunch_break_end' => $dtr->lunch_break_end->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+            ]
+            ]);
+    }
+
+    public function updateDTRBreakStart(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'break_start' => 'required|string',
+        ]);
+
+        // Parse as Manila time
+        $parsedBreakStart = Carbon::createFromFormat(
+            'M. d, Y, h:i A',
+            $request->break_start,
+            'Asia/Manila'
+        );
+
+        // Convert to UTC from saving
+        $parsedBreakStartUtc = $parsedBreakStart->copy()->setTimezone('UTC');
+
+        $dtr = DailyTimeRecord::find($request->id);
+        $dtr->break_start = $parsedBreakStartUtc;
+        $dtr->save();
+
+        return response()->json([
+            'status' => 'success',
+            // Send back in Manila time for UI
+            'data' => [
+                'id' => $dtr->id,
+                'break_start' => $dtr->break_start->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+            ]
+            ]);
+
+    }
+
+    public function updateDTRBreakEnd(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'break_end' => 'required|string',
+        ]);
+
+        // Parse as Manila time
+        $parsedBreakEnd = Carbon::createFromFormat(
+            'M. d, Y, h:i A',
+            $request->break_end,
+            'Asia/Manila'
+        );
+
+        // Convert to UTC from saving
+        $parsedBreakEndUtc = $parsedBreakEnd->copy()->setTimezone('UTC');
+
+        $dtr = DailyTimeRecord::find($request->id);
+        $dtr->break_end = $parsedBreakEndUtc;
+        $dtr->save();
+
+        return response()->json([
+            'status' => 'success',
+            // Send back in Manila time for UI
+            'data' => [
+                'id' => $dtr->id,
+                'break_end' => $dtr->break_end->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+            ]
+            ]);
+    }
+
     protected function formatDTR($record)
     {
         return [
