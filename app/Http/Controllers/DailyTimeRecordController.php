@@ -400,6 +400,152 @@ class DailyTimeRecordController extends Controller
             ]);
     }
 
+    public function updatedDTROvertimeStart(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'overtime_start' => 'required|string',
+        ]);
+
+        // Parse as Manila time
+        $parsedOvertimeStart = Carbon::createFromFormat(
+            'M. d, Y, h:i A',
+            $request->overtime_start,
+            'Asia/Manila'
+        );
+
+        // Convert to UTC from saving
+        $parsedOvertimeStartUtc = $parsedOvertimeStart->copy()->setTimezone('UTC');
+
+        $dtr =DailyTimeRecord::find($request->id);
+        $dtr->overtime_start = $parsedOvertimeStartUtc;
+        $dtr->save();
+
+        return response()->json([
+            'status' => 'success',
+            // Send back in Manila time for UI
+            'data' => [
+                'id' => $dtr->id,
+                'overtime_start' => $dtr->overtime_start->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+            ]
+            ]);
+    }
+
+    public function updatedDTROvertimeEnd(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'overtime_end' => 'required|string',
+        ]);
+
+        // Parse as Manila time
+        $parsedOvertimeEnd = Carbon::createFromFormat(
+            'M. d, Y, h:i A',
+            $request->overtime_end,
+            'Asia/Manila'
+        );
+
+        // Convert to UTC from saving
+        $parsedOvertimeEndUtc = $parsedOvertimeEnd->copy()->setTimezone('UTC');
+
+        $dtr = DailyTimeRecord::find($request->id);
+        $dtr->overtime_end = $parsedOvertimeEndUtc;
+        $dtr->save();
+
+        return response()->json([
+            'status' => 'success',
+            // Send back in Manila time for UI
+            'data' => [
+                'id' => $dtr->id,
+                'overtime_end' => $dtr->overtime_end->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+            ]
+            ]);
+    }
+
+    public function updateDTROvertimeReasons(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'overtime_reason' => 'required|string',
+        ]);
+
+        $dtr = DailyTimeRecord::find($request->id);
+        $dtr->overtime_reason = $request->overtime_reason;
+        $dtr->save();
+
+        return response()->json([
+            'status' => 'success',
+            // Send back in Manila time for UI
+            'data' => [
+                'id' => $dtr->id,
+                'overtime_reason' => $dtr->overtime_reason
+            ]
+            ]);
+    }
+
+    public function updatedDTROvertimeDeclineReasons(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'declined_reason' => 'required|string',
+        ]);
+
+        $dtr = DailyTimeRecord::find($request->id);
+        $dtr->declined_reason = $request->declined_reason;
+        $dtr->save();
+
+        return response()->json([
+            'status' => 'success',
+            // Send back in Manila time for UI
+            'data' => [
+                'id' => $dtr->id,
+                'declined_reason' => $dtr->declined_reason
+            ]
+            ]);
+    }
+
+    public function updateDTROTStatus(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'ot_status' => 'required|string',
+        ]);
+
+        $dtr = DailyTimeRecord::find($request->id);
+        $dtr->ot_status = $request->ot_status;
+        $dtr->save();
+
+        return response()->json([
+            'status' => 'success',
+            // Send back in Manila time for UI
+            'data' => [
+                'id' => $dtr->id,
+                'ot_status' => $dtr->ot_status
+            ]
+            ]);
+    }
+
+    public function updateDTROTApprovedBy(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:daily_time_records,id',
+            'approved_by' => 'required|exists:employees,id',
+        ]);
+
+        $dtr = DailyTimeRecord::find($request->id);
+        $dtr->approved_by = $request->approved_by;
+        $dtr->save();
+
+        return response()->json([
+            'status' => 'success',
+            // Send back in Manila time for UI
+            'data' => [
+                'id' => $dtr->id,
+                'approved_by' => $dtr->approved_by
+            ]
+            ]);
+    }
+
     protected function formatDTR($record)
     {
         return [

@@ -274,6 +274,12 @@ Route::put('updateDTRLunchBreakStart', [DailyTimeRecordController::class, 'updat
 Route::put('updateDTRLunchBreakEnd', [DailyTimeRecordController::class, 'updateDTRLunchBreakEnd']);
 Route::put('updateDTRBreakStart', [DailyTimeRecordController::class, 'updateDTRBreakStart']);
 Route::put('updateDTRBreakEnd', [DailyTimeRecordController::class, 'updateDTRBreakEnd']);
+Route::put('updatedDTROvertimeStart', [DailyTimeRecordController::class, 'updatedDTROvertimeStart']);
+Route::put('updatedDTROvertimeEnd', [DailyTimeRecordController::class, 'updatedDTROvertimeEnd']);
+Route::put('updateDTROvertimeReasons', [DailyTimeRecordController::class, 'updateDTROvertimeReasons']);
+Route::put('updatedDTROvertimeDeclineReasons', [DailyTimeRecordController::class, 'updatedDTROvertimeDeclineReasons']);
+Route::put('updateDTROTStatus', [DailyTimeRecordController::class, 'updateDTROTStatus']);
+Route::put('updateDTROTApprovedBy', [DailyTimeRecordController::class, 'updateDTROTApprovedBy']);
 
 Route::get('getBranchWithWarehouses', [DailyTimeRecordController::class, 'getBranchWithWarehouses']);
 Route::get('fetch-employee-incentives-per-cut-off/{from}/{to}/{employee_id}', [IncentiveEmployeeReportsController::class, 'getIncentiveEmployeeReportsPerDtrCutOff']);
