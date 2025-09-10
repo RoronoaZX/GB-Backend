@@ -73,6 +73,74 @@ class DailyTimeRecordController extends Controller
         ]);
     }
 
+    public function saveEmployeeDtr(Request $request)
+    {
+        $request->validate([
+            'device_uuid_in' => 'nullable|string',
+            'device_uuid_out' => 'nullable|string',
+            'employee_id' => 'required|exists:employees,id',
+            'employee_allowance' => 'nullable|numeric',
+            'time_in' => 'required|string',
+            'time_out' => 'required|string',
+            'lunch_break_start' => 'nullable|string',
+            'lunch_break_end' => 'nullable|string',
+            'break_start' => 'nullable|string',
+            'break_end' => 'nullable|string',
+            'overtime_start' => 'nullable|string',
+            'overtime_end' => 'nullable|string',
+            'overtime_reason' => 'nullable|string',
+            'ot_status' => 'nullable|string',
+            'approved_by' => 'nullable|exists:employees,id',
+            'declined_reason' => 'nullable|string',
+            'half_day_reason' => 'nullable|string',
+            'shift_status' => 'nullable|string',
+            'schedule_in' => 'nullable|string',
+            'schedule_out' => 'nullable|string',
+        ]);
+
+        // Fields that needed to be converted
+        $dateFields = [
+            'time_in',
+            'time_out',
+            'lunch_break_start',
+            'lunch_break_end',
+            'break_start',
+            'break_end',
+            'overtime_start',
+            'overtime_end'
+        ];
+
+        $data = $request->all();
+
+        foreach ($dateFields as $field) {
+            if (!empty($request->$field)) {
+                try {
+                    $parsed = Carbon::createFromFormat(
+                        'M. d, Y, h:i A',        // input format from frontend
+                        $request->$field,        // parse as Manila time
+                        'Asia/Manila'
+                    );
+
+                    // Save in UTC with database format
+                    $data[$field] = $parsed->setTimezone('UTC')->format('Y-m-d H:i:s');
+                } catch (\Exception $e) {
+                    // Invalid format → fallback to null
+                    $data[$field] = null;
+                }
+            } else {
+                $data[$field] = null;
+            }
+        }
+
+        // Save the data
+        $dtr = DailyTimeRecord::create($data);
+
+        return response()->json([
+            'message' => 'Employee DTR saved successfully!',
+            'data' => $dtr
+        ]);
+    }
+
     public function getBranchWithWarehouses(Request $request)
     {
         // Get warehouse devices

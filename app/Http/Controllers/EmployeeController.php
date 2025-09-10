@@ -283,7 +283,7 @@ class EmployeeController extends Controller
         $keyword = $request->input('keyword');
 
         // Search by firstname or lastname, excluding "super admin"
-        $employees = Employee::with('employmentType')
+        $employees = Employee::with('employmentType', 'employeeAllowance')
             ->where(function ($query) use ($keyword) {
                 $query->where('firstname', 'like', "%$keyword%")
                     ->orWhere('lastname', 'like', "%$keyword%");

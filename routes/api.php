@@ -198,6 +198,7 @@ Route::post('completed-premix', [RequestPremixController::class, 'completedPremi
 Route::post('to-deliver-premix', [RequestPremixController::class, 'toDeliverPremix']);
 Route::post('to-receive-premix', [RequestPremixController::class, 'toReceivePremix']);
 Route::post('receive-premix', [RequestPremixController::class, 'receivePremix']);
+Route::post('saveEmployeeDtr', [DailyTimeRecordController::class, 'saveEmployeeDtr']);
 
 Route::put('incentives-bases/update-number-employee/{id}', [IncentivesBasesController::class, 'updateNumberEmployee']);
 Route::put('incentives-bases/update-target/{id}', [IncentivesBasesController::class, 'updateTarget']);
