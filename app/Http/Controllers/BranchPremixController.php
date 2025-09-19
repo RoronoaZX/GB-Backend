@@ -18,7 +18,7 @@ class BranchPremixController extends Controller
 
     public function searchBranchPremix(Request $request)
     {
-        $searchBranchPremix = $request->input('keyword');
+        $searchBranchPremix   = $request->input('keyword');
         $searchBranchPremixId = $request->input('branch_id');
 
         $branchPremix = BranchPremix::with('branch_recipe')
@@ -44,12 +44,12 @@ class BranchPremixController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'branch_id' => 'required|exists:branches,id',
-            'branch_recipe_id' => 'required|exists:branch_recipes,id',
-            'name' => 'required|string|max:50',
-            'category' => 'required|string|max:50',
-            'status' => 'required|string|max:50',
-            'available_stocks' => 'required|numeric',
+            'branch_id'          => 'required|exists:branches,id',
+            'branch_recipe_id'   => 'required|exists:branch_recipes,id',
+            'name'               => 'required|string|max:50',
+            'category'           => 'required|string|max:50',
+            'status'             => 'required|string|max:50',
+            'available_stocks'   => 'required|numeric',
         ]);
 
         // Check if the branch_recipe_id already exists
@@ -63,12 +63,12 @@ class BranchPremixController extends Controller
 
         // Create new BranchPremix
         $branchPremix = BranchPremix::create([
-            'branch_id' => $request->branch_id,
-            'branch_recipe_id' => $request->branch_recipe_id,
-            'name' => $request->name,
-            'category' => $request->category,
-            'status' => $request->status,
-            'available_stocks' => $request->available_stocks,
+            'branch_id'         => $request->branch_id,
+            'branch_recipe_id'  => $request->branch_recipe_id,
+            'name'              => $request->name,
+            'category'          => $request->category,
+            'status'            => $request->status,
+            'available_stocks'  => $request->available_stocks,
         ]);
 
         return response()->json([
@@ -85,38 +85,38 @@ class BranchPremixController extends Controller
         $recipe->save();
 
         HistoryLog::create([
-            'report_id' => $request->input('report_id'),
-            'name' => $request->input('name'),
-            'original_data' => $request->input('original_data'),
-            'updated_data' => $request->input('updated_data'),
-            'updated_field' => $request->input('updated_field'),
-            'designation' => $request->input('designation'),
-            'designation_type' => $request->input('designation_type'),
-            'action' => $request->input('action'),
-            'type_of_report' => $request->input('type_of_report'),
-            'user_id' => $request->input('user_id'),
+            'report_id'          => $request->input('report_id'),
+            'name'               => $request->input('name'),
+            'original_data'      => $request->input('original_data'),
+            'updated_data'       => $request->input('updated_data'),
+            'updated_field'      => $request->input('updated_field'),
+            'designation'        => $request->input('designation'),
+            'designation_type'   => $request->input('designation_type'),
+            'action'             => $request->input('action'),
+            'type_of_report'     => $request->input('type_of_report'),
+            'user_id'            => $request->input('user_id'),
         ]);
         return response()->json(['message' => 'Available stocks updated successfully', 'recipe' => $recipe]);
     }
 
     public function updateRequestPremixStatus(Request $request, $id)
     {
-        $validatedData = $request->validate(['status' => 'required|string']);
-        $recipe = BranchPremix::findOrFail($id);
+        $validatedData  = $request->validate(['status' => 'required|string']);
+        $recipe         = BranchPremix::findOrFail($id);
         $recipe->status = $validatedData['status'];
         $recipe->save();
 
         HistoryLog::create([
-            'report_id' => $request->input('report_id'),
-            'name' => $request->input('name'),
-            'original_data' => $request->input('original_data'),
-            'updated_data' => $request->input('updated_data'),
-            'updated_field' => $request->input('updated_field'),
-            'designation' => $request->input('designation'),
-            'designation_type' => $request->input('designation_type'),
-            'action' => $request->input('action'),
-            'type_of_report' => $request->input('type_of_report'),
-            'user_id' => $request->input('user_id'),
+            'report_id'          => $request->input('report_id'),
+            'name'               => $request->input('name'),
+            'original_data'      => $request->input('original_data'),
+            'updated_data'       => $request->input('updated_data'),
+            'updated_field'      => $request->input('updated_field'),
+            'designation'        => $request->input('designation'),
+            'designation_type'   => $request->input('designation_type'),
+            'action'             => $request->input('action'),
+            'type_of_report'     => $request->input('type_of_report'),
+            'user_id'            => $request->input('user_id'),
         ]);
         return response()->json(['message' => 'Status updated successfully', 'recipe' => $recipe]);
     }

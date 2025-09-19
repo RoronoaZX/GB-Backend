@@ -43,14 +43,14 @@ class BranchProductController extends Controller
     // }
     public function samplePaginationFretchingBranchProducts(Request $request)
     {
-        $perPage = $request->query('rowsPerPage', 5);
+        $perPage  = $request->query('rowsPerPage', 5);
         $branchId = $request->query('branchId');
 
         $query = BranchProduct::orderBy('created_at', 'desc')->where('branches_id', $branchId)->with(['branch', 'product']);
         $branchProduct = $query->paginate($perPage);
 
         return response()->json([
-            'data' => $branchProduct,
+            'data'  => $branchProduct,
             'total' => $branchProduct->total()
         ]);
     }
@@ -65,7 +65,7 @@ class BranchProductController extends Controller
     {
         $validated = $request->validate([
             'branches_id' => 'required|integer',
-            'category' => 'nullable|string',
+            'category'    => 'nullable|string',
         ]);
 
 
@@ -90,7 +90,7 @@ class BranchProductController extends Controller
     {
         $validated = $request->validate([
             'branches_id' => 'required|integer',
-            'category' => 'nullable|string',
+            'category'    => 'nullable|string',
         ]);
 
 
@@ -115,7 +115,7 @@ class BranchProductController extends Controller
     {
         $validated = $request->validate([
             'branches_id' => 'required|integer',
-            'category' => 'nullable|string',
+            'category'    => 'nullable|string',
         ]);
 
 
@@ -140,7 +140,7 @@ class BranchProductController extends Controller
     {
         $validated = $request->validate([
             'branches_id' => 'required|integer',
-            'category' => 'nullable|string',
+            'category'    => 'nullable|string',
         ]);
 
         $products = BranchProduct::where('branches_id', $validated['branches_id'])
@@ -207,8 +207,8 @@ class BranchProductController extends Controller
     {
         $validated = $request->validate([
             'branches_id' => 'required|integer',
-            'query' => 'nullable|string',
-            'category' => 'nullable|string',
+            'query'       => 'nullable|string',
+            'category'    => 'nullable|string',
         ]);
 
         $products = BranchProduct::where('branches_id', $validated['branches_id'])
@@ -230,12 +230,12 @@ class BranchProductController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'branches_id' => 'required|exists:branches,id',
-            'product_id' => 'required|exists:products,id',
-            'category' => 'required|string|max:255',
-            'price' => 'required|numeric',
-            'beginnings' => 'required|numeric',
-            'total_quantity' => 'required|numeric',
+            'branches_id'       => 'required|exists:branches,id',
+            'product_id'        => 'required|exists:products,id',
+            'category'          => 'required|string|max:255',
+            'price'             => 'required|numeric',
+            'beginnings'        => 'required|numeric',
+            'total_quantity'    => 'required|numeric',
         ]);
 
         $existingBranchProduct = BranchProduct::where('branches_id', $validatedData['branches_id'])->where('product_id', $validatedData['product_id'])->first();
@@ -247,17 +247,17 @@ class BranchProductController extends Controller
         }
 
         $branchProduct = BranchProduct::create([
-            'branches_id' => $validatedData['branches_id'],
-            'product_id' =>$validatedData['product_id'],
-            'category' =>$validatedData['category'],
-            'price' => $validatedData['price'],
-            'beginnings' => $validatedData['beginnings'],
-            'total_quantity' => $validatedData['total_quantity']
+            'branches_id'        => $validatedData['branches_id'],
+            'product_id'         =>$validatedData['product_id'],
+            'category'           =>$validatedData['category'],
+            'price'              => $validatedData['price'],
+            'beginnings'         => $validatedData['beginnings'],
+            'total_quantity'     => $validatedData['total_quantity']
         ]);
 
         return response()->json([
             'message' => "Branch product saved successfully",
-            'data' => $branchProduct
+            'data'    => $branchProduct
         ], 201);
     }
 
@@ -275,16 +275,16 @@ class BranchProductController extends Controller
         //Save to history log
 
         HistoryLog::create([
-            'report_id' => $request->input('report_id'),
-            'name' => $request->input('name'),
-            'original_data' => $request->input('original_data'),
-            'updated_data' => $request->input('updated_data'),
-            'updated_field' => $request->input('updated_field'),
-            'designation' => $request->input('designation'),
-            'designation_type' => $request->input('designation_type'),
-            'action' => $request->input('action'),
-            'type_of_report' => $request->input('type_of_report'),
-            'user_id' => $request->input('user_id'),
+            'report_id'          => $request->input('report_id'),
+            'name'               => $request->input('name'),
+            'original_data'      => $request->input('original_data'),
+            'updated_data'       => $request->input('updated_data'),
+            'updated_field'      => $request->input('updated_field'),
+            'designation'        => $request->input('designation'),
+            'designation_type'   => $request->input('designation_type'),
+            'action'             => $request->input('action'),
+            'type_of_report'     => $request->input('type_of_report'),
+            'user_id'            => $request->input('user_id'),
         ]);
 
         return response()->json(['message' => 'Price updated successfully', 'price' => $branchProduct]);
@@ -300,16 +300,16 @@ class BranchProductController extends Controller
         $branchProduct->save();
 
         HistoryLog::create([
-            'report_id' => $request->input('report_id'),
-            'name' => $request->input('name'),
-            'original_data' => $request->input('original_data'),
-            'updated_data' => $request->input('updated_data'),
-            'updated_field' => $request->input('updated_field'),
-            'designation' => $request->input('designation'),
-            'designation_type' => $request->input('designation_type'),
-            'action' => $request->input('action'),
-            'type_of_report' => $request->input('type_of_report'),
-            'user_id' => $request->input('user_id'),
+            'report_id'          => $request->input('report_id'),
+            'name'               => $request->input('name'),
+            'original_data'      => $request->input('original_data'),
+            'updated_data'       => $request->input('updated_data'),
+            'updated_field'      => $request->input('updated_field'),
+            'designation'        => $request->input('designation'),
+            'designation_type'   => $request->input('designation_type'),
+            'action'             => $request->input('action'),
+            'type_of_report'     => $request->input('type_of_report'),
+            'user_id'            => $request->input('user_id'),
         ]);
 
         return response()->json(['message' => 'Total Quantity updated successfully', 'total quantity' => $branchProduct]);
@@ -326,16 +326,16 @@ class BranchProductController extends Controller
         $branchProduct->save();
 
         HistoryLog::create([
-            'report_id' => $request->input('report_id'),
-            'name' => $request->input('name'),
-            'original_data' => $request->input('original_data'),
-            'updated_data' => $request->input('updated_data'),
-            'updated_field' => $request->input('updated_field'),
-            'designation' => $request->input('designation'),
-            'designation_type' => $request->input('designation_type'),
-            'action' => $request->input('action'),
-            'type_of_report' => $request->input('type_of_report'),
-            'user_id' => $request->input('user_id'),
+            'report_id'          => $request->input('report_id'),
+            'name'               => $request->input('name'),
+            'original_data'      => $request->input('original_data'),
+            'updated_data'       => $request->input('updated_data'),
+            'updated_field'      => $request->input('updated_field'),
+            'designation'        => $request->input('designation'),
+            'designation_type'   => $request->input('designation_type'),
+            'action'             => $request->input('action'),
+            'type_of_report'     => $request->input('type_of_report'),
+            'user_id'            => $request->input('user_id'),
         ]);
 
         return response()->json(['message' => 'New Production updated successfully', 'new production' => $branchProduct]);
@@ -351,16 +351,16 @@ class BranchProductController extends Controller
         $branchProduct->save();
 
         HistoryLog::create([
-            'report_id' => $request->input('report_id'),
-            'name' => $request->input('name'),
-            'original_data' => $request->input('original_data'),
-            'updated_data' => $request->input('updated_data'),
-            'updated_field' => $request->input('updated_field'),
-            'designation' => $request->input('designation'),
-            'designation_type' => $request->input('designation_type'),
-            'action' => $request->input('action'),
-            'type_of_report' => $request->input('type_of_report'),
-            'user_id' => $request->input('user_id'),
+            'report_id'          => $request->input('report_id'),
+            'name'               => $request->input('name'),
+            'original_data'      => $request->input('original_data'),
+            'updated_data'       => $request->input('updated_data'),
+            'updated_field'      => $request->input('updated_field'),
+            'designation'        => $request->input('designation'),
+            'designation_type'   => $request->input('designation_type'),
+            'action'             => $request->input('action'),
+            'type_of_report'     => $request->input('type_of_report'),
+            'user_id'            => $request->input('user_id'),
         ]);
 
         return response()->json(['message' => 'Total Quantity updated successfully', 'total quantity' => $branchProduct]);

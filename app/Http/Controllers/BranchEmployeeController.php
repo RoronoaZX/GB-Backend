@@ -21,7 +21,7 @@ class BranchEmployeeController extends Controller
 
     public function searchUserWithBranch(Request $request)
     {
-        $keyword = $request->input('keyword');
+        $keyword  = $request->input('keyword');
         $branchId = $request->input('branch_id');
 
         $users = User::join('branch_employees', 'users.id', '=', 'branch_employees.user_id')
@@ -35,7 +35,7 @@ class BranchEmployeeController extends Controller
 
     public function searchBranchEmployee(Request $request)
     {
-        $branchId = $request->input('branch_id');
+        $branchId      = $request->input('branch_id');
         $searchKeyword = $request->input('keyword');
 
         $employees = BranchEmployee::byBranch($branchId)
@@ -55,22 +55,22 @@ class BranchEmployeeController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'branch_id' => 'required|exists:branches,id',
-            'time_in' => 'required|string|max:10',
-            'time_out' => 'required|string|max:10',
+            'employee_id'   => 'required|exists:employees,id',
+            'branch_id'     => 'required|exists:branches,id',
+            'time_in'       => 'required|string|max:10',
+            'time_out'      => 'required|string|max:10',
         ]);
 
         $branchEmployee = BranchEmployee::create([
-            'branch_id' => $request->branch_id,
-            'employee_id' => $request->employee_id,
-            'time_in' => $request->time_in,
-            'time_out' => $request->time_out,
+            'branch_id'     => $request->branch_id,
+            'employee_id'   => $request->employee_id,
+            'time_in'       => $request->time_in,
+            'time_out'      => $request->time_out,
          ]);
 
          return response()->json([
-            'message' => 'Branch employee designation created successfully.',
-            'branchEmployee' => $branchEmployee
+            'message'           => 'Branch employee designation created successfully.',
+            'branchEmployee'    => $branchEmployee
          ], 201);
     }
 

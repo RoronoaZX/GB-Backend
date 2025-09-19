@@ -53,12 +53,12 @@ class BranchController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'warehouse_id' => 'required|exists:warehouses,id',
-            'employee_id' => 'required|exists:employees,id',
-            'name' => 'required|unique:branches',
-            'location' => 'nullable',
-            'phone' => 'nullable',
-            'status' => 'nullable',
+            'warehouse_id'  => 'required|exists:warehouses,id',
+            'employee_id'   => 'required|exists:employees,id',
+            'name'          => 'required|unique:branches',
+            'location'      => 'nullable',
+            'phone'         => 'nullable',
+            'status'        => 'nullable',
         ]);
 
         $existingBranch = Branch::where('name', $validatedData['name'])
@@ -72,12 +72,12 @@ class BranchController extends Controller
         }
 
         $branch = Branch:: create([
-            'warehouse_id' => $validatedData['warehouse_id'],
-            'employee_id' => $validatedData['employee_id'],
-            'name' => $validatedData['name'],
-            'location' => $validatedData['location'],
-            'phone' => $validatedData['phone'],
-            'status' => $validatedData['status'],
+            'warehouse_id'  => $validatedData['warehouse_id'],
+            'employee_id'   => $validatedData['employee_id'],
+            'name'          => $validatedData['name'],
+            'location'      => $validatedData['location'],
+            'phone'         => $validatedData['phone'],
+            'status'        => $validatedData['status'],
         ]);
         $branchResponseData = $branch->fresh()->load('employees', 'warehouse');
         return response()->json([
@@ -98,12 +98,12 @@ class BranchController extends Controller
         }
 
         $validatedData = $request->validate([
-            'warehouse_id' => 'sometimes|required|exists:warehouses,id',
-            'employee_id' => 'sometimes|required',
-            'name' => 'sometimes|required|unique:branches,name,' . $id,
-            'location' => 'nullable',
-            'phone' => 'nullable',
-            'status' => 'nullable',
+            'warehouse_id'  => 'sometimes|required|exists:warehouses,id',
+            'employee_id'   => 'sometimes|required',
+            'name'          => 'sometimes|required|unique:branches,name,' . $id,
+            'location'      => 'nullable',
+            'phone'         => 'nullable',
+            'status'        => 'nullable',
         ]);
 
         $branch->update($validatedData);
