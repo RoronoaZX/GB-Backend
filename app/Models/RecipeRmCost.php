@@ -5,18 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class RawMaterialsDelivery extends Model
+class RecipeRmCost extends Model
 {
     use HasFactory;
 
     protected $table = [
-        'raw_material_id',
-        'from',
-        'from_designation',
-        'to',
-        'to_designation',
-        'quantity',
+        'recipe_cost_id',
+        'raw_materials_cost_id',
         'price_per_unit',
-        'remarks',
+        'unit',
+        'quantity',
     ];
 }
