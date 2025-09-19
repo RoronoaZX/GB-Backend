@@ -74,6 +74,7 @@ Route::group([
     // Route::post('refresh-tokens',[ApiController::class, 'logout']);
 
 
+
 });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -102,7 +103,7 @@ Route::apiResource('cash-advance', CashAdvanceController::class);
 Route::apiResource('uniform', UniformController::class);
 Route::apiResource('branch-recipe', BranchRecipeController::class);
 Route::apiResource('cake-report', CakeReportController::class);
-// Route::apiResource('branch-add-bread-production-report', BreadSalesReportController::class);
+Route::apiResource('branch-add-bread-production-report', BreadSalesReportController::class);
 Route::apiResource('warehouse-employee', WarehouseEmployeeController::class);
 Route::apiResource('warehouse-raw-materials-report', WarehouseRawMaterialsReportController::class);
 Route::apiResource('selecta-stocks-added', SelectaAddedStockController::class);
