@@ -23,18 +23,18 @@ class BranchRecipeController extends Controller
 
         $formattedBranchRecipes = $branchRecipe->map(function($branchRecipe) {
             return [
-                'id' => $branchRecipe->id,
-                'name' => $branchRecipe->recipe->name,
-                'category' => $branchRecipe->recipe->category,
-                'target' => $branchRecipe->target,
-                'status' => $branchRecipe->status,
-                'bread_groups' => $branchRecipe->breadGroups->pluck('bread.name'),
-                'ingredient_groups' => $branchRecipe->ingredientGroups->map(function ($ingredientGroup) {
+                'id'                 => $branchRecipe->id,
+                'name'               => $branchRecipe->recipe->name,
+                'category'           => $branchRecipe->recipe->category,
+                'target'             => $branchRecipe->target,
+                'status'             => $branchRecipe->status,
+                'bread_groups'       => $branchRecipe->breadGroups->pluck('bread.name'),
+                'ingredient_groups'  => $branchRecipe->ingredientGroups->map(function ($ingredientGroup) {
                     return [
-                        'ingredient_name' => $ingredientGroup->ingredient->name,
-                        'code' => $ingredientGroup->ingredient->code,
-                        'quantity' => $ingredientGroup->quantity,
-                        'unit' => $ingredientGroup->ingredient->unit
+                        'ingredient_name'    => $ingredientGroup->ingredient->name,
+                        'code'               => $ingredientGroup->ingredient->code,
+                        'quantity'           => $ingredientGroup->quantity,
+                        'unit'               => $ingredientGroup->ingredient->unit
                     ];
                 }),
             ];
@@ -48,15 +48,15 @@ class BranchRecipeController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'branch_id' => 'required|integer',
-            'recipe_id' => 'required|integer',
-            'target' => 'required|numeric',
-            'status' => 'required|string|max:30',
-            'breads' => 'required|array',
-            'breads.*.bread_id' => 'required|integer|exists:products,id',
-            'ingredients' => 'required|array',
-            'ingredients.*.ingredient_id' => 'required|integer|exists:raw_materials,id',
-            'ingredients.*.quantity' => 'required',
+            'branch_id'          => 'required|integer',
+            'recipe_id'          => 'required|integer',
+            'target'             => 'required|numeric',
+            'status'             => 'required|string|max:30',
+            'breads'             => 'required|array',
+            'breads.*.bread_id'  => 'required|integer|exists:products,id',
+            'ingredients'        => 'required|array',
+            'ingredients.*.ingredient_id'    => 'required|integer|exists:raw_materials,id',
+            'ingredients.*.quantity'         => 'required',
         ]);
 
         $existingBranchRecipe = BranchRecipe::where('branch_id', $validatedData['branch_id'])->where('recipe_id', $validatedData['recipe_id'])->first();
@@ -88,16 +88,16 @@ class BranchRecipeController extends Controller
         $recipe->save();
 
         HistoryLog::create([
-            'report_id' => $request->input('report_id'),
-            'name' => $request->input('name'),
-            'original_data' => $request->input('original_data'),
-            'updated_data' => $request->input('updated_data'),
-            'updated_field' => $request->input('updated_field'),
-            'designation' => $request->input('designation'),
-            'designation_type' => $request->input('designation_type'),
-            'action' => $request->input('action'),
-            'type_of_report' => $request->input('type_of_report'),
-            'user_id' => $request->input('user_id'),
+            'report_id'          => $request->input('report_id'),
+            'name'               => $request->input('name'),
+            'original_data'      => $request->input('original_data'),
+            'updated_data'       => $request->input('updated_data'),
+            'updated_field'      => $request->input('updated_field'),
+            'designation'        => $request->input('designation'),
+            'designation_type'   => $request->input('designation_type'),
+            'action'             => $request->input('action'),
+            'type_of_report'     => $request->input('type_of_report'),
+            'user_id'            => $request->input('user_id'),
         ]);
 
         return response()->json(['message' => 'Target updated successfully', 'recipe' => $recipe]);
@@ -113,16 +113,16 @@ class BranchRecipeController extends Controller
         $recipe->save();
 
         HistoryLog::create([
-            'report_id' => $request->input('report_id'),
-            'name' => $request->input('name'),
-            'original_data' => $request->input('original_data'),
-            'updated_data' => $request->input('updated_data'),
-            'updated_field' => $request->input('updated_field'),
-            'designation' => $request->input('designation'),
-            'designation_type' => $request->input('designation_type'),
-            'action' => $request->input('action'),
-            'type_of_report' => $request->input('type_of_report'),
-            'user_id' => $request->input('user_id'),
+            'report_id'          => $request->input('report_id'),
+            'name'               => $request->input('name'),
+            'original_data'      => $request->input('original_data'),
+            'updated_data'       => $request->input('updated_data'),
+            'updated_field'      => $request->input('updated_field'),
+            'designation'        => $request->input('designation'),
+            'designation_type'   => $request->input('designation_type'),
+            'action'             => $request->input('action'),
+            'type_of_report'     => $request->input('type_of_report'),
+            'user_id'            => $request->input('user_id'),
         ]);
 
         return response()->json(['message' => 'Status updated successfully', 'recipe' => $recipe]);
@@ -161,12 +161,12 @@ class BranchRecipeController extends Controller
         // Format the response
         $formattedRecipes = $paginated->map(function ($recipe) {
             return [
-                'id' => $recipe->id,
-                'recipe_id' => $recipe->recipe->id,
-                'name' => $recipe->recipe->name,
-                'category' => $recipe->recipe->category,
-                'target' => $recipe->target,
-                'bread_groups' => $recipe->breadGroups->map(function ($breadGroup) {
+                'id'             => $recipe->id,
+                'recipe_id'      => $recipe->recipe->id,
+                'name'           => $recipe->recipe->name,
+                'category'       => $recipe->recipe->category,
+                'target'         => $recipe->target,
+                'bread_groups'   => $recipe->breadGroups->map(function ($breadGroup) {
                     return [
                         'product_id' => $breadGroup->bread->id,
                         'bread_name' => $breadGroup->bread->name,
@@ -174,11 +174,11 @@ class BranchRecipeController extends Controller
                 }),
                 'ingredients' => $recipe->ingredientGroups->map(function ($ingredientGroup) {
                     return [
-                        'raw_materials_id' => $ingredientGroup->ingredient->id,
-                        'code' => $ingredientGroup->ingredient->code,
-                        'ingredient_name' => $ingredientGroup->ingredient->name,
-                        'quantity' => $ingredientGroup->quantity,
-                        'unit' => $ingredientGroup->ingredient->unit,
+                        'raw_materials_id'   => $ingredientGroup->ingredient->id,
+                        'code'               => $ingredientGroup->ingredient->code,
+                        'ingredient_name'    => $ingredientGroup->ingredient->name,
+                        'quantity'           => $ingredientGroup->quantity,
+                        'unit'               => $ingredientGroup->ingredient->unit,
                     ];
                 }),
             ];

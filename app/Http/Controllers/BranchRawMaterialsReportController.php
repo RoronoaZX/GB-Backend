@@ -30,7 +30,7 @@ class BranchRawMaterialsReportController extends Controller
 
     public function searchBranchRawMaterials(Request $request)
     {
-        $keyword = $request->input('keyword');
+        $keyword  = $request->input('keyword');
         $branchId = $request->input('branch_id');
 
         $results = BranchRawMaterialsReport::with('ingredients')
@@ -62,12 +62,12 @@ class BranchRawMaterialsReportController extends Controller
         $flattenedData = $branchRawMaterials->map(function ($rawMaterial) {
             return [
                 'raw_material_report_id' => $rawMaterial->id,
-                'branch_id' => $rawMaterial->branch_id,
-                'raw_material_id' => $rawMaterial->ingredients->id, // Access the ingredient's ID
-                'raw_material_name' => $rawMaterial->ingredients->name, // Access the ingredient's name
-                'ingredient_category' => $rawMaterial->ingredients->category, // Access the ingredient's category
-                'ingredient_quantity' => $rawMaterial->total_quantity, // If the quantity is in the report
-                'ingredient_unit' => $rawMaterial->ingredients->unit, // Access the ingredient's unit
+                'branch_id'              => $rawMaterial->branch_id,
+                'raw_material_id'        => $rawMaterial->ingredients->id, // Access the ingredient's ID
+                'raw_material_name'      => $rawMaterial->ingredients->name, // Access the ingredient's name
+                'ingredient_category'    => $rawMaterial->ingredients->category, // Access the ingredient's category
+                'ingredient_quantity'    => $rawMaterial->total_quantity, // If the quantity is in the report
+                'ingredient_unit'        => $rawMaterial->ingredients->unit, // Access the ingredient's unit
             ];
         });
 
@@ -91,7 +91,7 @@ class BranchRawMaterialsReportController extends Controller
     $rawMaterialBranchPairs = collect($data)->map(function ($material) {
         return [
             'ingredients_id' => $material['ingredients_id'],
-            'branch_id' => $material['branch_id']
+            'branch_id'      => $material['branch_id']
         ];
     });
 
@@ -254,9 +254,9 @@ class BranchRawMaterialsReportController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'branch_id' => 'required|exists:branches,id',
-            'ingredients_id' => 'required',
-            'total_quantity' => 'required|numeric',
+            'branch_id'          => 'required|exists:branches,id',
+            'ingredients_id'     => 'required',
+            'total_quantity'     => 'required|numeric',
         ]);
 
         $existingBranchRawMaterials = BranchRawMaterialsReport::where('branch_id', $validatedData['branch_id'])->where('ingredients_id', $validatedData['ingredients_id'])->first();
@@ -268,9 +268,9 @@ class BranchRawMaterialsReportController extends Controller
         }
 
         $branchRawMaterials = BranchRawMaterialsReport::create([
-            'branch_id' => $validatedData['branch_id'],
-            'ingredients_id' => $validatedData['ingredients_id'],
-            'total_quantity' => $validatedData['total_quantity'],
+            'branch_id'          => $validatedData['branch_id'],
+            'ingredients_id'     => $validatedData['ingredients_id'],
+            'total_quantity'     => $validatedData['total_quantity'],
         ]);
 
         return response()->json([
@@ -289,16 +289,16 @@ class BranchRawMaterialsReportController extends Controller
         $branchRawMaterials->save();
 
         HistoryLog::create([
-            'report_id' => $request->input('report_id'),
-            'name' => $request->input('name'),
-            'original_data' => $request->input('original_data'),
-            'updated_data' => $request->input('updated_data'),
-            'updated_field' => $request->input('updated_field'),
-            'designation' => $request->input('designation'),
-            'designation_type' => $request->input('designation_type'),
-            'action' => $request->input('action'),
-            'type_of_report' => $request->input('type_of_report'),
-            'user_id' => $request->input('user_id'),
+            'report_id'          => $request->input('report_id'),
+            'name'               => $request->input('name'),
+            'original_data'      => $request->input('original_data'),
+            'updated_data'       => $request->input('updated_data'),
+            'updated_field'      => $request->input('updated_field'),
+            'designation'        => $request->input('designation'),
+            'designation_type'   => $request->input('designation_type'),
+            'action'             => $request->input('action'),
+            'type_of_report'     => $request->input('type_of_report'),
+            'user_id'            => $request->input('user_id'),
         ]);
 
         return response()->json(['message' => 'Stocks updated successfully', 'total_quantity' => $branchRawMaterials]);

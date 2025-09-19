@@ -267,18 +267,18 @@ class BranchReportController extends Controller
             $branchReports[] = [
                 'date' => $carbonDate->toDateString(),
                 'AM' => [
-                    'sales_reports_id' => $amSalesReports->pluck('id')->first(),
-                    'sales_reports' => $amSalesReports,
-                    'baker_reports' => $amBakerReports,
-                    'date' => $carbonDate->toDateString(),
-                    'branch_name' => $branch->name,
+                    'sales_reports_id'   => $amSalesReports->pluck('id')->first(),
+                    'sales_reports'      => $amSalesReports,
+                    'baker_reports'      => $amBakerReports,
+                    'date'               => $carbonDate->toDateString(),
+                    'branch_name'        => $branch->name,
                 ],
                 'PM' => [
-                    'sales_reports_id' => $pmSalesReports->pluck('id')->first(),
-                    'sales_reports' => $pmSalesReports,
-                    'baker_reports' => $pmBakerReports,
-                    'date' => $carbonDate->toDateString(),
-                    'branch_name' => $branch->name,
+                    'sales_reports_id'   => $pmSalesReports->pluck('id')->first(),
+                    'sales_reports'      => $pmSalesReports,
+                    'baker_reports'      => $pmBakerReports,
+                    'date'               => $carbonDate->toDateString(),
+                    'branch_name'        => $branch->name,
                 ],
             ];
         }
