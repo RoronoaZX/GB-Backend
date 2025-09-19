@@ -15,5 +15,6 @@ class RecipeRmCost extends Model
         'price_per_unit',
         'unit',
         'quantity',
+
     ];
 }
