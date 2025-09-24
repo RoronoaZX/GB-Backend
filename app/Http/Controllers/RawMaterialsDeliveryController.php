@@ -62,28 +62,28 @@ class RawMaterialsDeliveryController extends Controller
 
             $delivery = DB::transaction(function () use ($request) {
                 $rawMaterialsDelivery = RawMaterialsDelivery::create([
-                    'from_id'          => $request->input('from_id'),
-                    'from_designation' => $request->input('from_designation'),
-                    'from_name'       => $request->input('from_name'),
-                    'to_id'           => $request->input('to_id'),
-                    'to_designation'  => $request->input('to_designation'),
-                    'remarks'         => $request->input('remarks'),
-                    'status'          => $request->input('status', 'Pending')
+                    'from_id'            => $request->input('from_id'),
+                    'from_designation'   => $request->input('from_designation'),
+                    'from_name'          => $request->input('from_name'),
+                    'to_id'              => $request->input('to_id'),
+                    'to_designation'     => $request->input('to_designation'),
+                    'remarks'            => $request->input('remarks'),
+                    'status'             => $request->input('status', 'Pending')
                 ]);
 
                 // Create child records (raw materials groups)
                 foreach ($request->input('raw_materials_groups') as $group) {
                     DeliveryStocksUnit::create([
-                        'rm_delivery_id' => $rawMaterialsDelivery->id,
-                        'raw_materials_id' => $group['raw_materials_id'],
-                        'unit_type' => $group['unit_type'],
-                        'category' => $group['category'],
-                        'quantity' => $group['quantity'],
-                        'price_per_unit' => $group['price_per_unit'],
-                        'price_per_gram' => $group['price_per_gram'],
-                        'gram' => $group['gram'],
-                        'pcs' => $group['pcs'],
-                        'kilo' => $group['kilo']
+                        'rm_delivery_id'     => $rawMaterialsDelivery->id,
+                        'raw_materials_id'   => $group['raw_materials_id'],
+                        'unit_type'          => $group['unit_type'],
+                        'category'           => $group['category'],
+                        'quantity'           => $group['quantity'],
+                        'price_per_unit'     => $group['price_per_unit'],
+                        'price_per_gram'     => $group['price_per_gram'],
+                        'gram'               => $group['gram'],
+                        'pcs'                => $group['pcs'],
+                        'kilo'               => $group['kilo']
                     ]);
                 }
 

@@ -49,11 +49,11 @@ class BreadAddedController extends Controller
 
         if ($perPage == 0) {
             return response()->json([
-                'data' => $allPending,
-                'total' => $allPending->count(),
-                'per_page' => $allPending->count(),
-                'current_page' => 1,
-                'last_page' => 1,
+                'data'           => $allPending,
+                'total'          => $allPending->count(),
+                'per_page'       => $allPending->count(),
+                'current_page'   => 1,
+                'last_page'      => 1,
             ]);
         }
 
@@ -72,11 +72,11 @@ class BreadAddedController extends Controller
     {
         try {
             $validated = $request->validate([
-                'status' => 'required|string',
-                'branchId' => 'required|integer',
-                'report_id' => 'required|integer',
-                'product_id' => 'required|integer',
-                'bread_added' => 'required|numeric',
+                'status'         => 'required|string',
+                'branchId'       => 'required|integer',
+                'report_id'      => 'required|integer',
+                'product_id'     => 'required|integer',
+                'bread_added'    => 'required|numeric',
             ]);
 
             $branchId = $validated['branchId'];
@@ -173,11 +173,11 @@ class BreadAddedController extends Controller
 
             if ($perPage == 0) {
                 return response()->json([
-                    'data' => $sentBreadProducts,
-                    'total' => count($sentBreadProducts),
-                    'per_page' => count($sentBreadProducts),
-                    'current_page' => 1,
-                    'last_page' => 1
+                    'data'           => $sentBreadProducts,
+                    'total'          => count($sentBreadProducts),
+                    'per_page'       => count($sentBreadProducts),
+                    'current_page'   => 1,
+                    'last_page'      => 1
                 ]);
             } else {
                 $paginate = new LengthAwarePaginator(
@@ -219,15 +219,15 @@ class BreadAddedController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'from_branch_id' => 'required|exists:branches,id',
-            'to_branch_id' => 'required|exists:branches,id',
-            'status' => 'required|string',
-            'remark' => 'nullable|string',
-            'products' => 'required|array',
-            'products.*.product_id' => 'required|exists:products,id',
-            'products.*.quantity' => 'required|numeric|min:1',
-            'products.*.price' => 'required|numeric|min:1',
+            'employee_id'            => 'required|exists:employees,id',
+            'from_branch_id'         => 'required|exists:branches,id',
+            'to_branch_id'           => 'required|exists:branches,id',
+            'status'                 => 'required|string',
+            'remark'                 => 'nullable|string',
+            'products'               => 'required|array',
+            'products.*.product_id'  => 'required|exists:products,id',
+            'products.*.quantity'    => 'required|numeric|min:1',
+            'products.*.price'       => 'required|numeric|min:1',
         ]);
 
         try {
@@ -235,14 +235,14 @@ class BreadAddedController extends Controller
 
             foreach ($validatedData['products'] as $product) {
                 BreadAdded::create([
-                    'employee_id' => $validatedData['employee_id'],
-                    'product_id' => $product['product_id'],
-                    'from_branch_id' => $validatedData['from_branch_id'],
-                    'to_branch_id' => $validatedData['to_branch_id'],
-                    'price' => $product['price'],
-                    'bread_added' => $product['quantity'], // This is total quantity, store it once
-                    'status' => $validatedData['status'],
-                    'remark' => $validatedData['remark'] ?? null,
+                    'employee_id'        => $validatedData['employee_id'],
+                    'product_id'         => $product['product_id'],
+                    'from_branch_id'     => $validatedData['from_branch_id'],
+                    'to_branch_id'       => $validatedData['to_branch_id'],
+                    'price'              => $product['price'],
+                    'bread_added'        => $product['quantity'], // This is total quantity, store it once
+                    'status'             => $validatedData['status'],
+                    'remark'             => $validatedData['remark'] ?? null,
                 ]);
 
                 // 2. Update bread stock from the source branch

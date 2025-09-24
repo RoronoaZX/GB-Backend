@@ -31,14 +31,14 @@ class BreadSalesReportController extends Controller
         HistoryLog::create([
             'report_id' => $request->input('report_id'),
             'name' => $request->input('name'),
-            'original_data' => $request->input('original_data'),
-            'updated_data' => $request->input('updated_data'),
-            'updated_field' => $request->input('updated_field'),
-            'designation' => $request->input('designation'),
-            'designation_type' => $request->input('designation_type'),
-            'action' => $request->input('action'),
-            'type_of_report' => $request->input('type_of_report'),
-            'user_id' => $request->input('user_id'),
+            'original_data'      => $request->input('original_data'),
+            'updated_data'       => $request->input('updated_data'),
+            'updated_field'      => $request->input('updated_field'),
+            'designation'        => $request->input('designation'),
+            'designation_type'   => $request->input('designation_type'),
+            'action'             => $request->input('action'),
+            'type_of_report'     => $request->input('type_of_report'),
+            'user_id'            => $request->input('user_id'),
         ]);
 
         return response()->json(['message' => 'Price updated successfully', 'price' => $breadSalesReport]);
@@ -55,15 +55,15 @@ class BreadSalesReportController extends Controller
 
         HistoryLog::create([
             'report_id' => $request->input('report_id'),
-            'name' => $request->input('name'),
-            'original_data' => $request->input('original_data'),
-            'updated_data' => $request->input('updated_data'),
-            'updated_field' => $request->input('updated_field'),
-            'designation' => $request->input('designation'),
-            'designation_type' => $request->input('designation_type'),
-            'action' => $request->input('action'),
-            'type_of_report' => $request->input('type_of_report'),
-            'user_id' => $request->input('user_id'),
+            'name'               => $request->input('name'),
+            'original_data'      => $request->input('original_data'),
+            'updated_data'       => $request->input('updated_data'),
+            'updated_field'      => $request->input('updated_field'),
+            'designation'        => $request->input('designation'),
+            'designation_type'   => $request->input('designation_type'),
+            'action'             => $request->input('action'),
+            'type_of_report'     => $request->input('type_of_report'),
+            'user_id'            => $request->input('user_id'),
         ]);
 
         return response()->json(['message' => 'Beginnings updated successfully', 'beginnings' => $breadSalesReport]);
@@ -79,16 +79,16 @@ class BreadSalesReportController extends Controller
         $breadSalesReport->save();
 
         HistoryLog::create([
-            'report_id' => $request->input('report_id'),
-            'name' => $request->input('name'),
-            'original_data' => $request->input('original_data'),
-            'updated_data' => $request->input('updated_data'),
-            'updated_field' => $request->input('updated_field'),
-            'designation' => $request->input('designation'),
-            'designation_type' => $request->input('designation_type'),
-            'action' => $request->input('action'),
-            'type_of_report' => $request->input('type_of_report'),
-            'user_id' => $request->input('user_id'),
+            'report_id'          => $request->input('report_id'),
+            'name'               => $request->input('name'),
+            'original_data'      => $request->input('original_data'),
+            'updated_data'       => $request->input('updated_data'),
+            'updated_field'      => $request->input('updated_field'),
+            'designation'        => $request->input('designation'),
+            'designation_type'   => $request->input('designation_type'),
+            'action'             => $request->input('action'),
+            'type_of_report'     => $request->input('type_of_report'),
+            'user_id'            => $request->input('user_id'),
         ]);
 
         return response()->json(['message' => 'Beginnings updated successfully', 'new_production' => $breadSalesReport]);
@@ -116,16 +116,16 @@ class BreadSalesReportController extends Controller
         $breadSalesReport->save();
 
         HistoryLog::create([
-            'report_id' => $request->input('report_id'),
-            'name' => $request->input('name'),
-            'original_data' => $request->input('original_data'),
-            'updated_data' => $request->input('updated_data'),
-            'updated_field' => $request->input('updated_field'),
-            'designation' => $request->input('designation'),
-            'designation_type' => $request->input('designation_type'),
-            'action' => $request->input('action'),
-            'type_of_report' => $request->input('type_of_report'),
-            'user_id' => $request->input('user_id'),
+            'report_id'          => $request->input('report_id'),
+            'name'               => $request->input('name'),
+            'original_data'      => $request->input('original_data'),
+            'updated_data'       => $request->input('updated_data'),
+            'updated_field'      => $request->input('updated_field'),
+            'designation'        => $request->input('designation'),
+            'designation_type'   => $request->input('designation_type'),
+            'action'             => $request->input('action'),
+            'type_of_report'     => $request->input('type_of_report'),
+            'user_id'            => $request->input('user_id'),
         ]);
 
         return response()->json(['message' => 'Bread out updated successfully', 'bread_out' => $breadSalesReport]);
@@ -134,19 +134,19 @@ class BreadSalesReportController extends Controller
     public function addingBreadProduction(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'branch_id' => 'required|exists:branches,id',
-            'sales_report_id' => 'required|exists:sales_reports,id',
-            'product_id' => 'required|exists:products,id',
-            'product_name' => 'required|string',
-            'price' => 'required|numeric',
-            'beginnings' => 'numeric',
-            'remaining' => 'numeric',
-            'new_production' => 'numeric',
-            'bread_out' => 'numeric',
-            'bread_sold' => 'numeric',
-            'total' => 'numeric',
-            'sales' => 'numeric',
+            'user_id'            => 'required|exists:users,id',
+            'branch_id'          => 'required|exists:branches,id',
+            'sales_report_id'    => 'required|exists:sales_reports,id',
+            'product_id'         => 'required|exists:products,id',
+            'product_name'       => 'required|string',
+            'price'              => 'required|numeric',
+            'beginnings'         => 'numeric',
+            'remaining'          => 'numeric',
+            'new_production'     => 'numeric',
+            'bread_out'          => 'numeric',
+            'bread_sold'         => 'numeric',
+            'total'              => 'numeric',
+            'sales'              => 'numeric',
         ]);
 
         $breadProduction = BreadSalesReport::create($validated);
