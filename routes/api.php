@@ -38,6 +38,7 @@ use App\Http\Controllers\OtherAddedStocksController;
 use App\Http\Controllers\OtherProductsController;
 use App\Http\Controllers\OtherStocksReportController;
 use App\Http\Controllers\PayslipController;
+use App\Http\Controllers\RawMaterialsDeliveryController;
 use App\Http\Controllers\RequestPremixController;
 use App\Http\Controllers\SalesReportsController;
 use App\Http\Controllers\SelectaAddedStockController;
@@ -103,7 +104,9 @@ Route::apiResource('cash-advance', CashAdvanceController::class);
 Route::apiResource('uniform', UniformController::class);
 Route::apiResource('branch-recipe', BranchRecipeController::class);
 Route::apiResource('cake-report', CakeReportController::class);
-Route::apiResource('branch-add-bread-production-report', BreadSalesReportController::class);
+// Route::apiResource('branch-add-bread-production-report', BreadSalesReportController::class);
+// note that find this routes/// damn it
+Route::apiResource('bread-production-report', BreadSalesReportController::class);
 Route::apiResource('warehouse-employee', WarehouseEmployeeController::class);
 Route::apiResource('warehouse-raw-materials-report', WarehouseRawMaterialsReportController::class);
 Route::apiResource('selecta-stocks-added', SelectaAddedStockController::class);
@@ -123,7 +126,9 @@ Route::apiResource('holiday', HolidayController::class);
 Route::apiResource('incentives-bases', IncentivesBasesController::class);
 Route::apiResource('incentive-employee', IncentiveEmployeeReportsController::class);
 Route::apiResource('payslip', PayslipController::class);
+// Route::apiResource('raw-materials-delivery', RawMaterialsDeliveryController::class);
 
+Route::post('raw-materials-delivery', [RawMaterialsDeliveryController::class, 'create']);
 Route::post('branch/raw-materials/bulk-create', [BranchRawMaterialsReportController::class, 'bulkStore']);
 Route::post('update-branch-date-for-bir-report/{id}', [BirReportController::class, 'updateDateForReports']);
 Route::post('update-branch-amount-for-bir-report/{id}', [BirReportController::class, 'updateAmountForReports']);

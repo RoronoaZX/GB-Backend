@@ -9,14 +9,19 @@ class RawMaterialsDelivery extends Model
 {
     use HasFactory;
 
-    protected $table = [
-        'raw_material_id',
-        'from',
+    protected $fillable = [
+        'from_id',
         'from_designation',
-        'to',
+        'from_name',
+        'to_id',
         'to_designation',
-        'quantity',
-        'price_per_unit',
         'remarks',
+        'status'
     ];
+
+        public function items()
+    {
+        return $this->hasMany(DeliveryStocksUnit::class, 'rm_delivery_id');
+    }
+
 }

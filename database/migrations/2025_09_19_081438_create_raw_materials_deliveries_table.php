@@ -13,13 +13,11 @@ return new class extends Migration
     {
         Schema::create('raw_materials_deliveries', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('raw_material_id')->references('id')->on('raw_materials');
-            $table->bigInteger('from')->unsigned();
+            $table->bigInteger('from_id')->unsigned();
             $table->string('from_designation')->nullable();
-            $table->bigInteger('to')->unsigned();
+            $table->string('from_name')->nullable();
+            $table->bigInteger('to_id')->unsigned();
             $table->string('to_designation')->nullable();
-            $table->decimal('quantity', 10,3)->nullable();
-            $table->decimal('price_per_unit', 10,3)->nullable();
             $table->string('remarks')->nullable();
             $table->string('status')->nullable();
             $table->timestamps();
