@@ -19,9 +19,33 @@ class RawMaterialsDelivery extends Model
         'status'
     ];
 
-        public function items()
+    public function items()
     {
         return $this->hasMany(DeliveryStocksUnit::class, 'rm_delivery_id');
+    }
+
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class, 'to_id');
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class, 'to_id');
+    }
+
+    // Dynamic accessor
+    public function getToDataAttribute()
+    {
+        if ($this->to_designation === 'Warehouse') {
+            return $this->warehouse;
+        }
+
+        if ($this->to_designation === 'Branch') {
+            return $this->branch;
+        }
+
+        return null;
     }
 
 }

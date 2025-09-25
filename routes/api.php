@@ -126,7 +126,7 @@ Route::apiResource('holiday', HolidayController::class);
 Route::apiResource('incentives-bases', IncentivesBasesController::class);
 Route::apiResource('incentive-employee', IncentiveEmployeeReportsController::class);
 Route::apiResource('payslip', PayslipController::class);
-// Route::apiResource('raw-materials-delivery', RawMaterialsDeliveryController::class);
+Route::apiResource('raw-materials-delivery', RawMaterialsDeliveryController::class);
 
 Route::post('raw-materials-delivery', [RawMaterialsDeliveryController::class, 'create']);
 Route::post('branch/raw-materials/bulk-create', [BranchRawMaterialsReportController::class, 'bulkStore']);

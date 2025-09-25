@@ -23,8 +23,13 @@ class DeliveryStocksUnit extends Model
     ];
 
 
-       public function delivery()
+    public function delivery()
     {
         return $this->belongsTo(RawMaterialsDelivery::class, 'rm_delivery_id');
+    }
+
+    public function rawMaterial()
+    {
+        return $this->belongsTo(RawMaterial::class, 'raw_materials_id');
     }
 }
