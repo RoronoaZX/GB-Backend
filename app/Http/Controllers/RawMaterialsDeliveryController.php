@@ -72,18 +72,31 @@ class RawMaterialsDeliveryController extends Controller
     public function index(Request $request)
     {
         try {
-            // Get pagination parameters from the request, default to 10 items per page
+            // Get pagination parameters from the request, default to 5 items per page
             $perPage = $request->input('per_page', 5);
             $search = $request->input('search');
 
             $query = RawMaterialsDelivery::with('items.rawMaterial', 'warehouse', 'branch')->latest();
 
             // Apply search filter if provided
+            // if ($search) {
+            //     $query->whereHas('to_data', function ($q) use ($search) {
+            //         $q->where('to_name', 'like', '%' . $search . '%');
+            //     })->orWhere('from_name', 'like', '%' . $search . '%')
+            //       ->orWhere('status', 'like', '%' . $search . '%');
+            // }
+
             if ($search) {
-                $query->whereHas('to_data', function ($q) use ($search) {
-                    $q->where('name', 'like', '%' . $search . '%');
-                })->orWhere('from_name', 'like', '%' . $search . '%')
-                  ->orWhere('status', 'like', '%' . $search . '%');
+                $query->where(function ($q) use ($search) {
+                    $q->where('from_name', 'like', '%' . $search . '%')
+                      ->orWhere('status', 'like', '%' . $search . '%')
+                      ->orWhereHas('warehouse', function ($q2) use ($search) {
+                        $q2->where('name', 'like', '%' . $search . '%');
+                      })
+                      ->orWhereHas('branch', function ($q3) use ($search) {
+                        $q3->where('name', 'like', '%' . $search . '%');
+                      });
+                }) ;
             }
 
             $deliveries = $query->paginate($perPage);
@@ -168,7 +181,7 @@ class RawMaterialsDeliveryController extends Controller
             'raw_materials_groups.*.price_per_unit'      => 'required|numeric',
             'raw_materials_groups.*.price_per_gram'      => 'required|numeric',
             'raw_materials_groups.*.pcs'                 => 'required|integer',
-            'raw_materials_groups.*.kilo'                => 'required|numeric',
+            'raw_materials_groups.*.kilo'                => 'nullable|numeric',
             'raw_materials_groups.*.gram'                => 'required|numeric',
             'raw_materials_groups.*.category'            => 'required|string',
         ]);
