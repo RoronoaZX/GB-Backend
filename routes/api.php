@@ -288,6 +288,7 @@ Route::put('updatedDTROvertimeDeclineReasons', [DailyTimeRecordController::class
 Route::put('updateDTROTStatus', [DailyTimeRecordController::class, 'updateDTROTStatus']);
 Route::put('updateDTROTApprovedBy', [DailyTimeRecordController::class, 'updateDTROTApprovedBy']);
 
+Route::get('raw-materials-delivery-pending/{id}', [RawMaterialsDeliveryController::class, 'fetchPendingDelivery']);
 Route::get('getBranchWithWarehouses', [DailyTimeRecordController::class, 'getBranchWithWarehouses']);
 Route::get('fetch-employee-incentives-per-cut-off/{from}/{to}/{employee_id}', [IncentiveEmployeeReportsController::class, 'getIncentiveEmployeeReportsPerDtrCutOff']);
 Route::get('employee-benefits-for-deduction/{employee_id}', [EmployeeBenefitController::class, 'fetchEmployeeBenefitsForDeduction']);
