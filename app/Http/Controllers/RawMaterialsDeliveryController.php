@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BranchRmStocks;
 use App\Models\DeliveryStocksUnit;
 use App\Models\RawMaterial;
 use App\Models\RawMaterialsDelivery;
+use App\Models\WarehouseRmStocks;
+use Dotenv\Repository\RepositoryInterface;
 use Illuminate\Auth\Events\Validated;
 use Illuminate\Http\Client\ResponseSequence;
 use Illuminate\Http\Request;
@@ -211,6 +214,7 @@ class RawMaterialsDeliveryController extends Controller
                                 'gram' => $item->gram,
                                 'pcs' => $item->pcs,
                                 'kilo' => $item->kilo,
+                                'raw_material_id' => $item->rawMaterial ? $item->rawMaterial->id : null,
                                 'raw_material' => $item->rawMaterial ? [
                                     'id' => $item->rawMaterial->id,
                                     'name' => $item->rawMaterial->name,
@@ -236,6 +240,98 @@ class RawMaterialsDeliveryController extends Controller
         }
     }
 
+    public function confirmDelivery(Request $request)
+    {
+        try {
+            // ✅ 1. Validate request
+            $validated = $request->validate([
+                'id'  => 'required|integer|exists:raw_materials_deliveries,id',
+                'to_id' => 'required|integer',
+                'to_designation' => 'required|string|in:Branch,Warehouse',
+                'status' => 'required|string|in:confirmed',
+                'items' => 'required|array',
+                'items.*.raw_material_id' => 'required|integer|exists:raw_materials,id',
+                'items.*.quantity' => 'required|numeric|min:1',
+                'items.*.price_per_unit' => 'required|numeric|min:0',
+                'items.*.price_per_gram' => 'required|numeric|min:0'
+            ]);
+
+            // ✅ 2. Find the delivery
+            $delivery = RawMaterialsDelivery::findOrFail($validated['id']);
+            $delivery->status = $validated['status'];
+            $delivery->save();
+
+            // ✅ 3. Update stocks if confirmed
+            if($validated['status'] === 'confirmed') {
+                foreach ($validated['items'] as $item) {
+                   if ($validated['to_designation'] === 'Branch') {
+                    // --- Save to Branch Stocks ---
+                    BranchRmStocks::updateOrCreate(
+                        [
+                            'branch_id' => $validated['to_id'],
+                            'raw_material_id' => $item['raw_material_id'],
+                            'price_per_gram' => $item['price_per_gram'], // 🔑 uniqueness
+                        ],
+                        [
+                            'quantity' => DB::raw('quantity + ' . $item['quantity']),
+                        ]
+                        );
+                   } elseif ($validated['to_designation'] === 'Warehouse') {
+                    // --- Save to Warehouse Stocks ---
+                    WarehouseRmStocks::updateOrCreate(
+                        [
+                            'warehouse_id' => $validated['to_id'],
+                            'raw_material_id' => $item['raw_material_id'],
+                            'price_per_gram' => $item['price_per_gram'] // 🔑 uniqueness
+                        ],
+                        [
+                            'quantity' => DB::raw('quantity + ' . $item['quantity'])
+                        ]
+                        );
+                   }
+                }
+            }
+            return response()->json([
+                'message' => 'Delivery ' . $validated['status'] . ' successfully.',
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to proccess delivery.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+
+    }
+
+    public function declineDelivery(Request $request)
+    {
+        try {
+            // ✅ 1. Validate request
+            $validated = $request->validate([
+                'id' => 'required|integer|exists:raw_materials_deliveries,id',
+                'remarks' => 'required|string|max:1000'
+            ]);
+
+            // ✅ 2. Find the delivery
+            $delivery = RawMaterialsDelivery::findOrFail($validated['id']);
+
+            // ✅ 3. Update status + remarks
+            $delivery->status = 'declined';
+            $delivery->remarks = $validated['remarks'];
+            $delivery->save();
+
+            // ✅ 4. Return success
+
+
+        } catch (\Exception $e) {
+            // ❌ Handle errors
+
+            return response()->json([
+                'message' => 'Failed to decline delivery.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
     /**
      * Show the form for creating a new resource.
      */

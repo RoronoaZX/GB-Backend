@@ -205,6 +205,8 @@ Route::post('to-deliver-premix', [RequestPremixController::class, 'toDeliverPrem
 Route::post('to-receive-premix', [RequestPremixController::class, 'toReceivePremix']);
 Route::post('receive-premix', [RequestPremixController::class, 'receivePremix']);
 Route::post('saveEmployeeDtr', [DailyTimeRecordController::class, 'saveEmployeeDtr']);
+Route::post('raw-materials-delivery-declined', [RawMaterialsDeliveryController::class, 'declineDelivery']);
+Route::post('raw-materials-delivery-confirmed', [RawMaterialsDeliveryController::class, 'confirmDelivery']);
 
 Route::put('incentives-bases/update-number-employee/{id}', [IncentivesBasesController::class, 'updateNumberEmployee']);
 Route::put('incentives-bases/update-target/{id}', [IncentivesBasesController::class, 'updateTarget']);
