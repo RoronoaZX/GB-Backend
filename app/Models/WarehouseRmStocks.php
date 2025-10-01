@@ -13,6 +13,10 @@ class WarehouseRmStocks extends Model
         'warehouse_id',
         'raw_material_id',
         'price_per_gram',
-        'quantity'
+        'quantity',
+        'gram',
+        'kilo',
+        'pcs',
+        'total_grams'
     ];
 }

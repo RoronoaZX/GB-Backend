@@ -17,6 +17,10 @@ return new class extends Migration
             $table->foreign('raw_materials_id')->references('id')->on('raw_materials');
             $table->decimal('price_per_price', 10,3)->nullable();
             $table->decimal('quantity', 10,3)->nullable();
+            $table->decimal('gram', 10,3)->nullable();
+            $table->decimal('kilo', 10,3)->nullable();
+            $table->decimal('pcs', 10,3)->nullable();
+            $table->decimal('total_grams', 10,3)->nullable();
             $table->timestamps();
         });
     }
