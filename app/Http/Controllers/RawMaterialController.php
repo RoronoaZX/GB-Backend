@@ -31,17 +31,17 @@ class RawMaterialController extends Controller
     public function store(Request $request)
     {
         $validateData = $request->validate([
-            'name' => 'required|unique:raw_materials,name',
-            'code' => 'required|unique:raw_materials,code',
-            'category' => 'required',
-            'unit' => 'required',
+            'name'       => 'required|unique:raw_materials,name',
+            'code'       => 'required|unique:raw_materials,code',
+            'category'   => 'required',
+            'unit'       => 'required',
         ]);
 
         $rawMaterials = RawMaterial::create($validateData);
 
         return response()->json([
-            'message' => 'Raw Materials saved successfully',
-            'rawMaterials' => $rawMaterials
+            'message'        => 'Raw Materials saved successfully',
+            'rawMaterials'   => $rawMaterials
         ], 201);
     }
 
@@ -56,10 +56,10 @@ class RawMaterialController extends Controller
         }
 
         $validateData = $request->validate([
-            'name' => 'required|unique:raw_materials,name',
-            'code' => 'required|unique:raw_materials,code',
-            'category' => 'required',
-            'unit' => 'required',
+            'name'       => 'required|unique:raw_materials,name',
+            'code'       => 'required|unique:raw_materials,code',
+            'category'   => 'required',
+            'unit'       => 'required',
         ]);
 
         $raw_material->update($validateData);

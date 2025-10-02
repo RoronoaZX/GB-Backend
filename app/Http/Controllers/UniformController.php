@@ -30,11 +30,11 @@ class UniformController extends Controller
         if ($perPage == 0) {
             $data = $query->get();
             return response()->json([
-                'data' => $data,
-                'total' => $data->count(),
-                'per_page' => $data->count(),
-                'current_page' => 1,
-                'last_page' => 1
+                'data'           => $data,
+                'total'          => $data->count(),
+                'per_page'       => $data->count(),
+                'current_page'   => 1,
+                'last_page'      => 1
             ]);
         }
 
@@ -78,81 +78,81 @@ class UniformController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'employee_id' => 'required|integer|exists:employees,id',
-            'numberOfPayments' => 'required|integer',
-            'totalAmount' => 'required|numeric',
-            'paymentPerPayroll' => 'required|numeric',
-            'remaining_payments' => 'required|numeric',
-            'pantsPcs' => 'nullable|integer',
-            'pantsPrice' => 'nullable|numeric',
-            'pantsSize' => 'nullable|string',
-            'tShirtPcs' => 'nullable|integer',
-            'tShirtPrice' => 'nullable|numeric',
-            'tShirtsize' => 'nullable|string'
+            'employee_id'            => 'required|integer|exists:employees,id',
+            'numberOfPayments'       => 'required|integer',
+            'totalAmount'            => 'required|numeric',
+            'paymentPerPayroll'      => 'required|numeric',
+            'remaining_payments'     => 'required|numeric',
+            'pantsPcs'               => 'nullable|integer',
+            'pantsPrice'             => 'nullable|numeric',
+            'pantsSize'              => 'nullable|string',
+            'tShirtPcs'              => 'nullable|integer',
+            'tShirtPrice'            => 'nullable|numeric',
+            'tShirtsize'             => 'nullable|string'
         ]);
 
         $uniform = Uniform::create([
-            'employee_id' => $validatedData['employee_id'],
-            'number_of_payments' => $validatedData['numberOfPayments'],
-            'total_amount' => $validatedData['totalAmount'],
-            'payments_per_payroll' => $validatedData['paymentPerPayroll'],
-            'remaining_payments' => $validatedData['remaining_payments']
+            'employee_id'            => $validatedData['employee_id'],
+            'number_of_payments'     => $validatedData['numberOfPayments'],
+            'total_amount'           => $validatedData['totalAmount'],
+            'payments_per_payroll'   => $validatedData['paymentPerPayroll'],
+            'remaining_payments'     => $validatedData['remaining_payments']
         ]);
 
         if ($validatedData['pantsPcs'] && $validatedData['pantsPrice'] && $validatedData['pantsSize']) {
              UniformPants::create([
-                'uniform_id' => $uniform->id,
-                'size' => $validatedData['pantsSize'],
-                'pcs' => $validatedData['pantsPcs'],
-                'price' => $validatedData['pantsPrice'],
+                'uniform_id'     => $uniform->id,
+                'size'           => $validatedData['pantsSize'],
+                'pcs'            => $validatedData['pantsPcs'],
+                'price'          => $validatedData['pantsPrice'],
             ]);
         }
 
         if ($validatedData['tShirtPcs'] && $validatedData['tShirtPrice'] && $validatedData['tShirtsize']) {
              UniformTshirt::create([
-                'uniform_id' => $uniform->id,
-                'size' => $validatedData['tShirtsize'],
-                'pcs' => $validatedData['tShirtPcs'],
-                'price' => $validatedData['tShirtPrice'],
+                'uniform_id'     => $uniform->id,
+                'size'           => $validatedData['tShirtsize'],
+                'pcs'            => $validatedData['tShirtPcs'],
+                'price'          => $validatedData['tShirtPrice'],
             ]);
         }
 
         $uniform->load('employee');
 
         return response()->json([
-           'data' => [$uniform],
-           'total' => 1,
-           'per_page' => 1,
-           'current_page' => 1,
-           'last_page' =>1
+           'data'            => [$uniform],
+           'total'           => 1,
+           'per_page'        => 1,
+           'current_page'    => 1,
+           'last_page'       =>1
         ], 201);
     }
 
     public function updateUniform(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'employee_id' => 'required|integer|exists:employees,id',
-            'numberOfPayments' => 'required|integer',
-            'totalAmount' => 'required|numeric',
-            'paymentPerPayroll' => 'required|numeric',
-            'remaining_payments' => 'required|numeric',
-            'pantsPcs' => 'nullable|integer',
-            'pantsPrice' => 'nullable|numeric',
-            'pantsSize' => 'nullable|string',
-            'tShirtPcs' => 'nullable|integer',
-            'tShirtPrice' => 'nullable|numeric',
-            'tShirtsize' => 'nullable|string'
+            'employee_id'            => 'required|integer|exists:employees,id',
+            'numberOfPayments'       => 'required|integer',
+            'totalAmount'            => 'required|numeric',
+            'paymentPerPayroll'      => 'required|numeric',
+            'remaining_payments'     => 'required|numeric',
+            'pantsPcs'               => 'nullable|integer',
+            'pantsPrice'             => 'nullable|numeric',
+            'pantsSize'              => 'nullable|string',
+            'tShirtPcs'              => 'nullable|integer',
+            'tShirtPrice'            => 'nullable|numeric',
+            'tShirtsize'             => 'nullable|string'
         ]);
 
         $uniform = Uniform::findOrFail($id);
 
         // Update the uniform details
         $uniform->update([
-            'employee_id' => $validatedData['employee_id'],
-            'number_of_payments' => $validatedData['numberOfPayments'],
-            'total_amount' => $validatedData['totalAmount'],
-            'payments_per_payroll' => $validatedData['paymentPerPayroll'],
-            'remaining_payments' => $validatedData['remaining_payments']
+            'employee_id'            => $validatedData['employee_id'],
+            'number_of_payments'     => $validatedData['numberOfPayments'],
+            'total_amount'           => $validatedData['totalAmount'],
+            'payments_per_payroll'   => $validatedData['paymentPerPayroll'],
+            'remaining_payments'     => $validatedData['remaining_payments']
         ]);
 
         //Handle T-Shirt Update
@@ -161,16 +161,16 @@ class UniformController extends Controller
 
             if ($tShirt) {
                 $tShirt->update([
-                    'size' => $validatedData['tShirtsize'],
-                    'pcs' => $validatedData['tShirtPcs'],
-                    'price' => $validatedData['tShirtPrice']
+                    'size'   => $validatedData['tShirtsize'],
+                    'pcs'    => $validatedData['tShirtPcs'],
+                    'price'  => $validatedData['tShirtPrice']
                 ]);
             } else {
                 UniformTshirt::create([
-                    'uniform_id' => $uniform->id,
-                    'size' => $validatedData['tShirtsize'],
-                    'pcs' => $validatedData['tShirtPcs'],
-                    'price' => $validatedData['tShirtPrice']
+                    'uniform_id'     => $uniform->id,
+                    'size'           => $validatedData['tShirtsize'],
+                    'pcs'            => $validatedData['tShirtPcs'],
+                    'price'          => $validatedData['tShirtPrice']
                 ]);
             }
         } else {
@@ -185,16 +185,16 @@ class UniformController extends Controller
 
             if ($pants) {
                 $pants->update([
-                    'size' => $validatedData['pantsSize'],
-                    'pcs' => $validatedData['pantsPcs'],
-                    'price' => $validatedData['pantsPrice'],
+                    'size'   => $validatedData['pantsSize'],
+                    'pcs'    => $validatedData['pantsPcs'],
+                    'price'  => $validatedData['pantsPrice'],
                 ]);
             } else {
                 UniformPants::create([
-                    'uniform_id' => $uniform->id,
-                    'size' => $validatedData['pantsSize'],
-                    'pcs' => $validatedData['pantsPcs'],
-                    'price' => $validatedData['pantsPrice'],
+                    'uniform_id'     => $uniform->id,
+                    'size'           => $validatedData['pantsSize'],
+                    'pcs'            => $validatedData['pantsPcs'],
+                    'price'          => $validatedData['pantsPrice'],
                 ]);
             }
         } else {

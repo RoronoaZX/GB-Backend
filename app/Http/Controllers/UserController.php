@@ -112,8 +112,8 @@ class UserController extends Controller
         $branchId = $request->input('branch_id');
 
         $request->validate([
-            'keyword' => 'required|string|max:255',
-            'branch_id' => 'required|integer|exist:branches,id'
+            'keyword'    => 'required|string|max:255',
+            'branch_id'  => 'required|integer|exist:branches,id'
         ]);
 
         if (empty($keyword)) {
@@ -140,15 +140,15 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:8|confirmed',
-            'user_fullname' => 'required|string|max:255',
-            'user_address' => 'required|string|max:255',
-            'user_birthdate' => 'required|date',
-            'user_sex' => 'required|string|in:Male,Female',
-            'user_status' => 'required|string|in:Current,Former',
-            'user_phone_number' => 'required|string|max:25',
-            'user_position' => 'required|string|max:255',
+            'email'              => 'required|email|unique:users,email',
+            'password'           => 'required|min:8|confirmed',
+            'user_fullname'      => 'required|string|max:255',
+            'user_address'       => 'required|string|max:255',
+            'user_birthdate'     => 'required|date',
+            'user_sex'           => 'required|string|in:Male,Female',
+            'user_status'        => 'required|string|in:Current,Former',
+            'user_phone_number'  => 'required|string|max:25',
+            'user_position'      => 'required|string|max:255',
 
         ]);
 
@@ -157,16 +157,16 @@ class UserController extends Controller
         }
 
         $user = User::create([
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'name' => $request->user_fullname,
-            'address' => $request->user_address,
-            'birthdate' => $request->user_birthdate,
-            'sex' => $request->user_sex,
-            'status' => $request->user_status,
-            'phone' => $request->user_phone_number,
-            'role' => $request->user_position,
-            'remember_token' => Str::random(60),
+            'email'              => $request->email,
+            'password'           => Hash::make($request->password),
+            'name'               => $request->user_fullname,
+            'address'            => $request->user_address,
+            'birthdate'          => $request->user_birthdate,
+            'sex'                => $request->user_sex,
+            'status'             => $request->user_status,
+            'phone'              => $request->user_phone_number,
+            'role'               => $request->user_position,
+            'remember_token'     => Str::random(60),
         ]);
         return response()->json($user);
 
@@ -211,15 +211,15 @@ class UserController extends Controller
 
     // Validate the incoming request
     $validatedData = $request->validate([
-        'name' => 'required|string|max:255',
-        'address' => 'required|string|max:255',
-        'birthdate' => 'required|date',
-        'sex' => 'required|string|in:Male,Female',
-        'status' => 'required|string|in:Current,Former',
-        'phone' => 'required|string|max:25',
-        'role' => 'required|string|max:255',
-        'branch_id' => 'required|integer',
-        'time_shift' => 'required|date_format:h:i A',
+        'name'           => 'required|string|max:255',
+        'address'        => 'required|string|max:255',
+        'birthdate'      => 'required|date',
+        'sex'            => 'required|string|in:Male,Female',
+        'status'         => 'required|string|in:Current,Former',
+        'phone'          => 'required|string|max:25',
+        'role'           => 'required|string|max:255',
+        'branch_id'      => 'required|integer',
+        'time_shift'     => 'required|date_format:h:i A',
     ]);
 
     // Update the User model fields

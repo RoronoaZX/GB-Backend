@@ -8,7 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class BreadGroup extends Model
 {
     use HasFactory;
-    protected $fillable = ['branch_recipe_id', 'bread_id'];
+    protected $fillable = [
+        'branch_recipe_id',
+        'bread_id'
+    ];
 
 
     public function recipe()

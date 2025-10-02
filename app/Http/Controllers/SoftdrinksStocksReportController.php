@@ -96,14 +96,14 @@ class SoftdrinksStocksReportController extends Controller
 
             // Return success response
             return response()->json([
-                'message' => 'Report declined successfully.',
-                'report' => $softdrinksStockReports,
+                'message'    => 'Report declined successfully.',
+                'report'     => $softdrinksStockReports,
             ], 200);
         }catch (\Exception $e) {
             // Handle errors
             return response()->json([
-                'message' => 'Failed to decline report.',
-                'error' => $e->getMessage(),
+                'message'    => 'Failed to decline report.',
+                'error'      => $e->getMessage(),
             ], 500);
         }
     }
@@ -180,8 +180,8 @@ class SoftdrinksStocksReportController extends Controller
         } catch (\Exception $e) {
             // Catch any errors and return a detailed response
             return response()->json([
-                'message' => 'An error occurred while confirming the report.',
-                'error' => $e->getMessage()
+                'message'    => 'An error occurred while confirming the report.',
+                'error'      => $e->getMessage()
             ], 500);
         }
     }
@@ -224,27 +224,27 @@ class SoftdrinksStocksReportController extends Controller
     public function store(Request $request)
     {
         $validateData = $request->validate([
-            'branches_id' => 'required|exists:branches,id', // Ensure branch exists
-            'employee_id' => 'required|exists:employees,id', // Ensure employee exists
-            'status' => 'required|string',
-            'products' => 'required|array',
-            'products.*.product_id' => 'required|exists:products,id', // Ensure product exists
-            'products.*.price' => 'required|numeric', // Must be a positive number
-            'products.*.added_stocks' => 'required|numeric|min:1', // Must be a positive number
+            'branches_id'                => 'required|exists:branches,id', // Ensure branch exists
+            'employee_id'                => 'required|exists:employees,id', // Ensure employee exists
+            'status'                     => 'required|string',
+            'products'                   => 'required|array',
+            'products.*.product_id'      => 'required|exists:products,id', // Ensure product exists
+            'products.*.price'           => 'required|numeric', // Must be a positive number
+            'products.*.added_stocks'    => 'required|numeric|min:1', // Must be a positive number
         ]);
 
         $softdrinksStockReport = SoftdrinksStocksReport::create([
-            'branches_id' => $validateData['branches_id'],
-            'employee_id' => $validateData['employee_id'],
-            'status' => $validateData['status'],
+            'branches_id'    => $validateData['branches_id'],
+            'employee_id'    => $validateData['employee_id'],
+            'status'         => $validateData['status'],
         ]);
 
         foreach ($validateData['products'] as $product) {
             SoftdrinksAddedStocks::create([
-                'softdrinks_stocks_report_id' => $softdrinksStockReport->id,
-                'product_id' => $product['product_id'],
-                'price' => $product['price'],
-                'added_stocks' => $product['added_stocks'],
+                'softdrinks_stocks_report_id'    => $softdrinksStockReport->id,
+                'product_id'                     => $product['product_id'],
+                'price'                          => $product['price'],
+                'added_stocks'                   => $product['added_stocks'],
             ]);
         }
     }

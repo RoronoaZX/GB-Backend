@@ -56,15 +56,15 @@ class CakeReportController extends Controller
            $cakeReport->sales_status = "on display";
            $cakeReport->save();
            return response()->json([
-            'message' => 'Report has been confirmed successfully.',
-            'data' => $cakeReport
+            'message'    => 'Report has been confirmed successfully.',
+            'data'       => $cakeReport
         ], 200);
         }
 
         // If the report is not pending, return an error message
         return response()->json([
-            'message' => 'Report is already confirmed or cannot be confirmed.',
-            'data' => $cakeReport
+            'message'    => 'Report is already confirmed or cannot be confirmed.',
+            'data'       => $cakeReport
         ], 400);
     }
 
@@ -82,9 +82,9 @@ class CakeReportController extends Controller
             $cakeReport->remark = $request->remark;
             $cakeReport->save();
 
-            return response()->json(['message' => "Report declined successfully"], 200);
+            return response()->json(['message'   => "Report declined successfully"], 200);
         }
-        return response()->json(['message' => "Invalid report or status"], 400);
+        return response()->json(['message'       => "Invalid report or status"], 400);
     }
 
 
@@ -129,8 +129,8 @@ class CakeReportController extends Controller
         }
 
         return response()->json([
-            'message' => 'Report created successfully!',
-            'report' => $report,
+            'message'    => 'Report created successfully!',
+            'report'     => $report,
         ], 201);
     }
 

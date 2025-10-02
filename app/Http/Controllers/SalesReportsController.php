@@ -48,24 +48,24 @@ class SalesReportsController extends Controller
     public function adminStoreSalesReport(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'branch_id' => 'required|integer|exists:branches,id',
-            'user_id' => 'required|integer|exists:users,id',
-            'created_at' => 'nullable|date',
-            'denomination_total' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
-            'expenses_total' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
-            'products_total_sales' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
-            'charges_amount' => 'required|numeric|min:0',
-            'over_total' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
-            'credit_total' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
-            'breadReports' => 'required|array',
-            'selectaReports' => 'nullable|array',
-            'softdrinksReports' => 'nullable|array',
-            'otherProductsReports' => 'nullable|array',
-            'cakeReports' => 'nullable|array',
-            'withOutReceiptExpensesReport' => 'nullable|array',
-            'denominationReports' => 'required|array',
-            'creditReports' => 'nullable|array',
-            'creditReports.*.credits' => 'nullable|array',
+            'branch_id'                      => 'required|integer|exists:branches,id',
+            'user_id'                        => 'required|integer|exists:users,id',
+            'created_at'                     => 'nullable|date',
+            'denomination_total'             => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
+            'expenses_total'                 => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
+            'products_total_sales'           => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
+            'charges_amount'                 => 'required|numeric|min:0',
+            'over_total'                     => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
+            'credit_total'                   => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
+            'breadReports'                   => 'required|array',
+            'selectaReports'                 => 'nullable|array',
+            'softdrinksReports'              => 'nullable|array',
+            'otherProductsReports'           => 'nullable|array',
+            'cakeReports'                    => 'nullable|array',
+            'withOutReceiptExpensesReport'   => 'nullable|array',
+            'denominationReports'            => 'required|array',
+            'creditReports'                  => 'nullable|array',
+            'creditReports.*.credits'        => 'nullable|array',
         ]);
 
         if ($validator->fails()) {
@@ -73,15 +73,15 @@ class SalesReportsController extends Controller
         }
 
         $salesReport = new SalesReports([
-            'branch_id' => $request->branch_id,
-            'user_id' => $request->user_id,
-            'denomination_total' => $request->denomination_total,
-            'expenses_total' => $request->expenses_total,
-            'products_total_sales' => $request->products_total_sales,
-            'charges_amount' => $request->charges_amount,
-            'over_total' => $request->over_total,
-            'credit_total' => $request->credit_total,
-            'created_at' => $request->created_at,
+            'branch_id'              => $request->branch_id,
+            'user_id'                => $request->user_id,
+            'denomination_total'     => $request->denomination_total,
+            'expenses_total'         => $request->expenses_total,
+            'products_total_sales'   => $request->products_total_sales,
+            'charges_amount'         => $request->charges_amount,
+            'over_total'             => $request->over_total,
+            'credit_total'           => $request->credit_total,
+            'created_at'             => $request->created_at,
         ]);
 
         $salesReport->timestamps = false; // ✅ Allow custom created_at
@@ -125,8 +125,8 @@ class SalesReportsController extends Controller
                 $existingCake->save();
 
                 $salesReport->cakeSalesReports()->create([
-                    'sales_report_id' => $salesReport->id,
-                    'cake_report_id' => $cakeReport['cake_report_id'],
+                    'sales_report_id'    => $salesReport->id,
+                    'cake_report_id'     => $cakeReport['cake_report_id'],
                 ]);
             } else {
                 return response()->json([
@@ -180,10 +180,10 @@ class SalesReportsController extends Controller
 
         foreach ($request->creditReports ?? [] as $creditReportData) {
             $creditReports = $salesReport->creditReports()->create([
-                'credit_user_id' => $creditReportData['credit_user_id'],
-                'total_amount' => $creditReportData['total_amount'],
-                'branch_id' => $creditReportData['branch_id'],
-                'user_id' => $creditReportData['user_id'],
+                'credit_user_id'     => $creditReportData['credit_user_id'],
+                'total_amount'       => $creditReportData['total_amount'],
+                'branch_id'          => $creditReportData['branch_id'],
+                'user_id'            => $creditReportData['user_id'],
             ]);
 
             foreach ($creditReportData['credits'] ?? [] as $credit) {
@@ -373,23 +373,23 @@ class SalesReportsController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'branch_id' => 'required|integer|exists:branches,id',
-            'user_id' => 'required|integer|exists:users,id',
-            'denomination_total' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
-            'expenses_total' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
-            'products_total_sales' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
-            'charges_amount' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
-            'over_total' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
-            'credit_total' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
-            'breadReports' => 'required|array',
-            'selectaReports' => 'nullable|array',
-            'softdrinksReports' => 'nullable|array',
-            'otherProductsReports' => 'nullable|array',
-            'cakeReports' => 'nullable|array',
-            'withOutReceiptExpensesReport' => 'nullable|array',
-            'denominationReports' => 'required|array',
-            'creditReports' => 'nullable|array',
-            'creditReports.*.credits' => 'nullable|array',
+            'branch_id'                      => 'required|integer|exists:branches,id',
+            'user_id'                        => 'required|integer|exists:users,id',
+            'denomination_total'             => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
+            'expenses_total'                 => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
+            'products_total_sales'           => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
+            'charges_amount'                 => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
+            'over_total'                     => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
+            'credit_total'                   => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
+            'breadReports'                   => 'required|array',
+            'selectaReports'                 => 'nullable|array',
+            'softdrinksReports'              => 'nullable|array',
+            'otherProductsReports'           => 'nullable|array',
+            'cakeReports'                    => 'nullable|array',
+            'withOutReceiptExpensesReport'   => 'nullable|array',
+            'denominationReports'            => 'required|array',
+            'creditReports'                  => 'nullable|array',
+            'creditReports.*.credits'        => 'nullable|array',
 
         ]);
 
@@ -398,14 +398,14 @@ class SalesReportsController extends Controller
         }
 
         $salesReport = SalesReports::create([
-            'branch_id' => $request->branch_id,
-            'user_id' => $request->user_id,
-            'denomination_total' => $request->denomination_total,
-            'expenses_total' => $request->expenses_total,
-            'products_total_sales' => $request->products_total_sales,
-            'charges_amount' => $request->charges_amount,
-            'over_total' => $request->over_total,
-            'credit_total' => $request->credit_total,
+            'branch_id'              => $request->branch_id,
+            'user_id'                => $request->user_id,
+            'denomination_total'     => $request->denomination_total,
+            'expenses_total'         => $request->expenses_total,
+            'products_total_sales'   => $request->products_total_sales,
+            'charges_amount'         => $request->charges_amount,
+            'over_total'             => $request->over_total,
+            'credit_total'           => $request->credit_total,
         ]);
 
         foreach ($request->breadReports as $breadReport) {
@@ -461,8 +461,8 @@ class SalesReportsController extends Controller
 
                 // Save data to the Cake Sales Report table
                 $salesReport->cakeSalesReports()->create([
-                    'sales_report_id' => $salesReport->id, // This is the ID of the newly created SalesReports batch
-                    'cake_report_id' => $cakeReport['cake_report_id'], // Provided by frontend
+                    'sales_report_id'    => $salesReport->id, // This is the ID of the newly created SalesReports batch
+                    'cake_report_id'     => $cakeReport['cake_report_id'], // Provided by frontend
                 ]);
             } else {
                 // Handle case where Cake report ID is not found
@@ -529,10 +529,10 @@ class SalesReportsController extends Controller
         foreach ($request->creditReports as $creditReportData) {
             // Store each Credit Report
             $creditReports = $salesReport->creditReports()->create([
-                'credit_user_id' => $creditReportData['credit_user_id'],
-                'total_amount' => $creditReportData['total_amount'],
-                'branch_id' => $creditReportData['branch_id'],
-                'user_id' => $creditReportData['user_id'],
+                'credit_user_id'     => $creditReportData['credit_user_id'],
+                'total_amount'       => $creditReportData['total_amount'],
+                'branch_id'          => $creditReportData['branch_id'],
+                'user_id'            => $creditReportData['user_id'],
             ]);
 
             // Store each Credit within the Credit Report

@@ -9,7 +9,11 @@ class IngredientGroup extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['branch_recipe_id', 'ingredient_id','quantity'];
+    protected $fillable = [
+        'branch_recipe_id',
+        'ingredient_id',
+        'quantity'
+    ];
 
     public function recipe()
     {

@@ -30,20 +30,20 @@ class RecipeController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'name' => 'required|string|max:255|unique:recipes',
-            'category' => 'required|string|max:30',
+            'name'       => 'required|string|max:255|unique:recipes',
+            'category'   => 'required|string|max:30',
         ]);
 
         $recipe = Recipe::create([
-            'name' => $validatedData['name'],
-            'category' => $validatedData['category'],
+            'name'       => $validatedData['name'],
+            'category'   => $validatedData['category'],
         ]);
 
         $recipeResponseData = $recipe->fresh();
 
         return response()->json([
-            'message' => 'Recipe saved successfully',
-            'recipe' => $recipeResponseData
+            'message'    => 'Recipe saved successfully',
+            'recipe'     => $recipeResponseData
         ], 201);
     }
 

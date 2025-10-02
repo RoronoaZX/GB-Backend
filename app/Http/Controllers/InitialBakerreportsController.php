@@ -137,31 +137,31 @@ class InitialBakerreportsController extends Controller
 
         foreach ($request->reports as $report) {
             $reportValidator = Validator::make($report, [
-                'branch_id' => 'required|integer|exists:branches,id',
-                'user_id' => 'required|integer|exists:users,id',
-                'branch_recipe_id' => 'required|integer|exists:branch_recipes,id',
-                'recipe_category' => 'required|string|in:Dough,Filling',
-                'status' => 'required|string|max:255',
-                'kilo' => 'required|numeric',
-                'over' => 'required|integer',
-                'short' => 'required|integer',
-                'target' => 'required|numeric',
-                'actual_target' => 'required|integer',
-                'breads' => 'required|array',
-                'breads.*.bread_id' => 'required|integer',
-                'breads.*.bread_production' => 'required|integer',
-                'ingredients' => 'required|array',
-                'ingredients.*.ingredients_id' => 'required|integer',
-                'ingredients.*.quantity' => 'required|numeric',
-                'ingredients.*.unit' => 'required|string|max:191',
-                'created_at' => 'nullable|date', // Optional created_at
+                'branch_id'                          => 'required|integer|exists:branches,id',
+                'user_id'                            => 'required|integer|exists:users,id',
+                'branch_recipe_id'                   => 'required|integer|exists:branch_recipes,id',
+                'recipe_category'                    => 'required|string|in:Dough,Filling',
+                'status'                             => 'required|string|max:255',
+                'kilo'                               => 'required|numeric',
+                'over'                               => 'required|integer',
+                'short'                              => 'required|integer',
+                'target'                             => 'required|numeric',
+                'actual_target'                      => 'required|integer',
+                'breads'                             => 'required|array',
+                'breads.*.bread_id'                  => 'required|integer',
+                'breads.*.bread_production'          => 'required|integer',
+                'ingredients'                        => 'required|array',
+                'ingredients.*.ingredients_id'       => 'required|integer',
+                'ingredients.*.quantity'             => 'required|numeric',
+                'ingredients.*.unit'                 => 'required|string|max:191',
+                'created_at'                         => 'nullable|date', // Optional created_at
             ]);
 
             if ($reportValidator->fails()) {
                 return response()->json([
-                    'status' => 'error',
-                    'message' => 'Validation failed for one or more reports',
-                    'errors' => $reportValidator->errors()
+                    'status'     => 'error',
+                    'message'    => 'Validation failed for one or more reports',
+                    'errors'     => $reportValidator->errors()
                 ], 422);
             }
 
@@ -301,46 +301,46 @@ class InitialBakerreportsController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'reports' => 'required|array',
-            'employee_in_shift' => 'required|array',
-            'overall_kilo' => 'required|numeric',
-            'total_employees' => 'required|numeric',
+            'reports'            => 'required|array',
+            'employee_in_shift'  => 'required|array',
+            'overall_kilo'       => 'required|numeric',
+            'total_employees'    => 'required|numeric',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed for reports array',
-                'errors' => $validator->errors()
+                'status'     => 'error',
+                'message'    => 'Validation failed for reports array',
+                'errors'     => $validator->errors()
             ], 422);
         }
 
         foreach ($request->reports as $report) {
             $reportValidator = Validator::make($report, [
-                'branch_id' => 'required|integer|exists:branches,id',
-                'user_id' => 'required|integer|exists:users,id',
-                'branch_recipe_id' => 'required|integer|exists:branch_recipes,id',
-                'recipe_category' => 'required|string|in:Dough,Filling',
-                'status' => 'required|string|max:255',
-                'kilo' => 'required|numeric',
-                'over' => 'required|integer',
-                'short' => 'required|integer',
-                'target' => 'required|numeric',
-                'actual_target' => 'required|integer',
-                'breads' => 'required|array',
-                'breads.*.bread_id' => 'required|integer',
-                'breads.*.bread_production' => 'required|integer',
-                'ingredients' => 'required|array',
-                'ingredients.*.ingredients_id' => 'required|integer',
-                'ingredients.*.quantity' => 'required|numeric',
-                'ingredients.*.unit' => 'required|string|max:191',
+                'branch_id'                      => 'required|integer|exists:branches,id',
+                'user_id'                        => 'required|integer|exists:users,id',
+                'branch_recipe_id'               => 'required|integer|exists:branch_recipes,id',
+                'recipe_category'                => 'required|string|in:Dough,Filling',
+                'status'                         => 'required|string|max:255',
+                'kilo'                           => 'required|numeric',
+                'over'                           => 'required|integer',
+                'short'                          => 'required|integer',
+                'target'                         => 'required|numeric',
+                'actual_target'                  => 'required|integer',
+                'breads'                         => 'required|array',
+                'breads.*.bread_id'              => 'required|integer',
+                'breads.*.bread_production'      => 'required|integer',
+                'ingredients'                    => 'required|array',
+                'ingredients.*.ingredients_id'   => 'required|integer',
+                'ingredients.*.quantity'         => 'required|numeric',
+                'ingredients.*.unit'             => 'required|string|max:191',
             ]);
 
             if ($reportValidator->fails()) {
                 return response()->json([
-                    'status' => 'error',
-                    'message' => 'Validation failed for one or more reports',
-                    'errors' => $reportValidator->errors()
+                    'status'     => 'error',
+                    'message'    => 'Validation failed for one or more reports',
+                    'errors'     => $reportValidator->errors()
                 ], 422);
             }
 
@@ -387,17 +387,17 @@ class InitialBakerreportsController extends Controller
         foreach ($request->employee_in_shift as $shift) {
             // Create incentive_employee_reports records(s)
             IncentiveEmployeeReports::create([
-                'branch_id' => $branch_id,
-                'employee_id' => $shift['employee_id'],
-                'number_of_employees' => $request->total_employees,
-                'designation' => $shift['designation'],
-                'shift_status' => $shift['shift_status']
+                'branch_id'              => $branch_id,
+                'employee_id'            => $shift['employee_id'],
+                'number_of_employees'    => $request->total_employees,
+                'designation'            => $shift['designation'],
+                'shift_status'           => $shift['shift_status']
             ]);
         }
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'Reports stored successfully',
+            'status'     => 'success',
+            'message'    => 'Reports stored successfully',
         ], 201);
     }
 
@@ -432,12 +432,12 @@ class InitialBakerreportsController extends Controller
 
             foreach ($initialReport->breadBakersReports as $breadReport) {
                 BreadProductionReport::create([
-                    'branch_id'=> $initialReport->branch_id,
-                    'user_id' => $initialReport->user_id,
-                    'branch_recipe_id' => $initialReport->branch_recipe_id,
-                    'initial_bakerreports_id' => $initialReport->id,
-                    'bread_id' => $breadReport->bread_id,
-                    'bread_new_production' => $breadReport->bread_production,
+                    'branch_id'                  => $initialReport->branch_id,
+                    'user_id'                    => $initialReport->user_id,
+                    'branch_recipe_id'           => $initialReport->branch_recipe_id,
+                    'initial_bakerreports_id'    => $initialReport->id,
+                    'bread_id'                   => $breadReport->bread_id,
+                    'bread_new_production'       => $breadReport->bread_production,
                 ]);
                  // Update BranchProduct model
             $branchProduct = BranchProduct::where('branches_id', $initialReport->branch_id)
@@ -540,29 +540,29 @@ class InitialBakerreportsController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'initial_bakerreports_id' => 'required|integer',
-            'sales_report_id' => 'required|integer',
-            'category' => 'required|string|in:Dough,Filling',
-            'status' => 'sometimes|string|max:255',
-            'kilo' => 'required|numeric',
-            'over' => 'required|integer',
-            'short' => 'required|integer',
-            'target' => 'required|numeric',
-            'actual_target' => 'required|integer',
-            'combined_bakers_reports' => 'required|array',
-            'combined_bakers_reports.*.bread_id' => 'required|integer',
-            'combined_bakers_reports.*.bread_production' => 'required|numeric',
-            'recalculated_ingredients' => 'required|array',
-            'recalculated_ingredients.*.ingredients_id' => 'required|integer',
-            'recalculated_ingredients.*.quantity' => 'required|numeric',
-            'recalculated_ingredients.*.unit' => 'sometimes|string|max:255',
+            'initial_bakerreports_id'                        => 'required|integer',
+            'sales_report_id'                                => 'required|integer',
+            'category'                                       => 'required|string|in:Dough,Filling',
+            'status'                                         => 'sometimes|string|max:255',
+            'kilo'                                           => 'required|numeric',
+            'over'                                           => 'required|integer',
+            'short'                                          => 'required|integer',
+            'target'                                         => 'required|numeric',
+            'actual_target'                                  => 'required|integer',
+            'combined_bakers_reports'                        => 'required|array',
+            'combined_bakers_reports.*.bread_id'             => 'required|integer',
+            'combined_bakers_reports.*.bread_production'     => 'required|numeric',
+            'recalculated_ingredients'                       => 'required|array',
+            'recalculated_ingredients.*.ingredients_id'      => 'required|integer',
+            'recalculated_ingredients.*.quantity'            => 'required|numeric',
+            'recalculated_ingredients.*.unit'                => 'sometimes|string|max:255',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'status'     => 'error',
+                'message'    => 'Validation failed',
+                'errors'     => $validator->errors()
             ], 422);
         }
 
@@ -574,12 +574,12 @@ class InitialBakerreportsController extends Controller
         try {
             // Update the main baker report
             $bakerReport->update([
-                'kilo' => $validatedData['kilo'],
-                'over' => $validatedData['over'],
-                'short' => $validatedData['short'],
-                'target' => $validatedData['target'],
-                'actual_target' => $validatedData['actual_target'],
-                'status' => $recipeCategory === 'Filling' ? 'confirmed' : ($validatedData['status'] ?? $bakerReport->status),
+                'kilo'           => $validatedData['kilo'],
+                'over'           => $validatedData['over'],
+                'short'          => $validatedData['short'],
+                'target'         => $validatedData['target'],
+                'actual_target'  => $validatedData['actual_target'],
+                'status'         => $recipeCategory === 'Filling' ? 'confirmed' : ($validatedData['status'] ?? $bakerReport->status),
             ]);
 
             // Update related bread reports
@@ -636,15 +636,15 @@ class InitialBakerreportsController extends Controller
             DB::commit();
 
             return response()->json([
-                'status' => 'success',
-                'message' => 'Baker report updated successfully',
+                'status'     => 'success',
+                'message'    => 'Baker report updated successfully',
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to update baker report',
-                'error' => $e->getMessage(),
+                'status'     => 'error',
+                'message'    => 'Failed to update baker report',
+                'error'      => $e->getMessage(),
             ], 500);
         }
     }

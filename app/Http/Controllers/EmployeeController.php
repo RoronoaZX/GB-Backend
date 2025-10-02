@@ -62,11 +62,11 @@ class EmployeeController extends Controller
         if ($perPage == 0) {
             $data = $query->get();
             return response()->json([
-                'data' => $data,
-                'total' => $data->count(),
-                'per_page' => $data->count(),
-                'current_page' => 1,
-                'last_page' => 1
+                'data'           => $data,
+                'total'          => $data->count(),
+                'per_page'       => $data->count(),
+                'current_page'   => 1,
+                'last_page'      => 1
             ]);
         }
 
@@ -75,59 +75,6 @@ class EmployeeController extends Controller
 
         return response()->json($paginated);
     }
-
-    // public function fetchEmployeeWithEmploymentTypeAndDesignation(Request $request)
-    // {
-    //     $page = $request->get('page', 0);
-    //     $perPage = $request->get('per_page', 0);
-    //     $search = $request->query('search', '');
-
-    //     // ✅ The main change is here: Eager load all necessary nested relationships.
-    //     $query = Employee::with([
-    //         'userDesignation',
-    //         'employmentType',           // The employee's employment type
-    //         'branchEmployee.branch',    // The employee's branch assignment AND the branch details
-    //         'warehouseEmployee.warehouse' // The employee's warehouse assignment AND the warehouse details
-    //     ])
-    //     ->where('position', '!=', 'super admin')
-    //     ->orderBy('created_at', 'desc'); // It's good practice to have a default order
-
-    //     if (!empty($search)) {
-    //         $query->where(function ($q) use ($search) {
-    //             $q->where('firstname', 'like', "%$search%")
-    //             ->orWhere('lastname', 'like', "%$search%");
-
-    //             // You can even make the search more powerful by searching the designation name!
-    //             // Note: This requires a more advanced query using whereHas.
-    //             // Example below for future reference.
-    //             /*
-    //             $q->orWhereHas('branchEmployee.branch', function ($branchQuery) use ($search) {
-    //                 $branchQuery->where('name', 'like', "%$search%");
-    //             })->orWhereHas('warehouseEmployee.warehouse', function ($warehouseQuery) use ($search) {
-    //                 $warehouseQuery->where('name', 'like', "%$search%");
-    //             });
-    //             */
-    //         });
-    //     }
-
-    //     if ($perPage == 0) {
-    //         $data = $query->get();
-    //         // The 'designation_name' and 'designation_type' attributes from your Employee model
-    //         // will be automatically added to the JSON response because of the $appends property.
-    //         return response()->json([
-    //             'data' => $data,
-    //             'total' => $data->count(),
-    //             'per_page' => $data->count(),
-    //             'current_page' => 1,
-    //             'last_page' => 1
-    //         ]);
-    //     }
-
-    //     // The paginate method will execute the query with the eager loading.
-    //     $paginated = $query->paginate($perPage, ['*'], 'page', $page);
-
-    //     return response()->json($paginated);
-    // }
 
     public function fetchEmployeeWithEmploymentTypeAndDesignation(Request $request)
     {
@@ -153,36 +100,12 @@ class EmployeeController extends Controller
         $data = $query->get();
 
         return response()->json([
-            'data' => $data,
-            'total' => $data->count(),
+            'data'   => $data,
+            'total'  => $data->count(),
         ]);
     }
     public function fetchCertianEmployeeWithEmploymentTypeAndDesignation($id)
     {
-
-        // $query = Employee::with([
-        //     'userDesignation',
-        //     'employmentType',
-        //     'branchEmployee.branch',
-        //     'warehouseEmployee.warehouse'
-        // ])
-        // ->where('position', '!=', 'super admin')
-        // ->orderBy('created_at', 'desc');
-
-        // if (!empty($search)) {
-        //     $query->where(function ($q) use ($search) {
-        //         $q->where('firstname', 'like', "%$search%")
-        //         ->orWhere('lastname', 'like', "%$search%");
-        //     });
-        // }
-
-        // // Fetch all employees (no pagination)
-        // $data = $query->get();
-
-        // return response()->json([
-        //     'data' => $data,
-        //     'total' => $data->count(),
-        // ]);
          try {
             // Use findOrFail to get the model or automatically throw a 404 exception.
             // We chain the 'with' and 'where' clauses before the final find.
@@ -356,16 +279,16 @@ class EmployeeController extends Controller
     public function store(Request $request)
     {
         $validateEmployee = $request->validate([
-            'employment_type_id' => 'required|integer',
-            'firstname' => 'required|string|max:255',
-            'middlename' => 'required|string|max:255',
-            'lastname' =>  'required|string|max:255',
-            'birthdate' => 'required|date',
-            'phone' => 'required|string|max:25',
-            'address' => 'required|string|max:255',
-            'sex' => 'required|string|in:Male,Female',
-            'position' =>  'required|string|max:255',
-            'status' =>  'required|string|max:25',
+            'employment_type_id'     => 'required|integer',
+            'firstname'              => 'required|string|max:255',
+            'middlename'             => 'required|string|max:255',
+            'lastname'               =>  'required|string|max:255',
+            'birthdate'              => 'required|date',
+            'phone'                  => 'required|string|max:25',
+            'address'                => 'required|string|max:255',
+            'sex'                    => 'required|string|in:Male,Female',
+            'position'               =>  'required|string|max:255',
+            'status'                 =>  'required|string|max:25',
         ]);
 
         // Create the employee
@@ -377,17 +300,17 @@ class EmployeeController extends Controller
             ->first();
 
         return response()->json([
-            'message' => 'Employee successfully created',
-            'employee' => $employee,
+            'message'    => 'Employee successfully created',
+            'employee'   => $employee,
         ], 201);
     }
 
     public function updateEmployeeFullname(Request $request, $id)
     {
         $validateEmployee = $request->validate([
-            'firstname' => 'required|string',
-            'middlename' => 'required|string',
-            'lastname' => 'required|string',
+            'firstname'      => 'required|string',
+            'middlename'     => 'required|string',
+            'lastname'       => 'required|string',
         ]);
         $employee = Employee::findOrFail($id);
         $employee->firstname = $validateEmployee['firstname'];
@@ -400,8 +323,8 @@ class EmployeeController extends Controller
 
 
         return response()->json([
-            'message' => 'Employee fullname updated successfully',
-            'employee' => $employee
+            'message'        => 'Employee fullname updated successfully',
+            'employee'       => $employee
         ], 200);
     }
 
@@ -420,8 +343,8 @@ class EmployeeController extends Controller
 
 
         return response()->json([
-            'message' => 'Employee fullname updated successfully',
-            'employee' => $employee
+            'message'    => 'Employee fullname updated successfully',
+            'employee'   => $employee
         ], 200);
     }
     public function updateEmployeeAddress(Request $request, $id)
@@ -439,8 +362,8 @@ class EmployeeController extends Controller
 
 
         return response()->json([
-            'message' => 'Employee fullname updated successfully',
-            'employee' => $employee
+            'message'    => 'Employee fullname updated successfully',
+            'employee'   => $employee
         ], 200);
     }
     public function updateEmployeeBirthdate(Request $request, $id)
@@ -458,8 +381,8 @@ class EmployeeController extends Controller
 
 
         return response()->json([
-            'message' => 'Employee fullname updated successfully',
-            'employee' => $employee
+            'message'    => 'Employee fullname updated successfully',
+            'employee'   => $employee
         ], 200);
     }
     public function updateEmployeePhone(Request $request, $id)
@@ -477,16 +400,16 @@ class EmployeeController extends Controller
 
 
         return response()->json([
-            'message' => 'Employee fullname updated successfully',
-            'employee' => $employee
+            'message'    => 'Employee fullname updated successfully',
+            'employee'   => $employee
         ], 200);
     }
 
     public function updateEmployeeDesignation(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'designation_id' => 'required|integer',
-            'designation_type' => 'required',
+            'designation_id'     => 'required|integer',
+            'designation_type'   => 'required',
         ]);
 
         $employeeType = $validatedData['designation_type'];
@@ -519,8 +442,8 @@ class EmployeeController extends Controller
     public function updateEmployeeTimeIn(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'designation_type' => 'required|string|in:branch,warehouse',
-            'time_in' => 'required|string|max:10',
+            'designation_type'   => 'required|string|in:branch,warehouse',
+            'time_in'            => 'required|string|max:10',
         ]);
 
         $employee = null;
@@ -540,8 +463,8 @@ class EmployeeController extends Controller
                 $employee->save();
 
                return response()->json([
-                    'message' => 'Employee time-in updated successfully.',
-                    'employee' => $employee
+                    'message'    => 'Employee time-in updated successfully.',
+                    'employee'   => $employee
                ]);
             }
         } catch (ModelNotFoundException $e) {
@@ -558,8 +481,8 @@ class EmployeeController extends Controller
     public function updateEmployeeTimeOut(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'designation_type' => 'required|string|in:branch,warehouse',
-            'time_out' => 'required|string|max:10',
+            'designation_type'   => 'required|string|in:branch,warehouse',
+            'time_out'           => 'required|string|max:10',
         ]);
 
         $employee = null;
@@ -579,8 +502,8 @@ class EmployeeController extends Controller
                 $employee->save();
 
                return response()->json([
-                    'message' => 'Employee time-out updated successfully.',
-                    'employee' => $employee
+                    'message'    => 'Employee time-out updated successfully.',
+                    'employee'   => $employee
                ]);
             }
         } catch (ModelNotFoundException $e) {

@@ -81,20 +81,20 @@ class WarehouseController extends Controller
     // Group reports by branch_id and ensure it's a collection
     $groupedReports = $reports->groupBy('branch_id')->map(function ($reports, $branchId) {
         return collect([
-            'branch_id' => $branchId,
-            'branch_name' => $reports->first()->branch->name, // Assuming `name` exists
-            'reports' => $reports->map(function ($report) {
+            'branch_id'      => $branchId,
+            'branch_name'    => $reports->first()->branch->name, // Assuming `name` exists
+            'reports'        => $reports->map(function ($report) {
                 return [
-                    'id' => $report->id,
-                    'report_date' => $report->created_at,
-                    'raw_material' => [
-                        'id' => $report->ingredients_id,
-                        'name' => $report->ingredients->name,
-                        'code' => $report->ingredients->code,
-                        'unit' => $report->ingredients->unit,
-                        'category' => $report->ingredients->category,
+                    'id'             => $report->id,
+                    'report_date'    => $report->created_at,
+                    'raw_material'   => [
+                        'id'                => $report->ingredients_id,
+                        'name'              => $report->ingredients->name,
+                        'code'              => $report->ingredients->code,
+                        'unit'              => $report->ingredients->unit,
+                        'category'          => $report->ingredients->category,
                     ],
-                    'quantity' => $report->total_quantity,
+                    'quantity'       => $report->total_quantity,
                 ];
             })->values(), // Ensure it's a collection
         ]);
@@ -103,9 +103,9 @@ class WarehouseController extends Controller
     // Ensure all branches are included, even those without reports
     $finalResult = $branches->map(function ($branch) use ($groupedReports) {
         return [
-            'branch_id' => $branch->id,
-            'branch_name' => $branch->name,
-            'reports' => $groupedReports->get($branch->id, collect(['reports' => collect()]))['reports'], // Always return a collection
+            'branch_id'      => $branch->id,
+            'branch_name'    => $branch->name,
+            'reports'        => $groupedReports->get($branch->id, collect(['reports' => collect()]))['reports'], // Always return a collection
         ];
     });
 
@@ -177,11 +177,11 @@ class WarehouseController extends Controller
     public function store(Request $request)
     {
         $validateData = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'name' => 'required|unique:warehouses',
-            'location' => 'required',
-            'phone' => 'required',
-            'status' => 'required',
+            'employee_id'    => 'required|exists:employees,id',
+            'name'           => 'required|unique:warehouses',
+            'location'       => 'required',
+            'phone'          => 'required',
+            'status'         => 'required',
         ]);
         // ||unique:warehouses
 
@@ -195,19 +195,19 @@ class WarehouseController extends Controller
         }
 
         $warehouse = Warehouse::create([
-            'employee_id' => $validateData['employee_id'],
-            'name' => $validateData['name'],
-            'location' => $validateData['location'],
-            'phone' => $validateData['phone'],
-            'status' => $validateData['status'],
+            'employee_id'    => $validateData['employee_id'],
+            'name'           => $validateData['name'],
+            'location'       => $validateData['location'],
+            'phone'          => $validateData['phone'],
+            'status'         => $validateData['status'],
 
         ]);
 
         $warehouseResponseData = $warehouse->fresh()->load('employees');
 
         return response()->json([
-            'message' => 'Warehouse saved successfully',
-            'warehouse' => $warehouseResponseData
+            'message'    => 'Warehouse saved successfully',
+            'warehouse'  => $warehouseResponseData
         ], 201);
     }
 
@@ -221,11 +221,11 @@ class WarehouseController extends Controller
             ], 404);
         }
         $validatedData = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'name' => 'required|unique:warehouses',
-            'location' => 'required',
-            'phone' => 'required',
-            'status' => 'required',
+            'employee_id'    => 'required|exists:employees,id',
+            'name'           => 'required|unique:warehouses',
+            'location'       => 'required',
+            'phone'          => 'required',
+            'status'         => 'required',
         ]);
         $warehouse->update($validatedData);
         $updated_warehouse = $warehouse->fresh()->load('employees');

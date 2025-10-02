@@ -29,11 +29,11 @@ class CashAdvanceController extends Controller
         if ($perPage == 0) {
             $data = $query->get();
             return response()->json([
-                'data' => $data,
-                'total' => $data->count(),
-                'per_page' => $data->count(),
-                'current_page' => 1,
-                'last_page' => 1
+                'data'           => $data,
+                'total'          => $data->count(),
+                'per_page'       => $data->count(),
+                'current_page'   => 1,
+                'last_page'      => 1
             ]);
         }
 
@@ -83,39 +83,39 @@ class CashAdvanceController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'amount' => 'required|numeric',
-            'number_of_payments' => 'required|integer',
-            'payment_per_payroll' => 'required|numeric',
-            'remaining_payments' => 'required|numeric',
-            'reason' => 'required|string'
+            'employee_id'            => 'required|exists:employees,id',
+            'amount'                 => 'required|numeric',
+            'number_of_payments'     => 'required|integer',
+            'payment_per_payroll'    => 'required|numeric',
+            'remaining_payments'     => 'required|numeric',
+            'reason'                 => 'required|string'
         ]);
 
         $cashAdvance = CashAdvance::create($validatedData)->load('employee');
 
         return response()->json([
-            'data' => [$cashAdvance],
-            'total' => 1,
-            'per_page' => 1,
-            'curren_page' => 1,
-            'last_page' => 1
+            'data'           => [$cashAdvance],
+            'total'          => 1,
+            'per_page'       => 1,
+            'curren_page'    => 1,
+            'last_page'      => 1
         ], 201);
     }
 
     public function updateCashAdvanceAmount(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'amount' => 'required|numeric'
+            'amount'     => 'required|numeric'
         ]);
 
         $cashAdvance = CashAdvance::find($id);
 
         if (!$cashAdvance) {
-            return response()->json(['error' => 'Employee cash advance not found.'], 404);
+            return response()->json(['error'     => 'Employee cash advance not found.'], 404);
         }
 
         $cashAdvance->update([
-            'amount' => $validatedData['amount']
+            'amount'     => $validatedData['amount']
         ]);
         return response()->json($cashAdvance, 200);
     }
@@ -123,17 +123,17 @@ class CashAdvanceController extends Controller
     public function updateCashAdvanceReason(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'reason' => 'required|string|max:255'
+            'reason'     => 'required|string|max:255'
         ]);
 
         $cashAdvance = CashAdvance::find($id);
 
         if (!$cashAdvance) {
-            return response()->json(['error' => 'Employee cash advance not found.'], 404);
+            return response()->json(['error'     => 'Employee cash advance not found.'], 404);
         }
 
         $cashAdvance->update([
-            'reason' => $validatedData['reason']
+            'reason'     => $validatedData['reason']
         ]);
         return response()->json($cashAdvance, 200);
     }

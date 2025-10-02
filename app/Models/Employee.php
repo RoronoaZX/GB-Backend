@@ -22,17 +22,6 @@ class Employee extends Model
         'status'
     ];
 
-     /**
-     * The attributes that should be hidden for serialization.
-     * This will remove 'branchEmployee' and 'warehouseEmployee' from the final JSON.
-     *
-     * @var array<int, string>
-     */
-    // protected $hidden = [
-    //     'branchEmployee',
-    //     'warehouseEmployee',
-    // ];
-
    /**
      * The accessors to append to the model's array form.
      * We now only need to append our new unified 'designation' attribute.

@@ -41,29 +41,29 @@ class EmployeeCreditsController extends Controller
 
             // Build response
             $response = [
-                'employee_id' => $employee_id,
-                'employee_name' => optional($credits->first()?->creditUserId)->full_name ?? 'N/A',
-                'total_credits' => $credits->sum('total_amount'),
-                'credit_records' => $credits->map(function ($credit) {
+                'employee_id'        => $employee_id,
+                'employee_name'      => optional($credits->first()?->creditUserId)->full_name ?? 'N/A',
+                'total_credits'      => $credits->sum('total_amount'),
+                'credit_records'     => $credits->map(function ($credit) {
                     return [
-                        'id' => $credit->id,
-                        'branch_id' => $credit->branch_id,
-                        'total_amount' => $credit->total_amount,
-                        'description' => $credit->description,
-                        'status' => $credit->status,
-                        'sales_report_id' => $credit->sales_report_id,
-                        'created_at' => $credit->created_at->format('Y-m-d H:i:s'),
-                        'employee_id' => $credit->credit_user_id,
-                        'products' => $credit->creditProducts->map(function ($product) {
-                            return [
-                                'id' => $product->id,
-                                'product_id' => $product->product_id,
-                                'product_name' => optional($product->product)->name ?? 'N/A',
-                                'price' => $product->price,
-                                'pieces' => $product->pieces,
-                                'total_price' => $product->price * $product->pieces,
-                                'created_at' => $product->created_at->format('Y-m-d H:i:s')
-                            ];
+                        'id'                 => $credit->id,
+                        'branch_id'          => $credit->branch_id,
+                        'total_amount'       => $credit->total_amount,
+                        'description'        => $credit->description,
+                        'status'             => $credit->status,
+                        'sales_report_id'    => $credit->sales_report_id,
+                        'created_at'         => $credit->created_at->format('Y-m-d H:i:s'),
+                        'employee_id'        => $credit->credit_user_id,
+                        'products'           => $credit->creditProducts->map(function ($product) {
+                                return [
+                                    'id'                 => $product->id,
+                                    'product_id'         => $product->product_id,
+                                    'product_name'       => optional($product->product)->name ?? 'N/A',
+                                    'price'              => $product->price,
+                                    'pieces'             => $product->pieces,
+                                    'total_price'        => $product->price * $product->pieces,
+                                    'created_at'         => $product->created_at->format('Y-m-d H:i:s')
+                                ];
                         })
                     ];
                 }),
@@ -73,8 +73,8 @@ class EmployeeCreditsController extends Controller
 
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Failed to fetch employee credits',
-                'message' => $e->getMessage()
+                'error'      => 'Failed to fetch employee credits',
+                'message'    => $e->getMessage()
             ], 500);
         }
     }
@@ -153,52 +153,52 @@ class EmployeeCreditsController extends Controller
     public function saveCreditReport(Request $request)
     {
         $validatedData = $request->validate([
-            'sales_report_id' => 'required|integer|exists:sales_reports,id',
-            'user_id' => 'required|integer|exists:users,id',
-            'branch_id' => 'required|integer|exists:branches,id',
-            'credits' => 'required|array',
-            'credits.*.credit_user_id' => 'required|integer',
-            'credits.*.productName' => 'required|string|max:255',
-            'credits.*.product_id' => 'required|integer|exists:products,id',
-            'credits.*.price' => 'required|numeric|min:0',
-            'credits.*.pieces' => 'required|integer|min:1',
-            'credits.*.totalAmount' => 'required|numeric|min:0',
+            'sales_report_id'            => 'required|integer|exists:sales_reports,id',
+            'user_id'                    => 'required|integer|exists:users,id',
+            'branch_id'                  => 'required|integer|exists:branches,id',
+            'credits'                    => 'required|array',
+            'credits.*.credit_user_id'   => 'required|integer',
+            'credits.*.productName'      => 'required|string|max:255',
+            'credits.*.product_id'       => 'required|integer|exists:products,id',
+            'credits.*.price'            => 'required|numeric|min:0',
+            'credits.*.pieces'           => 'required|integer|min:1',
+            'credits.*.totalAmount'      => 'required|numeric|min:0',
         ]);
         try {
             DB::beginTransaction(); // Start transaction to ensure data consistency
 
             // Save EmployeeCredit record
             $employeeCredit = EmployeeCredits::create([
-                'sales_report_id' => $validatedData['sales_report_id'],
-                'user_id' => $validatedData['user_id'],
-                'branch_id' => $validatedData['branch_id'],
-                'credit_user_id' => $validatedData['credits'][0]['credit_user_id'],
-                'total_amount' => array_sum(array_column($validatedData['credits'], 'totalAmount')),
+                'sales_report_id'    => $validatedData['sales_report_id'],
+                'user_id'            => $validatedData['user_id'],
+                'branch_id'          => $validatedData['branch_id'],
+                'credit_user_id'     => $validatedData['credits'][0]['credit_user_id'],
+                'total_amount'       => array_sum(array_column($validatedData['credits'], 'totalAmount')),
             ]);
 
             // Insert EmployeeCreditsProducts records
             foreach ($validatedData['credits'] as $credit) {
                 EmployeeCreditProducts::create([
-                    'employee_credits_id' => $employeeCredit->id,
-                    'credit_user_id' => $credit['credit_user_id'],
-                    'product_id' => $credit['product_id'],
-                    'price' => $credit['price'],
-                    'pieces' => $credit['pieces'],
+                    'employee_credits_id'    => $employeeCredit->id,
+                    'credit_user_id'         => $credit['credit_user_id'],
+                    'product_id'             => $credit['product_id'],
+                    'price'                  => $credit['price'],
+                    'pieces'                 => $credit['pieces'],
                 ]);
             }
 
             DB::commit(); // Commit transaction
 
             return response()->json([
-                'message' => 'Employee credit report saved successfully.',
-                'employee_credits_id' => $employeeCredit->id
+                'message'                => 'Employee credit report saved successfully.',
+                'employee_credits_id'    => $employeeCredit->id
             ], 201);
 
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback transaction if an error occurs
             return response()->json([
-                'message' => 'Failed to save credit report.',
-                'error' => $e->getMessage()
+                'message'    => 'Failed to save credit report.',
+                'error'      => $e->getMessage()
             ], 500);
         }
 

@@ -58,26 +58,26 @@ class ExpencesReportController extends Controller
     public function updateExpensesReport(Request $request)
     {
         $validatedData = $request->validate([
-            'sales_report_id' => 'required|integer|exists:sales_reports,id',
-            'branch_id' => 'required|integer|exists:branches,id',
-            'user_id' => 'required|integer|exists:users,id',
-            'expenses' => 'required|array',
-            'expenses.*.name' => 'required|string|max:255',
-            'expenses.*.amount' => 'required|numeric|min:0',
-            'expenses.*.description' => 'nullable|string|max:500',
-            'expenses.*.category' => 'nullable|string|max:255',
+            'sales_report_id'            => 'required|integer|exists:sales_reports,id',
+            'branch_id'                  => 'required|integer|exists:branches,id',
+            'user_id'                    => 'required|integer|exists:users,id',
+            'expenses'                   => 'required|array',
+            'expenses.*.name'            => 'required|string|max:255',
+            'expenses.*.amount'          => 'required|numeric|min:0',
+            'expenses.*.description'     => 'nullable|string|max:500',
+            'expenses.*.category'        => 'nullable|string|max:255',
         ]);
 
         try {
             foreach ($validatedData['expenses'] as $expense) {
                 ExpencesReport::create([
-                    'sales_report_id' => $validatedData['sales_report_id'],
-                    'branch_id' => $validatedData['branch_id'],
-                    'user_id' => $validatedData['user_id'],
-                    'name' => $expense['name'],
-                    'amount' => $expense['amount'],
-                    'description' => $expense['description'] ?? null,
-                    'category' => $expense['category'] ?? null,
+                    'sales_report_id'    => $validatedData['sales_report_id'],
+                    'branch_id'          => $validatedData['branch_id'],
+                    'user_id'            => $validatedData['user_id'],
+                    'name'               => $expense['name'],
+                    'amount'             => $expense['amount'],
+                    'description'        => $expense['description'] ?? null,
+                    'category'           => $expense['category'] ?? null,
                 ]);
             }
 
@@ -86,8 +86,8 @@ class ExpencesReportController extends Controller
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Something went wrong!',
-                'details' => $e->getMessage(),
+                'error'      => 'Something went wrong!',
+                'details'    => $e->getMessage(),
             ], 500);
         }
     }

@@ -46,9 +46,9 @@ class WarehouseRawMaterialsReportController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'warehouse_id' => 'required|exists:warehouses,id',
-            'raw_material_id' => 'required',
-            'total_quantity' => 'required|numeric'
+            'warehouse_id'       => 'required|exists:warehouses,id',
+            'raw_material_id'    => 'required',
+            'total_quantity'     => 'required|numeric'
         ]);
 
         $existingWarehouseRawMaterials = WarehouseRawMaterialsReport::where('warehouse_id', $validatedData['warehouse_id'])->where('raw_material_id', $validatedData['raw_material_id'])->first();
@@ -60,14 +60,14 @@ class WarehouseRawMaterialsReportController extends Controller
         }
 
         $warehouseRawMaterials = WarehouseRawMaterialsReport::create([
-            'warehouse_id' => $validatedData['warehouse_id'],
-            'raw_material_id' =>  $validatedData['raw_material_id'],
-            'total_quantity' =>  $validatedData['total_quantity'],
+            'warehouse_id'       => $validatedData['warehouse_id'],
+            'raw_material_id'    =>  $validatedData['raw_material_id'],
+            'total_quantity'     =>  $validatedData['total_quantity'],
         ]);
 
         return response()->json([
-            'message' => "Warehouse Raw Materials saved successfully",
-            'data' => $warehouseRawMaterials
+            'message'    => "Warehouse Raw Materials saved successfully",
+            'data'       => $warehouseRawMaterials
         ], 201);
     }
 
@@ -82,8 +82,8 @@ class WarehouseRawMaterialsReportController extends Controller
         // Extract raw_material_id and warehouse_id from input data
         $rawMaterialWarehousePairs = collect($data)->map(function ($material) {
             return [
-                'raw_material_id' => $material['raw_material_id'],
-                'warehouse_id' => $material['warehouse_id']];
+                'raw_material_id'    => $material['raw_material_id'],
+                'warehouse_id'       => $material['warehouse_id']];
         });
 
         // Fetch existing records that match both raw_material_id and warehouse_id

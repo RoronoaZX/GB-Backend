@@ -30,19 +30,19 @@ class IncentivesBasesController extends Controller
     public function store(Request $request)
     {
         $validateData = $request->validate([
-            'number_of_employees' => 'required|numeric',
-            'target' => 'required|numeric',
-            'baker' => 'required|numeric',
-            'lamesador' => 'required|numeric',
-            'hornero' => 'required|numeric',
+            'number_of_employees'    => 'required|numeric',
+            'target'                 => 'required|numeric',
+            'baker'                  => 'required|numeric',
+            'lamesador'              => 'required|numeric',
+            'hornero'                => 'required|numeric',
         ]);
 
         $incentivesBases = [
-            'number_of_employees' => $validateData['number_of_employees'],
-            'target' => $validateData['target'],
-            'baker_multiplier' => $validateData['baker'],
-            'lamesador_multiplier' => $validateData['lamesador'],
-            'hornero_incentives' => $validateData['hornero'],
+            'number_of_employees'    => $validateData['number_of_employees'],
+            'target'                 => $validateData['target'],
+            'baker_multiplier'       => $validateData['baker'],
+            'lamesador_multiplier'   => $validateData['lamesador'],
+            'hornero_incentives'     => $validateData['hornero'],
         ];
 
         IncentivesBases::create($incentivesBases);
@@ -80,8 +80,8 @@ class IncentivesBasesController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Number of employees updated successfully. ',
-            'data' => $incentivesBases
+            'message'    => 'Number of employees updated successfully. ',
+            'data'       => $incentivesBases
         ], 200);
     }
 
@@ -126,8 +126,8 @@ class IncentivesBasesController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Target updated successfully.',
-            'data' => $incentiveBases
+            'message'    => 'Target updated successfully.',
+            'data'       => $incentiveBases
         ]);
     }
 
@@ -150,8 +150,8 @@ class IncentivesBasesController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Lamesador multiplier updated successfully.',
-            'data' => $incentiveBases
+            'message'    => 'Lamesador multiplier updated successfully.',
+            'data'       => $incentiveBases
         ]);
     }
 
@@ -174,8 +174,8 @@ class IncentivesBasesController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Hornero incentives updated successfully. ',
-            'data' => $incentiveBases
+            'message'    => 'Hornero incentives updated successfully. ',
+            'data'       => $incentiveBases
         ], 200);
     }
     /**

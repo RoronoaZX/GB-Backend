@@ -32,11 +32,11 @@ class EmployeeAllowanceController extends Controller
         if ($perPage == 0) {
             $data = $query->get();
             return response()->json([
-                'data' => $data,
-                'total' => $data->count(),
-                'per_page' => $data->count(),
-                'current_page' => 1,
-                'last_page' => 1
+                'data'           => $data,
+                'total'          => $data->count(),
+                'per_page'       => $data->count(),
+                'current_page'   => 1,
+                'last_page'      => 1
             ]);
         }
 
@@ -106,8 +106,8 @@ class EmployeeAllowanceController extends Controller
     public function store(Request $request)
     {
         $validateData = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'amount' => 'required|numeric'
+            'employee_id'    => 'required|exists:employees,id',
+            'amount'         => 'required|numeric'
         ]);
 
         $existingAllowance = EmployeeAllowance::where('employee_id', $validateData['employee_id'])->first();
@@ -119,11 +119,11 @@ class EmployeeAllowanceController extends Controller
         $employeeAllowance = EmployeeAllowance::create($validateData)->load('employee');
 
         return response()->json([
-            'data' => [$employeeAllowance],
-            'total' => 1,
-            'per_page' => 1,
-            'current_page' => 1,
-            'last_page' => 1,
+            'data'           => [$employeeAllowance],
+            'total'          => 1,
+            'per_page'       => 1,
+            'current_page'   => 1,
+            'last_page'      => 1,
         ], 201);
     }
 

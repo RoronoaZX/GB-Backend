@@ -211,14 +211,14 @@ class OtherStocksReportController extends Controller
 
             // Return success response
             return response()->json([
-                'message' => 'Report declined successfully.',
-                'report' => $otherStockReport,
+                'message'    => 'Report declined successfully.',
+                'report'     => $otherStockReport,
             ], 200);
         } catch (\Exception $e) {
             // Handle errors
             return response()->json([
-                'message' => 'Failed to decline report.',
-                'error' => $e->getMessage(),
+                'message'    => 'Failed to decline report.',
+                'error'      => $e->getMessage(),
             ], 500);
         }
     }
@@ -230,27 +230,27 @@ class OtherStocksReportController extends Controller
     public function store(Request $request)
     {
         $validateData = $request->validate([
-           'branches_id' => 'required|exists:branches,id', // Ensure branch exists
-            'employee_id' => 'required|exists:employees,id', // Ensure employee exists
-            'status' => 'required|string',
-            'products' => 'required|array',
-            'products.*.product_id' => 'required|exists:products,id', // Ensure product exists
-            'products.*.price' => 'required|numeric', // Must be a positive number
-            'products.*.added_stocks' => 'required|numeric|min:1', // Must be a positive number
+           'branches_id'                 => 'required|exists:branches,id', // Ensure branch exists
+            'employee_id'                => 'required|exists:employees,id', // Ensure employee exists
+            'status'                     => 'required|string',
+            'products'                   => 'required|array',
+            'products.*.product_id'      => 'required|exists:products,id', // Ensure product exists
+            'products.*.price'           => 'required|numeric', // Must be a positive number
+            'products.*.added_stocks'    => 'required|numeric|min:1', // Must be a positive number
         ]);
 
         $otherStockReport = OtherStocksReport::create([
-            'branches_id' => $validateData['branches_id'],
-            'employee_id' => $validateData['employee_id'],
-            'status' => $validateData['status'],
+            'branches_id'    => $validateData['branches_id'],
+            'employee_id'    => $validateData['employee_id'],
+            'status'         => $validateData['status'],
         ]);
 
         foreach ($validateData['products'] as $product) {
             OtherAddedStocks::create([
-                'other_stocks_report_id' => $otherStockReport->id,
-                'product_id' => $product['product_id'],
-                'price' => $product['price'],
-                'added_stocks' => $product['added_stocks'],
+                'other_stocks_report_id'     => $otherStockReport->id,
+                'product_id'                 => $product['product_id'],
+                'price'                      => $product['price'],
+                'added_stocks'               => $product['added_stocks'],
             ]);
         }
     }

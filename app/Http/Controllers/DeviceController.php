@@ -38,19 +38,19 @@ class DeviceController extends Controller
     public function store(Request $request)
     {
         $validateData = $request->validate([
-            'reference_id' => 'required',
-            'uuid' => "required|unique:devices",
-            'name' => "required|string|max:255",
-            'model' => "required|string|max:255",
-            'os_version' => "required|string|max:255",
-            'designation' => "required|string|max:255"
+            'reference_id'   => 'required',
+            'uuid'           => "required|unique:devices",
+            'name'           => "required|string|max:255",
+            'model'          => "required|string|max:255",
+            'os_version'     => "required|string|max:255",
+            'designation'    => "required|string|max:255"
         ]);
 
         $device = Device::create($validateData);
 
         return response()->json([
-            'message' => 'Device successfully created',
-            'device' => $device,
+            'message'    => 'Device successfully created',
+            'device'     => $device,
         ], 201);
     }
 

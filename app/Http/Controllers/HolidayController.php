@@ -22,8 +22,8 @@ class HolidayController extends Controller
     {
         // 1. Validate the incoming request to ensure year and month are provided
         $validated = $request->validate([
-            'year' => 'required|integer|date_format:Y',
-            'month' => 'required|integer|min:1|max:12',
+            'year'   => 'required|integer|date_format:Y',
+            'month'  => 'required|integer|min:1|max:12',
         ]);
 
         // 2. Build the query using the validated year and month
@@ -50,9 +50,9 @@ class HolidayController extends Controller
         }
 
         $validateData = $request->validate([
-            'name' => 'required|string|max:255',
-            'date' => 'required|date|unique:holidays,date',
-            'type' => 'required|string|max:191'
+            'name'   => 'required|string|max:255',
+            'date'   => 'required|date|unique:holidays,date',
+            'type'   => 'required|string|max:191'
         ],[
             'date.unique' => 'This date is already marked as a holiday'
         ]);

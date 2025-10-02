@@ -41,11 +41,11 @@ class WarehouseStockReportsController extends Controller
 
         if ($perPage == 0) {
             return response()->json([
-                'data' => $warehouseStockReports,
-                'total' => count($warehouseStockReports),
-                'per_page' => count($warehouseStockReports),
-                'current_page' => 1,
-                'last_page' => 1
+                'data'           => $warehouseStockReports,
+                'total'          => count($warehouseStockReports),
+                'per_page'       => count($warehouseStockReports),
+                'current_page'   => 1,
+                'last_page'      => 1
             ]);
         } else {
 
@@ -65,28 +65,28 @@ class WarehouseStockReportsController extends Controller
     {
         // Validate the incoming request data
         $validatedData = $request->validate([
-            'warehouse_id' => 'required|integer|exists:warehouses,id',
-            'employee_id' => 'required|integer|exists:employees,id',
-            'supplier_company_name' => 'required|string|max:255',
-            'supplier_name' => 'required|string|max:255',
-            'raw_materials' => 'required|array',
-            'raw_materials.*.raw_material_id' => 'required|integer|exists:raw_materials,id',
-            'raw_materials.*.quantity' => 'required|integer|min:1',
+            'warehouse_id'                       => 'required|integer|exists:warehouses,id',
+            'employee_id'                        => 'required|integer|exists:employees,id',
+            'supplier_company_name'              => 'required|string|max:255',
+            'supplier_name'                      => 'required|string|max:255',
+            'raw_materials'                      => 'required|array',
+            'raw_materials.*.raw_material_id'    => 'required|integer|exists:raw_materials,id',
+            'raw_materials.*.quantity'           => 'required|integer|min:1',
         ]);
 
         // Create a warehouse stock report
         $warehouseStockReport = WarehouseStockReports::create([
-            'warehouse_id' => $validatedData['warehouse_id'],
-            'employee_id' => $validatedData['employee_id'],
-            'supplier_company_name' => $validatedData['supplier_company_name'],
-            'supplier_name' => $validatedData['supplier_name'],
+            'warehouse_id'           => $validatedData['warehouse_id'],
+            'employee_id'            => $validatedData['employee_id'],
+            'supplier_company_name'  => $validatedData['supplier_company_name'],
+            'supplier_name'          => $validatedData['supplier_name'],
         ]);
 
         // Add raw materials to the stock report
         foreach ($validatedData['raw_materials'] as $rawMaterial) {
             $warehouseStockReport->warehouseAddedStocks()->create([
-                'raw_material_id' => $rawMaterial['raw_material_id'],
-                'quantity' => $rawMaterial['quantity'],
+                'raw_material_id'    => $rawMaterial['raw_material_id'],
+                'quantity'           => $rawMaterial['quantity'],
             ]);
 
             $warehouseAddedStock = WarehouseRawMaterialsReport::where('warehouse_id', $validatedData['warehouse_id'])
@@ -100,8 +100,8 @@ class WarehouseStockReportsController extends Controller
 
         // Return a success response
         return response()->json([
-            'message' => 'Warehouse stock report created successfully.',
-            'data' => $warehouseStockReport->load('warehouseAddedStocks'),
+            'message'    => 'Warehouse stock report created successfully.',
+            'data'       => $warehouseStockReport->load('warehouseAddedStocks'),
         ], 201);
     }
 

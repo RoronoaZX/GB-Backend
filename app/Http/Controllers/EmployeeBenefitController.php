@@ -31,11 +31,11 @@ class EmployeeBenefitController extends Controller
         if ($perPage == 0) {
             $data = $query->get();
             return response()->json([
-            'data' => $data,
-            'total' => $data->count(),
-            'per_page' => $data->count(),
-            'current_page' => 1,
-            'last_page' => 1
+            'data'           => $data,
+            'total'          => $data->count(),
+            'per_page'       => $data->count(),
+            'current_page'   => 1,
+            'last_page'      => 1
 
             ]);
         }
@@ -88,13 +88,13 @@ class EmployeeBenefitController extends Controller
     public function store(Request $request)
     {
         $validateData = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'sss_number' => 'required|string',
-            'sss' => 'required|numeric',
-            'hdmf_number' => 'required|string',
-            'hdmf' => 'required|numeric',
-            'phic_number' => 'required|string',
-            'phic' => 'required|numeric'
+            'employee_id'    => 'required|exists:employees,id',
+            'sss_number'     => 'required|string',
+            'sss'            => 'required|numeric',
+            'hdmf_number'    => 'required|string',
+            'hdmf'           => 'required|numeric',
+            'phic_number'    => 'required|string',
+            'phic'           => 'required|numeric'
         ]);
 
         $existingBenefits = EmployeeBenefit::where('employee_id', $validateData['employee_id'])->first();
@@ -107,11 +107,11 @@ class EmployeeBenefitController extends Controller
 
         // Match the same format as index
         return response()->json([
-            'data' => [$benefit],
-            'total' => 1,
-            'per_page' => 1,
-            'current_page' => 1,
-            'last_page' => 1
+            'data'           => [$benefit],
+            'total'          => 1,
+            'per_page'       => 1,
+            'current_page'   => 1,
+            'last_page'      => 1
         ], 201);
     }
 

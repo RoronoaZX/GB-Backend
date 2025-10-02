@@ -28,11 +28,6 @@ class BreadProductionReport extends Model
         return $this->belongsTo(User::class);
     }
 
-    // public function recipe()
-    // {
-    //     return $this->belongsTo(Recipe::class);
-    // }
-
     public function branchRecipe()
     {
         return $this->belongsTo(BranchRecipe::class)->with('recipe');

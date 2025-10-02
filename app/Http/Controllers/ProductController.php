@@ -34,13 +34,13 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'name' => 'required|string|unique:products',
-            'category' => 'required|string',
+            'name'       => 'required|string|unique:products',
+            'category'   => 'required|string',
         ]);
 
         $product = Product::create([
-            'name' => $validatedData['name'],
-            'category' => $validatedData['category']
+            'name'       => $validatedData['name'],
+            'category'   => $validatedData['category']
         ]);
 
         $productResponseData =  $product->fresh();
@@ -83,8 +83,8 @@ class ProductController extends Controller
        }
 
        $validatedData = $request->validate([
-        'name' => 'required|string|unique:products',
-        'category' => 'required|string',
+        'name'       => 'required|string|unique:products',
+        'category'   => 'required|string',
          ]);
 
 

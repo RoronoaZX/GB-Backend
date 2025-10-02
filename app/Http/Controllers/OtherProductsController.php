@@ -79,19 +79,19 @@ class OtherProductsController extends Controller
     public function addingOtherProduction(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'branch_id' => 'required|exists:branches,id',
-            'sales_report_id' => 'required|exists:sales_reports,id',
-            'product_id' => 'required|exists:products,id',
-            'product_name' => 'required|string',
-            'price' => 'required|numeric',
-            'beginnings' => 'numeric',
-            'remaining' => 'numeric',
-            'added_stocks' => 'numeric',
-            'out' => 'numeric',
-            'sold' => 'numeric',
-            'total' => 'numeric',
-            'sales' => 'numeric',
+            'user_id'            => 'required|exists:users,id',
+            'branch_id'          => 'required|exists:branches,id',
+            'sales_report_id'    => 'required|exists:sales_reports,id',
+            'product_id'         => 'required|exists:products,id',
+            'product_name'       => 'required|string',
+            'price'              => 'required|numeric',
+            'beginnings'         => 'numeric',
+            'remaining'          => 'numeric',
+            'added_stocks'       => 'numeric',
+            'out'                => 'numeric',
+            'sold'               => 'numeric',
+            'total'              => 'numeric',
+            'sales'              => 'numeric',
         ]);
 
         $selectaSalesReport = OtherProducts::create($validated);

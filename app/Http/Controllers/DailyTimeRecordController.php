@@ -76,26 +76,26 @@ class DailyTimeRecordController extends Controller
     public function saveEmployeeDtr(Request $request)
     {
         $request->validate([
-            'device_uuid_in' => 'nullable|string',
-            'device_uuid_out' => 'nullable|string',
-            'employee_id' => 'required|exists:employees,id',
-            'employee_allowance' => 'nullable|numeric',
-            'time_in' => 'required|string',
-            'time_out' => 'required|string',
-            'lunch_break_start' => 'nullable|string',
-            'lunch_break_end' => 'nullable|string',
-            'break_start' => 'nullable|string',
-            'break_end' => 'nullable|string',
-            'overtime_start' => 'nullable|string',
-            'overtime_end' => 'nullable|string',
-            'overtime_reason' => 'nullable|string',
-            'ot_status' => 'nullable|string',
-            'approved_by' => 'nullable|exists:employees,id',
-            'declined_reason' => 'nullable|string',
-            'half_day_reason' => 'nullable|string',
-            'shift_status' => 'nullable|string',
-            'schedule_in' => 'nullable|string',
-            'schedule_out' => 'nullable|string',
+            'device_uuid_in'         => 'nullable|string',
+            'device_uuid_out'        => 'nullable|string',
+            'employee_id'            => 'required|exists:employees,id',
+            'employee_allowance'     => 'nullable|numeric',
+            'time_in'                => 'required|string',
+            'time_out'               => 'required|string',
+            'lunch_break_start'      => 'nullable|string',
+            'lunch_break_end'        => 'nullable|string',
+            'break_start'            => 'nullable|string',
+            'break_end'              => 'nullable|string',
+            'overtime_start'         => 'nullable|string',
+            'overtime_end'           => 'nullable|string',
+            'overtime_reason'        => 'nullable|string',
+            'ot_status'              => 'nullable|string',
+            'approved_by'            => 'nullable|exists:employees,id',
+            'declined_reason'        => 'nullable|string',
+            'half_day_reason'        => 'nullable|string',
+            'shift_status'           => 'nullable|string',
+            'schedule_in'            => 'nullable|string',
+            'schedule_out'           => 'nullable|string',
         ]);
 
         // Fields that needed to be converted
@@ -136,8 +136,8 @@ class DailyTimeRecordController extends Controller
         $dtr = DailyTimeRecord::create($data);
 
         return response()->json([
-            'message' => 'Employee DTR saved successfully!',
-            'data' => $dtr
+            'message'    => 'Employee DTR saved successfully!',
+            'data'       => $dtr
         ]);
     }
 
@@ -163,16 +163,16 @@ class DailyTimeRecordController extends Controller
             $result = $warehouses->merge($branches);
 
         return response()->json([
-            'status' => 'success',
-            'data' => $result // reindex the array
+            'status'     => 'success',
+            'data'       => $result // reindex the array
         ]);
     }
 
     public function updateDTRWhereIN(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'device_uuid_in' => 'required|string',
+            'id'                 => 'required|exists:daily_time_records,id',
+            'device_uuid_in'     => 'required|string',
         ]);
 
         $dtr = DailyTimeRecord::find($request->id);
@@ -180,16 +180,16 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'status' => 'success',
-            'data' => $dtr
+            'status'     => 'success',
+            'data'       => $dtr
         ]);
     }
 
     public function updateDTRWhereOUT(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'device_uuid_out' => 'required|string',
+            'id'                 => 'required|exists:daily_time_records,id',
+            'device_uuid_out'    => 'required|string',
         ]);
 
         $dtr = DailyTimeRecord::find($request->id);
@@ -197,16 +197,16 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'status' => 'success',
-            'data' => $dtr
+            'status'     => 'success',
+            'data'       => $dtr
         ]);
     }
 
     public function updateDTRShiftStatus(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'shift_status' => 'required|string',
+            'id'             => 'required|exists:daily_time_records,id',
+            'shift_status'   => 'required|string',
         ]);
 
         $dtr = DailyTimeRecord::find($request->id);
@@ -214,16 +214,16 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'status' => 'success',
-            'data' => $dtr
+            'status'     => 'success',
+            'data'       => $dtr
         ]);
     }
 
     public function updateDTRDateIN(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'time_in' => 'required|string',
+            'id'         => 'required|exists:daily_time_records,id',
+            'time_in'    => 'required|string',
         ]);
 
         // Parse as Manila time
@@ -241,20 +241,20 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'status' => 'success',
+            'status'     => 'success',
             // Send back in Manila time for UI
-            'data' => [
-                'id' => $dtr->id,
-                'time_in' => $dtr->time_in->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
-            ]
+            'data'       => [
+                            'id' => $dtr->id,
+                            'time_in' => $dtr->time_in->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                        ]
         ]);
     }
 
     public function updateDTRTimeIN(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'time_in' => 'required|string',
+            'id'         => 'required|exists:daily_time_records,id',
+            'time_in'    => 'required|string',
         ]);
 
         // Parse as Manila time
@@ -272,20 +272,20 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'status' => 'success',
+            'status'     => 'success',
             // Send back in Manila time for UI
-            'data' => [
-                'id' => $dtr->id,
-                'time_in' => $dtr->time_in->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
-            ]
+            'data'       => [
+                            'id' => $dtr->id,
+                            'time_in' => $dtr->time_in->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                        ]
         ]);
     }
 
     public function updateDTROUT(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'time_out' => 'required|string',
+            'id'         => 'required|exists:daily_time_records,id',
+            'time_out'   => 'required|string',
         ]);
 
         // Parse as Manila time
@@ -303,20 +303,20 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'status' => 'success',
+            'status'     => 'success',
             // Send back in Manila time for UI
-            'data' => [
-                'id' => $dtr->id,
-                'time_out' => $dtr->time_out->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
-            ]
+            'data'       => [
+                            'id' => $dtr->id,
+                            'time_out' => $dtr->time_out->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                        ]
             ]);
     }
 
     public function updateDTRTimeOUT(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'time_out' => 'required|string',
+            'id'             => 'required|exists:daily_time_records,id',
+            'time_out'       => 'required|string',
         ]);
 
         // Parse as Manila time
@@ -334,20 +334,20 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'status' => 'success',
+            'status'     => 'success',
             // Send back in Manila time for UI
-            'data' => [
-                'id' => $dtr->id,
-                'time_in' => $dtr->time_out->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
-            ]
+            'data'       => [
+                        'id' => $dtr->id,
+                        'time_in' => $dtr->time_out->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                    ]
         ]);
     }
 
     public function updateDTRLunchBreakStart(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'lunch_break_start' => 'required|string',
+            'id'                     => 'required|exists:daily_time_records,id',
+            'lunch_break_start'      => 'required|string',
         ]);
 
         // Parse as Manila time
@@ -365,20 +365,20 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'status' => 'success',
+            'status'         => 'success',
             // Send back in Manila time for UI
-            'data' => [
-                'id' => $dtr->id,
-                'lunch_break_start' => $dtr->lunch_break_start->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
-            ]
+            'data'           => [
+                                'id' => $dtr->id,
+                                'lunch_break_start' => $dtr->lunch_break_start->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                            ]
             ]);
     }
 
     public function updateDTRLunchBreakEnd(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'lunch_break_end' => 'required|string',
+            'id'                     => 'required|exists:daily_time_records,id',
+            'lunch_break_end'        => 'required|string',
         ]);
 
         // Parse as Manila time
@@ -396,20 +396,20 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'status' => 'success',
+            'status'             => 'success',
             // Send back in Manila time for UI
-            'data' => [
-                'id' => $dtr->id,
-                'lunch_break_end' => $dtr->lunch_break_end->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
-            ]
+            'data'               => [
+                                    'id' => $dtr->id,
+                                    'lunch_break_end' => $dtr->lunch_break_end->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                                ]
             ]);
     }
 
     public function updateDTRBreakStart(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'break_start' => 'required|string',
+            'id'                 => 'required|exists:daily_time_records,id',
+            'break_start'        => 'required|string',
         ]);
 
         // Parse as Manila time
@@ -427,12 +427,12 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'status' => 'success',
+            'status'             => 'success',
             // Send back in Manila time for UI
-            'data' => [
-                'id' => $dtr->id,
-                'break_start' => $dtr->break_start->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
-            ]
+            'data'               => [
+                                    'id' => $dtr->id,
+                                    'break_start' => $dtr->break_start->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                                ]
             ]);
 
     }
@@ -440,8 +440,8 @@ class DailyTimeRecordController extends Controller
     public function updateDTRBreakEnd(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'break_end' => 'required|string',
+            'id'                 => 'required|exists:daily_time_records,id',
+            'break_end'          => 'required|string',
         ]);
 
         // Parse as Manila time
@@ -459,20 +459,20 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'status' => 'success',
+            'status'             => 'success',
             // Send back in Manila time for UI
-            'data' => [
-                'id' => $dtr->id,
-                'break_end' => $dtr->break_end->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
-            ]
+            'data'               => [
+                                    'id' => $dtr->id,
+                                    'break_end' => $dtr->break_end->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                                ]
             ]);
     }
 
     public function updatedDTROvertimeStart(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'overtime_start' => 'required|string',
+            'id'                     => 'required|exists:daily_time_records,id',
+            'overtime_start'         => 'required|string',
         ]);
 
         // Parse as Manila time
@@ -490,20 +490,20 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'status' => 'success',
+            'status'                 => 'success',
             // Send back in Manila time for UI
-            'data' => [
-                'id' => $dtr->id,
-                'overtime_start' => $dtr->overtime_start->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
-            ]
+            'data'                   => [
+                                        'id' => $dtr->id,
+                                        'overtime_start' => $dtr->overtime_start->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                                    ]
             ]);
     }
 
     public function updatedDTROvertimeEnd(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'overtime_end' => 'required|string',
+            'id'                 => 'required|exists:daily_time_records,id',
+            'overtime_end'       => 'required|string',
         ]);
 
         // Parse as Manila time
@@ -521,20 +521,20 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'status' => 'success',
+            'status'         => 'success',
             // Send back in Manila time for UI
-            'data' => [
-                'id' => $dtr->id,
-                'overtime_end' => $dtr->overtime_end->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
-            ]
+            'data'           => [
+                                'id' => $dtr->id,
+                                'overtime_end' => $dtr->overtime_end->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                            ]
             ]);
     }
 
     public function updateDTROvertimeReasons(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'overtime_reason' => 'required|string',
+            'id'                     => 'required|exists:daily_time_records,id',
+            'overtime_reason'        => 'required|string',
         ]);
 
         $dtr = DailyTimeRecord::find($request->id);
@@ -542,20 +542,20 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'status' => 'success',
+            'status'                 => 'success',
             // Send back in Manila time for UI
-            'data' => [
-                'id' => $dtr->id,
-                'overtime_reason' => $dtr->overtime_reason
-            ]
+            'data'                   => [
+                                        'id' => $dtr->id,
+                                        'overtime_reason' => $dtr->overtime_reason
+                                    ]
             ]);
     }
 
     public function updatedDTROvertimeDeclineReasons(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'declined_reason' => 'required|string',
+            'id'                         => 'required|exists:daily_time_records,id',
+            'declined_reason'            => 'required|string',
         ]);
 
         $dtr = DailyTimeRecord::find($request->id);
@@ -563,20 +563,20 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'status' => 'success',
+            'status'                     => 'success',
             // Send back in Manila time for UI
-            'data' => [
-                'id' => $dtr->id,
-                'declined_reason' => $dtr->declined_reason
-            ]
+            'data'                       => [
+                                            'id' => $dtr->id,
+                                            'declined_reason' => $dtr->declined_reason
+                                        ]
             ]);
     }
 
     public function updateDTROTStatus(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'ot_status' => 'required|string',
+            'id'             => 'required|exists:daily_time_records,id',
+            'ot_status'      => 'required|string',
         ]);
 
         $dtr = DailyTimeRecord::find($request->id);
@@ -584,20 +584,20 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'status' => 'success',
+            'status'         => 'success',
             // Send back in Manila time for UI
-            'data' => [
-                'id' => $dtr->id,
-                'ot_status' => $dtr->ot_status
-            ]
+            'data'           => [
+                                'id' => $dtr->id,
+                                'ot_status' => $dtr->ot_status
+                            ]
             ]);
     }
 
     public function updateDTROTApprovedBy(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'approved_by' => 'required|exists:employees,id',
+            'id'                 => 'required|exists:daily_time_records,id',
+            'approved_by'        => 'required|exists:employees,id',
         ]);
 
         $dtr = DailyTimeRecord::find($request->id);
@@ -605,40 +605,40 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'status' => 'success',
+            'status'             => 'success',
             // Send back in Manila time for UI
-            'data' => [
-                'id' => $dtr->id,
-                'approved_by' => $dtr->approved_by
-            ]
+            'data'               => [
+                                    'id' => $dtr->id,
+                                    'approved_by' => $dtr->approved_by
+                                ]
             ]);
     }
 
     protected function formatDTR($record)
     {
         return [
-            'id' => $record->id,
-            'employee' => $record->employee,
-            'time_in' => Carbon::parse($record->time_in)->timezone('Asia/Manila')->format('M. d, Y, g:i A'),
-            'time_out' => $record->time_out ? Carbon::parse($record->time_out)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
-            'break_start' => $record->break_start ? Carbon::parse($record->break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
-            'break_end' => $record->break_end ? Carbon::parse($record->break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
-            'lunch_break_start' => $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
-            'lunch_break_end' => $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
-            'overtime_start' => $record->overtime_start ? Carbon::parse($record->overtime_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
-            'overtime_end' => $record->overtime_end ? Carbon::parse($record->overtime_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
-            'overtime_reason' => $record->overtime_reason,
-            'ot_status' => $record->ot_status,
-            'approvedBy' => $record->approvedBy,
-            'declined_reason' => $record->declined_reason,
-            'device_in_designation' => $record->deviceIN->designation ?? null,
-            'device_in_reference_name' => $record->deviceIN->reference->name ?? null,
-            'device_out_designation' => $record->deviceOUT->designation ?? null,
-            'device_out_reference_name' => $record->deviceOUT->reference->name ?? null,
-            'half_day_reason' => $record->half_day_reason,
-            'shift_status' =>$record->shift_status,
-            'schedule_in' => $record->schedule_in,
-            'schedule_out' => $record->schedule_out
+            'id'                             => $record->id,
+            'employee'                       => $record->employee,
+            'time_in'                        => Carbon::parse($record->time_in)->timezone('Asia/Manila')->format('M. d, Y, g:i A'),
+            'time_out'                       => $record->time_out ? Carbon::parse($record->time_out)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+            'break_start'                    => $record->break_start ? Carbon::parse($record->break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+            'break_end'                      => $record->break_end ? Carbon::parse($record->break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+            'lunch_break_start'              => $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+            'lunch_break_end'                => $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+            'overtime_start'                 => $record->overtime_start ? Carbon::parse($record->overtime_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+            'overtime_end'                   => $record->overtime_end ? Carbon::parse($record->overtime_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null,
+            'overtime_reason'                => $record->overtime_reason,
+            'ot_status'                      => $record->ot_status,
+            'approvedBy'                     => $record->approvedBy,
+            'declined_reason'                => $record->declined_reason,
+            'device_in_designation'          => $record->deviceIN->designation ?? null,
+            'device_in_reference_name'       => $record->deviceIN->reference->name ?? null,
+            'device_out_designation'         => $record->deviceOUT->designation ?? null,
+            'device_out_reference_name'      => $record->deviceOUT->reference->name ?? null,
+            'half_day_reason'                => $record->half_day_reason,
+            'shift_status'                   =>$record->shift_status,
+            'schedule_in'                    => $record->schedule_in,
+            'schedule_out'                   => $record->schedule_out
         ];
     }
 
@@ -664,10 +664,10 @@ class DailyTimeRecordController extends Controller
     public function saveOvertime(Request $request)
     {
         $validatedData = $request->validate([
-            'employee_id' => 'required|integer',
-            'regularDateIN' => 'required|date',
-            'overtime_in' => 'required|string', // Accept string format for parsing
-            'overtime_out' => 'nullable|string', // Accept string format for parsing
+            'employee_id'        => 'required|integer',
+            'regularDateIN'      => 'required|date',
+            'overtime_in'        => 'required|string', // Accept string format for parsing
+            'overtime_out'       => 'nullable|string', // Accept string format for parsing
         ]);
 
             // Extract data from the validated request
@@ -700,52 +700,52 @@ class DailyTimeRecordController extends Controller
 
         // Return a response
         return response()->json([
-            'message' => 'Overtime data saved successfully.',
-            'data' => $overtimeRecord ?? null,
+            'message'    => 'Overtime data saved successfully.',
+            'data'       => $overtimeRecord ?? null,
         ], 200);
     }
 
     public function approveOvertime(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'approved_by' => 'required|exists:employees,id',
+            'id'                 => 'required|exists:daily_time_records,id',
+            'approved_by'        => 'required|exists:employees,id',
         ]);
 
         $dtr = DailyTimeRecord::find($request->id);
 
         if ($dtr->ot_status !== 'pending' && $dtr->ot_status !== 'NULL') {
-            return response()->json(['message' => 'Overtime request is not pending or has already been processed.'], 400);
+            return response()->json(['message'   => 'Overtime request is not pending or has already been processed.'], 400);
         }
         $dtr->ot_status = 'approved';
         $dtr->approved_by = $request->approved_by;
         $dtr->save();
-        return response()->json(['message' => 'Overtime request approved successfully!', 'data' => $dtr]);
+        return response()->json(['message'       => 'Overtime request approved successfully!', 'data' => $dtr]);
     }
 
     public function declineOvertime(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:daily_time_records,id',
-            'declined_by' => 'required|exists:employees,id',
-            'reason' => 'required|string|max:255',
+            'id'                 => 'required|exists:daily_time_records,id',
+            'declined_by'        => 'required|exists:employees,id',
+            'reason'             => 'required|string|max:255',
         ]);
 
         $dtr = DailyTimeRecord::find($request->id);
         if ($dtr->ot_status !== 'pending' && $dtr->ot_status !== 'NULL') {
-            return response()->json(['message' => 'Overtime request is not pending or has already been processed.'], 400);
+            return response()->json(['message'   => 'Overtime request is not pending or has already been processed.'], 400);
         }
         $dtr->ot_status = 'declined';
         $dtr->approved_by = $request->declined_by;
         $dtr->declined_reason = $request->reason;
         $dtr->save();
-        return response()->json(['message' => 'Overtime request declined successfully!', 'data' => $dtr]);
+        return response()->json(['message'       => 'Overtime request declined successfully!', 'data' => $dtr]);
     }
 
     public function updateDtrScheduleIn(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'schedule_in' => 'required|string|max:10'
+            'schedule_in'        => 'required|string|max:10'
         ]);
 
         $dtr = DailyTimeRecord::findOrFail($id);
@@ -754,15 +754,15 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'message' => 'DTR schedule in updated successfully',
-            'dtr' => $dtr
+            'message'            => 'DTR schedule in updated successfully',
+            'dtr'                => $dtr
         ], 200);
     }
 
     public function  updateDtrScheduleOut(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'schedule_out' => 'required|string'
+            'schedule_out'       => 'required|string'
         ]);
 
         $dtr = DailyTimeRecord::findOrFail($id);
@@ -771,8 +771,8 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'message' => 'DTR schedule in updated successfully',
-            'dtr' => $dtr
+            'message'        => 'DTR schedule in updated successfully',
+            'dtr'            => $dtr
         ], 200);
     }
 
@@ -832,20 +832,20 @@ class DailyTimeRecordController extends Controller
         if ($device && $employee) {
             // Both UUID and ID match
             return response()->json([
-                'message' => 'OK',
-                'device' => [
-                    'uuid' => $device->uuid // Only return the uuid string if that's all you need from the device
-                ],
-                'employee' => [ // Add an 'employee' key to return employee data
-                    'id' => $employee->id,
-                    'firstname' => $employee->firstname,
-                    'middlename' => $employee->middlename,
-                    'lastname' => $employee->lastname,
-                    'position' => $employee->position,
-                    'designation' => $employee->designation, // This will use the accessor
-                    'employee_allowance' => $employee->employeeAllowance, // This will use the accessor
-                    // Add any other employee fields you need here
-                ]
+                'message'        => 'OK',
+                'device'         => [
+                                    'uuid' => $device->uuid // Only return the uuid string if that's all you need from the device
+                                ],
+                'employee'       => [ // Add an 'employee' key to return employee data
+                        'id'                         => $employee->id,
+                        'firstname'                  => $employee->firstname,
+                        'middlename'                 => $employee->middlename,
+                        'lastname'                   => $employee->lastname,
+                        'position'                   => $employee->position,
+                        'designation'                => $employee->designation, // This will use the accessor
+                        'employee_allowance'         => $employee->employeeAllowance, // This will use the accessor
+                        // Add any other employee fields you need here
+                    ]
             ]);
         } else {
             // Log which check failed
@@ -858,10 +858,10 @@ class DailyTimeRecordController extends Controller
 
             // Either UUID or ID is not valid
             return response()->json([
-                'message' => 'Not Valid',
-                'data' => [
-                    'uuid' => $device ? $device->uuid : null // Return uuid if device exists, otherwise null
-                ]
+                'message'    => 'Not Valid',
+                'data'       => [
+                                'uuid' => $device ? $device->uuid : null // Return uuid if device exists, otherwise null
+                            ]
             ], 400);
         }
     }
@@ -869,7 +869,7 @@ class DailyTimeRecordController extends Controller
     public function checkDtrStatus(Request $request)
     {
         $request->validate([
-            'id' => 'required|string',
+            'id'         => 'required|string',
         ]);
 
         // Get the latest DTR entry for the employee
@@ -923,11 +923,11 @@ class DailyTimeRecordController extends Controller
     public function markTimeIn(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'employee_id' => 'required|exists:employees,id',
-            'uuid' => 'required|string',
-            'schedule_in' => 'required|string',
-            'schedule_out' => 'required|string',
-            'employee_allowance' => 'required|numeric',
+            'employee_id'            => 'required|exists:employees,id',
+            'uuid'                   => 'required|string',
+            'schedule_in'            => 'required|string',
+            'schedule_out'           => 'required|string',
+            'employee_allowance'     => 'required|numeric',
         ]);
 
         if ($validator->fails()) {
@@ -953,9 +953,9 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'message' => 'Time In marked successfully!',
-            'dtrStatus' => 'time_in',
-            'data' => $dtr
+            'message'    => 'Time In marked successfully!',
+            'dtrStatus'  => 'time_in',
+            'data'       => $dtr
         ]);
     }
 
@@ -963,8 +963,8 @@ class DailyTimeRecordController extends Controller
     {
         // Validate that the employee_id is provided in the request
         $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'uuid' => 'required|string', // Validate the UUID
+            'employee_id'    => 'required|exists:employees,id',
+            'uuid'           => 'required|string', // Validate the UUID
         ]);
 
         // Find the most recent DTR record for the employee that doesn't have a time_out
@@ -990,10 +990,10 @@ class DailyTimeRecordController extends Controller
     {
         // Validate that the employee_id is provided in the request
         $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'uuid' => 'required|string', // Validate the UUID
-            'shift_status' => 'required|string',
-            'half_day_reason' => 'required|string|max:255'
+            'employee_id'        => 'required|exists:employees,id',
+            'uuid'               => 'required|string', // Validate the UUID
+            'shift_status'       => 'required|string',
+            'half_day_reason'    => 'required|string|max:255'
         ]);
 
         // Find the most recent DTR record for the employee that doesn't have a time_out
@@ -1020,8 +1020,8 @@ class DailyTimeRecordController extends Controller
     public function markOvertimeIn(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'employee_id' => 'required|exists:employees,id',
-            'overtime_reason' => 'required|string|max:255',
+            'employee_id'        => 'required|exists:employees,id',
+            'overtime_reason'    => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -1047,9 +1047,9 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'message' => 'Over Time In marked successfully!',
-            'dtrStatus' => 'overtime_in',
-            'data' => $dtr
+            'message'     => 'Over Time In marked successfully!',
+            'dtrStatus'   => 'overtime_in',
+            'data'        => $dtr
         ]);
     }
 
@@ -1265,10 +1265,10 @@ class DailyTimeRecordController extends Controller
             });
 
             return [
-                'from' => $startDate->format('F d, Y'),
-                'end' => $endDate->format('F d, Y'),
-                'records' => $formattedRecords,
-                'holidays' => $holidays, // Add the holidays for this period
+                'from'       => $startDate->format('F d, Y'),
+                'end'        => $endDate->format('F d, Y'),
+                'records'    => $formattedRecords,
+                'holidays'   => $holidays, // Add the holidays for this period
             ];
         });
 

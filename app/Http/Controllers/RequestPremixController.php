@@ -134,11 +134,11 @@ class RequestPremixController extends Controller
         if ($perPage == 0) {
             $data = $query->get();
             return response()->json([
-                'data' => $data,
-                'total' => $data->count(),
-                'per_page' => $data->count(),
-                'current_page' => 1,
-                'last_page' => 1
+                'data'           => $data,
+                'total'          => $data->count(),
+                'per_page'       => $data->count(),
+                'current_page'   => 1,
+                'last_page'      => 1
             ]);
         }
 
@@ -179,13 +179,13 @@ class RequestPremixController extends Controller
     public function confirmPremix(Request $request)
     {
         $request->validate([
-            "request_premixes_id" => "required|exists:request_premixes,id",
-            "branch_premix_id" => "required|exists:branch_premixes,id",
-            "employee_id" => "required|exists:employees,id",
-            "status" => "required|string",
-            "quantity" => "required|numeric|min:1",
-            "warehouse_id" => "required|exists:warehouses,id",
-            "notes" => "nullable|string",
+            "request_premixes_id"    => "required|exists:request_premixes,id",
+            "branch_premix_id"       => "required|exists:branch_premixes,id",
+            "employee_id"            => "required|exists:employees,id",
+            "status"                 => "required|string",
+            "quantity"               => "required|numeric|min:1",
+            "warehouse_id"           => "required|exists:warehouses,id",
+            "notes"                  => "nullable|string",
         ]);
 
         // Retrieve the request premix entry
@@ -203,18 +203,18 @@ class RequestPremixController extends Controller
 
         // Create a new entry in premix_history
         $premixHistory = RequestPremixesHistory::create([
-            "request_premixes_id" => $requestPremix->id,
-            "branch_premix_id" => $request->branch_premix_id, // Direct assignment
-            "changed_by" => $request->employee_id,
-            "status" => "confirmed",
-            "quantity" => $request->quantity,
-            "warehouse_id" => $request->warehouse_id,
-            "notes" => $request->notes,
+            "request_premixes_id"    => $requestPremix->id,
+            "branch_premix_id"       => $request->branch_premix_id, // Direct assignment
+            "changed_by"             => $request->employee_id,
+            "status"                 => "confirmed",
+            "quantity"               => $request->quantity,
+            "warehouse_id"           => $request->warehouse_id,
+            "notes"                  => $request->notes,
         ]);
 
         return response()->json([
-            "message" => "Premix request confirmed successfully.",
-            "premix_history" => $premixHistory,
+            "message"            => "Premix request confirmed successfully.",
+            "premix_history"     => $premixHistory,
         ]);
     }
 
@@ -242,13 +242,13 @@ class RequestPremixController extends Controller
     public function processPremix(Request $request)
     {
         $request->validate([
-            "request_premixes_id" => "required|exists:request_premixes,id",
-            "branch_premix_id" => "required|exists:branch_premixes,id",
-            "employee_id" => "required|exists:employees,id",
-            "status" => "required|string",
-            "quantity" => "required|numeric|min:1",
-            "warehouse_id" => "required|exists:warehouses,id",
-            "notes" => "nullable|string",
+            "request_premixes_id"    => "required|exists:request_premixes,id",
+            "branch_premix_id"       => "required|exists:branch_premixes,id",
+            "employee_id"            => "required|exists:employees,id",
+            "status"                 => "required|string",
+            "quantity"               => "required|numeric|min:1",
+            "warehouse_id"           => "required|exists:warehouses,id",
+            "notes"                  => "nullable|string",
         ]);
 
         // Retrieve the request premix entry
@@ -266,13 +266,13 @@ class RequestPremixController extends Controller
 
         // Create a new entry in premix_history
         $premixHistory = RequestPremixesHistory::create([
-            "request_premixes_id" => $requestPremix->id,
-            "branch_premix_id" => $request->branch_premix_id, // Direct assignment
-            "changed_by" => $request->employee_id,
-            "status" => "process",
-            "quantity" => $request->quantity,
-            "warehouse_id" => $request->warehouse_id,
-            "notes" => $request->notes,
+            "request_premixes_id"    => $requestPremix->id,
+            "branch_premix_id"       => $request->branch_premix_id, // Direct assignment
+            "changed_by"             => $request->employee_id,
+            "status"                 => "process",
+            "quantity"               => $request->quantity,
+            "warehouse_id"           => $request->warehouse_id,
+            "notes"                  => $request->notes,
         ]);
 
         return response()->json([
@@ -305,16 +305,16 @@ class RequestPremixController extends Controller
     public function completedPremix(Request $request)
     {
         $request->validate([
-            "request_premixes_id" => "required|exists:request_premixes,id",
-            "branch_premix_id" => "required|exists:branch_premixes,id",
-            "employee_id" => "required|exists:employees,id",
-            "ingredients" => "required|array",
-            "ingredients.*.ingredient_id" => "required",
-            "ingredients.*.quantity" => "required|numeric|min:0",
-            "status" => "required|string",
-            "quantity" => "required|numeric|min:1",
-            "warehouse_id" => "required|exists:warehouses,id",
-            "notes" => "nullable|string",
+            "request_premixes_id"            => "required|exists:request_premixes,id",
+            "branch_premix_id"               => "required|exists:branch_premixes,id",
+            "employee_id"                    => "required|exists:employees,id",
+            "ingredients"                    => "required|array",
+            "ingredients.*.ingredient_id"    => "required",
+            "ingredients.*.quantity"         => "required|numeric|min:0",
+            "status"                         => "required|string",
+            "quantity"                       => "required|numeric|min:1",
+            "warehouse_id"                   => "required|exists:warehouses,id",
+            "notes"                          => "nullable|string",
         ]);
 
         // Retrieve the request premix entry
@@ -332,13 +332,13 @@ class RequestPremixController extends Controller
 
         // Create a new entry in premix_history
         $premixHistory = RequestPremixesHistory::create([
-            "request_premixes_id" => $requestPremix->id,
-            "branch_premix_id" => $request->branch_premix_id, // Direct assignment
-            "changed_by" => $request->employee_id,
-            "status" => "completed",
-            "quantity" => $request->quantity,
-            "warehouse_id" => $request->warehouse_id,
-            "notes" => $request->notes,
+            "request_premixes_id"    => $requestPremix->id,
+            "branch_premix_id"       => $request->branch_premix_id, // Direct assignment
+            "changed_by"             => $request->employee_id,
+            "status"                 => "completed",
+            "quantity"               => $request->quantity,
+            "warehouse_id"           => $request->warehouse_id,
+            "notes"                  => $request->notes,
         ]);
 
         // Deduct ingredient quantities from warehouse_ingredients
@@ -394,13 +394,13 @@ class RequestPremixController extends Controller
     public function toDeliverPremix(Request $request)
     {
         $request->validate([
-            "request_premixes_id" => "required|exists:request_premixes,id",
-            "branch_premix_id" => "required|exists:branch_premixes,id",
-            "employee_id" => "required|exists:employees,id",
-            "status" => "required|string",
-            "quantity" => "required|numeric|min:1",
-            "warehouse_id" => "required|exists:warehouses,id",
-            "notes" => "nullable|string",
+            "request_premixes_id"    => "required|exists:request_premixes,id",
+            "branch_premix_id"       => "required|exists:branch_premixes,id",
+            "employee_id"            => "required|exists:employees,id",
+            "status"                 => "required|string",
+            "quantity"               => "required|numeric|min:1",
+            "warehouse_id"           => "required|exists:warehouses,id",
+            "notes"                  => "nullable|string",
         ]);
 
         // Retrieve the request premix entry
@@ -418,18 +418,18 @@ class RequestPremixController extends Controller
 
         // Create a new entry in premix_history
         $premixHistory = RequestPremixesHistory::create([
-            "request_premixes_id" => $requestPremix->id,
-            "branch_premix_id" => $request->branch_premix_id, // Direct assignment
-            "changed_by" => $request->employee_id,
-            "status" => "to deliver",
-            "quantity" => $request->quantity,
-            "warehouse_id" => $request->warehouse_id,
-            "notes" => $request->notes,
+            "request_premixes_id"    => $requestPremix->id,
+            "branch_premix_id"       => $request->branch_premix_id, // Direct assignment
+            "changed_by"             => $request->employee_id,
+            "status"                 => "to deliver",
+            "quantity"               => $request->quantity,
+            "warehouse_id"           => $request->warehouse_id,
+            "notes"                  => $request->notes,
         ]);
 
         return response()->json([
-            "message" => "Premix request to deliver successfully.",
-            "premix_history" => $premixHistory,
+            "message"            => "Premix request to deliver successfully.",
+            "premix_history"     => $premixHistory,
         ]);
     }
 
@@ -457,13 +457,13 @@ class RequestPremixController extends Controller
     public function toReceivePremix(Request $request)
     {
         $request->validate([
-            "request_premixes_id" => "required|exists:request_premixes,id",
-            "branch_premix_id" => "required|exists:branch_premixes,id",
-            "employee_id" => "required|exists:employees,id",
-            "status" => "required|string",
-            "quantity" => "required|numeric|min:1",
-            "warehouse_id" => "required|exists:warehouses,id",
-            "notes" => "nullable|string",
+            "request_premixes_id"    => "required|exists:request_premixes,id",
+            "branch_premix_id"       => "required|exists:branch_premixes,id",
+            "employee_id"            => "required|exists:employees,id",
+            "status"                 => "required|string",
+            "quantity"               => "required|numeric|min:1",
+            "warehouse_id"           => "required|exists:warehouses,id",
+            "notes"                  => "nullable|string",
         ]);
 
         // Retrieve the request premix entry
@@ -481,13 +481,13 @@ class RequestPremixController extends Controller
 
         // Create a new entry in premix_history
         $premixHistory = RequestPremixesHistory::create([
-            "request_premixes_id" => $requestPremix->id,
-            "branch_premix_id" => $request->branch_premix_id, // Direct assignment
-            "changed_by" => $request->employee_id,
-            "status" => "to receive",
-            "quantity" => $request->quantity,
-            "warehouse_id" => $request->warehouse_id,
-            "notes" => $request->notes,
+            "request_premixes_id"    => $requestPremix->id,
+            "branch_premix_id"       => $request->branch_premix_id, // Direct assignment
+            "changed_by"             => $request->employee_id,
+            "status"                 => "to receive",
+            "quantity"               => $request->quantity,
+            "warehouse_id"           => $request->warehouse_id,
+            "notes"                  => $request->notes,
         ]);
 
         return response()->json([
@@ -520,17 +520,17 @@ class RequestPremixController extends Controller
     public function receivePremix(Request $request)
     {
         $validated = $request->validate([
-            'request_premix_id' => 'required|exists:request_premixes,id',
-            'branch_premix_id' => 'required|exists:branch_premixes,id',
-            'employee_id' => 'required|exists:employees,id',
-            'status' => 'required|string',
-            'notes' => 'nullable|string',
-            'quantity' => 'required|numeric|min:1',
-            'warehouse_id' => 'required|exists:warehouses,id',
-            'branch_id' => 'required|exists:branches,id',
-            'ingredients' => 'required|array',
-            'ingredients.*.ingredients_id' => 'required|exists:raw_materials,id',
-            'ingredients.*.total_quantity' => 'required|numeric|min:0',
+            'request_premix_id'              => 'required|exists:request_premixes,id',
+            'branch_premix_id'               => 'required|exists:branch_premixes,id',
+            'employee_id'                    => 'required|exists:employees,id',
+            'status'                         => 'required|string',
+            'notes'                          => 'nullable|string',
+            'quantity'                       => 'required|numeric|min:1',
+            'warehouse_id'                   => 'required|exists:warehouses,id',
+            'branch_id'                      => 'required|exists:branches,id',
+            'ingredients'                    => 'required|array',
+            'ingredients.*.ingredients_id'   => 'required|exists:raw_materials,id',
+            'ingredients.*.total_quantity'   => 'required|numeric|min:0',
         ]);
 
         $errors = []; // Store errors for ingredients
@@ -569,24 +569,24 @@ class RequestPremixController extends Controller
 
         try {
             $receivePremixes = RequestPremixesHistory::create([
-                'request_premixes_id' => $validated['request_premix_id'],
-                'branch_premix_id' => $validated['branch_premix_id'],
-                'changed_by' => $validated['employee_id'],
-                'status' => 'received',
-                'quantity' => $validated['quantity'],
-                'warehouse_id' => $validated['warehouse_id'],
-                'notes' => $validated['notes'],
+                'request_premixes_id'    => $validated['request_premix_id'],
+                'branch_premix_id'       => $validated['branch_premix_id'],
+                'changed_by'             => $validated['employee_id'],
+                'status'                 => 'received',
+                'quantity'               => $validated['quantity'],
+                'warehouse_id'           => $validated['warehouse_id'],
+                'notes'                  => $validated['notes'],
             ]);
 
             return response()->json([
-                'message' => 'Branch raw materials updated successfully',
-                'receivePremixes' => $receivePremixes
+                'message'            => 'Branch raw materials updated successfully',
+                'receivePremixes'    => $receivePremixes
             ], 200);
 
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Error saving premix history',
-                'error' => $e->getMessage()
+                'message'    => 'Error saving premix history',
+                'error'      => $e->getMessage()
             ], 500);
         }
     }
@@ -683,12 +683,12 @@ class RequestPremixController extends Controller
     public function declinePremix(Request $request)
     {
         $request->validate([
-            "request_premixes_id" => "required|exists:request_premixes,id",
-            "branch_premix_id" => "required|exists:branch_premixes,id",
-            "employee_id" => "required|exists:employees,id",
-            "quantity" => "required|numeric|min:1",
-            "warehouse_id" => "required|exists:warehouses,id",
-            "notes" => "nullable|string",
+            "request_premixes_id"    => "required|exists:request_premixes,id",
+            "branch_premix_id"       => "required|exists:branch_premixes,id",
+            "employee_id"            => "required|exists:employees,id",
+            "quantity"               => "required|numeric|min:1",
+            "warehouse_id"           => "required|exists:warehouses,id",
+            "notes"                  => "nullable|string",
         ]);
 
         // Retrieve the request premix entry
@@ -706,13 +706,13 @@ class RequestPremixController extends Controller
 
         // Create a new entry in premix_history
         $premixHistory = RequestPremixesHistory::create([
-            "request_premixes_id" => $requestPremix->id,
-            "branch_premix_id" => $request->branch_premix_id, // Direct assignment
-            "changed_by" => $request->employee_id,
-            "status" => "declined",
-            "quantity" => $request->quantity,
-            "warehouse_id" => $request->warehouse_id,
-            "notes" => $request->notes,
+            "request_premixes_id"    => $requestPremix->id,
+            "branch_premix_id"       => $request->branch_premix_id, // Direct assignment
+            "changed_by"             => $request->employee_id,
+            "status"                 => "declined",
+            "quantity"               => $request->quantity,
+            "warehouse_id"           => $request->warehouse_id,
+            "notes"                  => $request->notes,
         ]);
 
         return response()->json([
@@ -760,14 +760,14 @@ class RequestPremixController extends Controller
     {
         // Validate the request data (expecting an array)
         $validator = Validator::make($request->all(), [
-            'requests' => 'required|array',
-            'requests.*.branch_premix_id' => 'required|exists:branch_premixes,id',
-            'requests.*.name' => 'required|string',
-            'requests.*.category' => 'required|string',
-            'requests.*.quantity' => 'required|numeric|min:1',
-            'requests.*.status' => 'required|string',
-            'requests.*.warehouse_id' => 'required|exists:warehouses,id',
-            'requests.*.employee_id' => 'required|exists:employees,id',
+            'requests'                       => 'required|array',
+            'requests.*.branch_premix_id'    => 'required|exists:branch_premixes,id',
+            'requests.*.name'                => 'required|string',
+            'requests.*.category'            => 'required|string',
+            'requests.*.quantity'            => 'required|numeric|min:1',
+            'requests.*.status'              => 'required|string',
+            'requests.*.warehouse_id'        => 'required|exists:warehouses,id',
+            'requests.*.employee_id'         => 'required|exists:employees,id',
         ]);
 
         if ($validator->fails()) {
@@ -780,24 +780,24 @@ class RequestPremixController extends Controller
             foreach ($request->requests as $req) {
                 // Create the premix request
                 $premixRequest = RequestPremix::create([
-                    'branch_premix_id' => $req['branch_premix_id'],
-                    'name' => $req['name'],
-                    'category' => $req['category'],
-                    'quantity' => $req['quantity'],
-                    'status' => $req['status'],
-                    'warehouse_id' => $req['warehouse_id'],
-                    'employee_id' => $req['employee_id'],
+                    'branch_premix_id'   => $req['branch_premix_id'],
+                    'name'               => $req['name'],
+                    'category'           => $req['category'],
+                    'quantity'           => $req['quantity'],
+                    'status'             => $req['status'],
+                    'warehouse_id'       => $req['warehouse_id'],
+                    'employee_id'        => $req['employee_id'],
                 ]);
 
                 // Create the request history for each entry
                 RequestPremixesHistory::create([
-                    'request_premixes_id' => $premixRequest->id, // Ensure it refers to the correct premix request
-                    'branch_premix_id' => $req['branch_premix_id'],
-                    'warehouse_id' => $req['warehouse_id'],
-                    'status' => $req['status'],
-                    'changed_by' => $req['employee_id'],
-                    'quantity' => $req['quantity'],
-                    'notes' => 'Initial request created.',
+                    'request_premixes_id'    => $premixRequest->id, // Ensure it refers to the correct premix request
+                    'branch_premix_id'       => $req['branch_premix_id'],
+                    'warehouse_id'           => $req['warehouse_id'],
+                    'status'                 => $req['status'],
+                    'changed_by'             => $req['employee_id'],
+                    'quantity'               => $req['quantity'],
+                    'notes'                  => 'Initial request created.',
                 ]);
             }
 
@@ -807,8 +807,8 @@ class RequestPremixController extends Controller
             DB::rollBack(); // Rollback changes if there's an error
 
             return response()->json([
-                'message' => 'Error submitting request.',
-                'error' => $e->getMessage()
+                'message'    => 'Error submitting request.',
+                'error'      => $e->getMessage()
             ], 500);
         }
     }
