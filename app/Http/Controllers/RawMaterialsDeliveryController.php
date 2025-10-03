@@ -115,7 +115,7 @@ class RawMaterialsDeliveryController extends Controller
                     return [
                         'id'     => $delivery->id,
                         'from_id' => $delivery->from_id,
-                        'from_designation' => $delivery->from_desisnation,
+                        'from_designation' => $delivery->from_designation,
                         'from_name' => $delivery->from_name,
                         'to_id' => $delivery->to_id,
                         'to_designation' => $delivery->to_designation,
@@ -161,6 +161,91 @@ class RawMaterialsDeliveryController extends Controller
             return response()->json([
                 'message' => 'Failed to fetch deliveries',
                 'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function fetchDeliveryStocksBranch($id, Request $request)
+    {
+        try {
+            $perPage = $request->input('per_page', 5);
+            $search = $request->input('search');
+            $toDesignation = $request->query('to_designation');
+
+            $query = RawMaterialsDelivery::with(['items.rawMaterial']);
+
+            // Filter by status + destination id
+            $query->where('to_id', $id);
+
+            // Load relation dynamically depending on designation
+            if ($toDesignation === 'Branch') {
+                $query->with('branch');
+            }
+
+            // ✅ Apply search filter (optional)
+            if ($search) {
+                $query->whereHas('items.rawMaterial', function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%');
+                });
+            }
+
+            // ✅ Order latest deliveries first
+            $query->latest();
+
+            // ✅ Apply pagination
+            $deliveries = $query->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => $deliveries->map(function ($delivery) {
+                    return [
+                        'id' => $delivery->id,
+                        'from_id' => $delivery->from_id,
+                        'from_designation' => $delivery->from_designation,
+                        'from_name' => $delivery->from_name,
+                        'to_id' => $delivery->to_id,
+                        'to_designation' => $delivery->to_designation,
+                        'to_data' => $delivery->to_data, // 👈 dynamic warehouse or branch
+                        'remarks' => $delivery->remarks,
+                        'status' => $delivery->status,
+                        'items' => $delivery->items->map(function ($item) {
+                            return [
+                                'id' => $item->id,
+                                'unit_type' => $item->unit_type,
+                                'category' => $item->category,
+                                'quantity' => $item->quantity,
+                                'price_per_unit' => $item->price_per_unit,
+                                'price_per_gram' => $item->price_per_gram,
+                                'gram' => $item->gram,
+                                'pcs' => $item->pcs,
+                                'kilo' => $item->kilo,
+                                'raw_material' => $item->rawMaterial ? [
+                                    'id' => $item->rawMaterial->id,
+                                    'name' => $item->rawMaterial->name,
+                                    'code' => $item->rawMaterial->code,
+                                    'category' => $item->rawMaterial->category,
+                                    'unit' => $item->rawMaterial->unit
+                                ] : null,
+                                ];
+                        }),
+                        'created_at' => $delivery->created_at,
+                        'updated_at' => $delivery->updated_at,
+                    ];
+                }),
+                'pagination' => [
+                    'total' => $deliveries->total(),
+                    'per_page' => $deliveries->perPage(),
+                    'current_page' => $deliveries->currentPage(),
+                    'last_page' => $deliveries->lastPage(),
+                    'from' => $deliveries->firstItem(),
+                    'to' => $deliveries->lastItem()
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch deliveries',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
