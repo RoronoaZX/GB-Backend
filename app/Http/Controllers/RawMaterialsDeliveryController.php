@@ -184,10 +184,16 @@ class RawMaterialsDeliveryController extends Controller
 
             // ✅ Apply search filter (optional)
             if ($search) {
-                $query->whereHas('items.rawMaterial', function ($q) use ($search) {
-                    $q->where('name', 'like', '%' . $search . '%');
+                $query->where(function ($q) use ($search) {
+                    $q->where('from_name', 'like', '%' . $search . '%')
+                      ->orWhere('status', 'like', '%' . $search . '%');
                 });
             }
+            // if ($search) {
+            //     $query->whereHas('items.rawMaterial', function ($q) use ($search) {
+            //         $q->where('name', 'like', '%' . $search . '%');
+            //     });
+            // }
 
             // ✅ Order latest deliveries first
             $query->latest();
@@ -219,6 +225,7 @@ class RawMaterialsDeliveryController extends Controller
                                 'gram' => $item->gram,
                                 'pcs' => $item->pcs,
                                 'kilo' => $item->kilo,
+                                'raw_material_id' => $item->rawMaterial ? $item->rawMaterial->id : null,
                                 'raw_material' => $item->rawMaterial ? [
                                     'id' => $item->rawMaterial->id,
                                     'name' => $item->rawMaterial->name,
@@ -404,10 +411,12 @@ class RawMaterialsDeliveryController extends Controller
     {
         try {
             // Status defaults to "declined" if not provided
+            $perPage = $request->input('per_page', 3);
+            $search = $request->input('search');
             $status = $request->query('status', 'declined');
             $toDesignation = $request->query('to_designation');
 
-            $query = RawMaterialsDelivery::with(['item.rawMaterial']);
+            $query = RawMaterialsDelivery::with(['items.rawMaterial']);
 
             // Filter by status + destination id
             $query->where('status', $status)
@@ -420,7 +429,16 @@ class RawMaterialsDeliveryController extends Controller
                 $query->with(['Warehouse', 'branch']);
             }
 
-            $deliveries = $query->latest()->get();
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('from_name', 'like', '%' . $search . '%')
+                      ->orWhere('status', 'like', '%' . $search . '%');
+                });
+            }
+
+            $query->latest();
+
+            $deliveries = $query->paginate($perPage);
 
             return response()->json([
                 'message'    => 'Confirmed deliveries fetched successfully.',
@@ -459,7 +477,15 @@ class RawMaterialsDeliveryController extends Controller
                         'created_at'         => $delivery->created_at,
                         'updated_at'         => $delivery->updated_at
                     ];
-                })
+                }),
+                'pagination' => [
+                    'total' => $deliveries->total(),
+                    'per_page' => $deliveries->perPage(),
+                    'current_page' => $deliveries->currentPage(),
+                    'last_page' => $deliveries->lastPage(),
+                    'from' => $deliveries->firstItem(),
+                    'to' => $deliveries->lastItem()
+                ]
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -475,7 +501,7 @@ class RawMaterialsDeliveryController extends Controller
             // ✅ 1. Validate request
             $validated = $request->validate([
                 'id'                 => 'required|integer|exists:raw_materials_deliveries,id',
-                'from_id'            => 'required|integer',
+                'from_id'            => 'nullable|integer',
                 'from_designation'   => 'required|string|in:Branch,Warehouse,Supplier',
                 'to_id'              => 'required|integer',
                 'to_designation'     => 'required|string|in:Branch,Warehouse',
@@ -483,9 +509,9 @@ class RawMaterialsDeliveryController extends Controller
                 'items'              => 'required|array',
                 'items.*.raw_material_id'    => 'required|integer|exists:raw_materials,id',
                 'items.*.quantity'           => 'required|numeric|min:1',
-                'items.*.gram'               => 'required|numeric|min:0',
-                'items.*.kilo'               => 'required|numeric|min:0',
-                'items.*.pcs'                => 'required|numeric|min:0',
+                'items.*.gram'               => 'nullable|numeric|min:0',
+                'items.*.kilo'               => 'nullable|numeric|min:0',
+                'items.*.pcs'                => 'nullable|numeric|min:0',
                 'items.*.price_per_unit'     => 'required|numeric|min:0',
                 'items.*.price_per_gram'     => 'required|numeric|min:0',
                 'items.*.total_grams'        => 'required|numeric|min:0'
@@ -525,7 +551,7 @@ class RawMaterialsDeliveryController extends Controller
                         // Deduct from BranchRawMaterialsReport
                         $report = BranchRawMaterialsReport::where([
                             'branch_id'          => $validated['from_id'],
-                            'raw_material_id'    => $item['raw_material_id']
+                            'ingredients_id'    => $item['raw_material_id']
                         ])->first();
 
                         if ($report) {
@@ -623,7 +649,8 @@ class RawMaterialsDeliveryController extends Controller
             }
 
             return response()->json([
-                'message' => 'Delivery ' . $validated['status'] . ' successfully.',
+                // 'message' => 'Delivery ' . $validated['status'] . ' successfully.',
+                'message' => 'Delivery confirmed successfully.',
             ], 200);
 
         } catch (\Exception $e) {
@@ -652,7 +679,10 @@ class RawMaterialsDeliveryController extends Controller
             $delivery->save();
 
             // ✅ 4. Return success
-
+            return response()->json([
+                'message' => 'Delivery declined successfully.',
+                'status' => 'success'
+            ], 200);
 
         } catch (\Exception $e) {
             // ❌ Handle errors

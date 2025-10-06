@@ -293,7 +293,7 @@ Route::put('updateDTROTApprovedBy', [DailyTimeRecordController::class, 'updateDT
 Route::get('raw-materials-delivery-branch/{id}', [RawMaterialsDeliveryController::class, 'fetchDeliveryStocksBranch']);
 Route::get('raw-materials-delivery-pending/{id}', [RawMaterialsDeliveryController::class, 'fetchPendingDelivery']);
 Route::get('raw-materials-delivery-confirmed/{id}', [RawMaterialsDeliveryController::class, 'fetchConfirmedDelivery']);
-Route::get('raw-materials-delivery-declined/{id}', [RawMaterialsDeliveryController::class, 'fetchConfirmedDelivery']);
+Route::get('raw-materials-delivery-declined/{id}', [RawMaterialsDeliveryController::class, 'fetchDeclinedDelivery']);
 Route::get('getBranchWithWarehouses', [DailyTimeRecordController::class, 'getBranchWithWarehouses']);
 Route::get('fetch-employee-incentives-per-cut-off/{from}/{to}/{employee_id}', [IncentiveEmployeeReportsController::class, 'getIncentiveEmployeeReportsPerDtrCutOff']);
 Route::get('employee-benefits-for-deduction/{employee_id}', [EmployeeBenefitController::class, 'fetchEmployeeBenefitsForDeduction']);
