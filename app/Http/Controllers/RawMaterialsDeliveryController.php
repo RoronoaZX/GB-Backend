@@ -339,6 +339,8 @@ class RawMaterialsDeliveryController extends Controller
     {
         try {
             // Status defaults to "confirmed" if not provided
+            $perPage = $request->input('per_page', 3);
+            $search = $request->input('search');
             $status = $request->query('status', 'confirmed');
             $toDesignation = $request->query('to_designation');
 
@@ -358,7 +360,16 @@ class RawMaterialsDeliveryController extends Controller
                 $query->with(['warehouse','branch']);
             }
 
-            $deliveries = $query->latest()->get();
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('from_name', 'like', '%' . $search . '%')
+                      ->orWhere('status', 'like', '%' . $search . '%');
+                });
+            }
+
+            $query->latest();
+
+            $deliveries = $query->paginate($perPage);
 
             return response()->json([
                 'message'    => 'Confirmed deliveries fetched successfully',
@@ -397,7 +408,15 @@ class RawMaterialsDeliveryController extends Controller
                         'created_at'         => $delivery->created_at,
                         'updated_at'         => $delivery->updated_at
                     ];
-                })
+                }),
+                'pagination' => [
+                    'total' => $deliveries->total(),
+                    'per_page' => $deliveries->perPage(),
+                    'current_page' => $deliveries->currentPage(),
+                    'last_page' => $deliveries->lastPage(),
+                    'from' => $deliveries->firstItem(),
+                    'to' => $deliveries->lastItem()
+                ]
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
