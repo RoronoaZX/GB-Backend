@@ -13,6 +13,10 @@ class BranchRmStocks extends Model
         'raw_material_id',
         'branch_id',
         'price_per_price',
-        'quantity'
+        'quantity',
+        'gram',
+        'kilo',
+        'pcs',
+        'total_grams'
     ];
 }
