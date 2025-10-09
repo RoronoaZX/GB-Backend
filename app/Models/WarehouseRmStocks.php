@@ -12,11 +12,11 @@ class WarehouseRmStocks extends Model
     protected $fillable = [
         'warehouse_id',
         'raw_material_id',
+        'delivery_su_id',
         'price_per_gram',
         'quantity',
-        'gram',
-        'kilo',
+        'total_grams',
         'pcs',
-        'total_grams'
+
     ];
 }

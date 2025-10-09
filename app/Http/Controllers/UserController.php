@@ -194,86 +194,86 @@ class UserController extends Controller
      * Update the specified resource in storage.
      */
     public function updateUser(Request $request, $userId)
-{
-    // Debugging: Output the userId to check its value
-    Log::info('User ID received for update: ' . $userId);
+    {
+        // Debugging: Output the userId to check its value
+        Log::info('User ID received for update: ' . $userId);
 
-    // Find the user or return a 404 response if not found
-    $user = User::find($userId); // Changed to find() for debugging
+        // Find the user or return a 404 response if not found
+        $user = User::find($userId); // Changed to find() for debugging
 
-    // Debugging: Check if user was found
-    if (!$user) {
-        Log::error('User not found with ID: ' . $userId);
+        // Debugging: Check if user was found
+        if (!$user) {
+            Log::error('User not found with ID: ' . $userId);
+            return response()->json([
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        // Validate the incoming request
+        $validatedData = $request->validate([
+            'name'           => 'required|string|max:255',
+            'address'        => 'required|string|max:255',
+            'birthdate'      => 'required|date',
+            'sex'            => 'required|string|in:Male,Female',
+            'status'         => 'required|string|in:Current,Former',
+            'phone'          => 'required|string|max:25',
+            'role'           => 'required|string|max:255',
+            'branch_id'      => 'required|integer',
+            'time_shift'     => 'required|date_format:h:i A',
+        ]);
+
+        // Update the User model fields
+        $user->name = $validatedData['name'];
+        $user->address = $validatedData['address'];
+        $user->birthdate = $validatedData['birthdate'];
+        $user->sex = $validatedData['sex'];
+        $user->status = $validatedData['status'];
+        $user->phone = $validatedData['phone'];
+        $user->role = $validatedData['role'];
+
+        // Save changes to the User model
+        $user->save();
+
+        // Find the associated BranchEmployee or create one if it doesn't exist
+        $branchEmployee = BranchEmployee::where('user_id', $userId)->first();
+        if (!$branchEmployee) {
+            Log::error('BranchEmployee not found for user ID: ' . $userId);
+            return response()->json([
+                'message' => 'BranchEmployee not found for the specified user'
+            ], 404);
+        }
+
+        // Update the BranchEmployee model fields
+        $branchEmployee->branch_id = $validatedData['branch_id'];
+        $branchEmployee->time_shift = $validatedData['time_shift'];
+
+        // Save changes to the BranchEmployee model
+        $branchEmployee->save();
+
+        // Return a successful response
         return response()->json([
-            'message' => 'User not found'
-        ], 404);
+            'message' => 'User profile and branch employee details updated successfully'
+        ]);
     }
 
-    // Validate the incoming request
-    $validatedData = $request->validate([
-        'name'           => 'required|string|max:255',
-        'address'        => 'required|string|max:255',
-        'birthdate'      => 'required|date',
-        'sex'            => 'required|string|in:Male,Female',
-        'status'         => 'required|string|in:Current,Former',
-        'phone'          => 'required|string|max:25',
-        'role'           => 'required|string|max:255',
-        'branch_id'      => 'required|integer',
-        'time_shift'     => 'required|date_format:h:i A',
-    ]);
+    public function updateEmail(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'email' => 'required|string|max:255'
+        ]);
 
-    // Update the User model fields
-    $user->name = $validatedData['name'];
-    $user->address = $validatedData['address'];
-    $user->birthdate = $validatedData['birthdate'];
-    $user->sex = $validatedData['sex'];
-    $user->status = $validatedData['status'];
-    $user->phone = $validatedData['phone'];
-    $user->role = $validatedData['role'];
+        $user = User::findOrFail($id);
+        $user->email = $validatedData['email'];
+        $user->save();
 
-    // Save changes to the User model
-    $user->save();
+        // /** @var User $user */
+        // $user = Auth::user(); // This tells Intelephense that $user is a User instance
 
-    // Find the associated BranchEmployee or create one if it doesn't exist
-    $branchEmployee = BranchEmployee::where('user_id', $userId)->first();
-    if (!$branchEmployee) {
-        Log::error('BranchEmployee not found for user ID: ' . $userId);
-        return response()->json([
-            'message' => 'BranchEmployee not found for the specified user'
-        ], 404);
+        // $user->email = $request->email;
+        // $user->save();
+
+        // return response()->json(['message' => 'Email updated successfully!'], 200);
     }
-
-    // Update the BranchEmployee model fields
-    $branchEmployee->branch_id = $validatedData['branch_id'];
-    $branchEmployee->time_shift = $validatedData['time_shift'];
-
-    // Save changes to the BranchEmployee model
-    $branchEmployee->save();
-
-    // Return a successful response
-    return response()->json([
-        'message' => 'User profile and branch employee details updated successfully'
-    ]);
-}
-
-public function updateEmail(Request $request, $id)
-{
-    $validatedData = $request->validate([
-        'email' => 'required|string|max:255'
-    ]);
-
-    $user = User::findOrFail($id);
-    $user->email = $validatedData['email'];
-    $user->save();
-
-    // /** @var User $user */
-    // $user = Auth::user(); // This tells Intelephense that $user is a User instance
-
-    // $user->email = $request->email;
-    // $user->save();
-
-    // return response()->json(['message' => 'Email updated successfully!'], 200);
-}
 
 
     /**

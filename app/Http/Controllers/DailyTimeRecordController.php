@@ -50,11 +50,11 @@ class DailyTimeRecordController extends Controller
             });
 
             return response()->json([
-                'data' => $data,
-                'total' => $data->count(),
-                'per_page' => $data->count(),
-                'current_page' => 1,
-                'last_page' => 1
+                'data'           => $data,
+                'total'          => $data->count(),
+                'per_page'       => $data->count(),
+                'current_page'   => 1,
+                'last_page'      => 1
             ]);
         }
 
@@ -65,11 +65,11 @@ class DailyTimeRecordController extends Controller
         });
 
         return response()->json([
-            'data' => $formattedData,
-            'total' => $paginated->total(),
-            'per_page' => $paginated->perPage(),
-            'current_page' => $paginated->currentPage(),
-            'last_page' => $paginated->lastPage(),
+            'data'           => $formattedData,
+            'total'          => $paginated->total(),
+            'per_page'       => $paginated->perPage(),
+            'current_page'   => $paginated->currentPage(),
+            'last_page'      => $paginated->lastPage(),
         ]);
     }
 

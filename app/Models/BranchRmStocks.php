@@ -10,13 +10,10 @@ class BranchRmStocks extends Model
     use HasFactory;
 
     protected $fillable = [
-        'raw_material_id',
         'branch_id',
-        'price_per_price',
+        'raw_material_id',
+        'delivery_su_id',
+        'price_per_gram',
         'quantity',
-        'gram',
-        'kilo',
-        'pcs',
-        'total_grams'
     ];
 }

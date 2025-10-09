@@ -29,8 +29,8 @@ class BreadSalesReportController extends Controller
         $breadSalesReport->save();
 
         HistoryLog::create([
-            'report_id' => $request->input('report_id'),
-            'name' => $request->input('name'),
+            'report_id'          => $request->input('report_id'),
+            'name'               => $request->input('name'),
             'original_data'      => $request->input('original_data'),
             'updated_data'       => $request->input('updated_data'),
             'updated_field'      => $request->input('updated_field'),
@@ -54,7 +54,7 @@ class BreadSalesReportController extends Controller
         $breadSalesReport->save();
 
         HistoryLog::create([
-            'report_id' => $request->input('report_id'),
+            'report_id'          => $request->input('report_id'),
             'name'               => $request->input('name'),
             'original_data'      => $request->input('original_data'),
             'updated_data'       => $request->input('updated_data'),

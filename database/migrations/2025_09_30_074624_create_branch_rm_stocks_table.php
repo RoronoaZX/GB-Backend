@@ -16,12 +16,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('raw_material_id')->references('id')->on('raw_materials');
             $table->foreignId('branch_id')->references('id')->on('branches');
-            $table->decimal('price_per_price', 10,3)->nullable();
+            $table->foreignId('delivery_su_id')->references('id')->on('delivery_stocks_units');
+            $table->decimal('price_per_gram', 10,3)->nullable();
             $table->decimal('quantity', 10,3)->nullable();
-            $table->decimal('gram', 10,3)->nullable();
-            $table->decimal('kilo', 10,3)->nullable();
-            $table->decimal('pcs', 10,3)->nullable();
-            $table->decimal('total_grams', 10,3)->nullable();
             $table->timestamps();
         });
     }

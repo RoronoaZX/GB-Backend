@@ -45,38 +45,6 @@ class EmployeeAllowanceController extends Controller
         return response()->json($paginated);
     }
 
-    // public function index(Request $request)
-    // {
-    //     $page = $request->get('page', 1);
-    //     $perPage = $request->get('per_page', 7);
-    //     $search = $request->query('search', '');
-
-    //     $query = EmployeeAllowance::with('employee')->orderBy('created_at', 'desc');
-
-    //     if (!empty($search)) {
-    //         $query->whereHas('employee',function ($q) use ($search) {
-    //             $q->where('firstname', 'like', "%$search%")
-    //             ->orWhere('lastname', 'like', "%$search%");
-    //         });
-    //     }
-
-    //     if ($perPage == 0) {
-    //         $data = $query->get();
-    //         return response()->json([
-    //             'data' => $data,
-    //             'total' =>$data->count(),
-    //             'per_page' =>$data->count(),
-    //             'current_page' => 1,
-    //             'last_page' => 1
-    //         ]);
-    //     }
-
-    //     $paginated = $query->paginate($perPage, ['*'], 'page', $page);
-
-    //     return response()->json($paginated);
-
-    // }
-
     /**
      * Search a resource in storage.
      */

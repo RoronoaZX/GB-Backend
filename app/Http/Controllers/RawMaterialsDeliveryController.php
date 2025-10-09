@@ -7,6 +7,7 @@ use App\Models\BranchRmStocks;
 use App\Models\DeliveryStocksUnit;
 use App\Models\RawMaterial;
 use App\Models\RawMaterialsDelivery;
+use App\Models\Warehouse;
 use App\Models\WarehouseRawMaterialsReport;
 use App\Models\WarehouseRmStocks;
 use Dotenv\Repository\RepositoryInterface;
@@ -110,51 +111,51 @@ class RawMaterialsDeliveryController extends Controller
             $deliveries = $query->paginate($perPage);
 
             return response()->json([
-                'message'    => 'Deliveries fetched successfully',
-                'data'       => $deliveries->map(function ($delivery) {
+                'message'        => 'Deliveries fetched successfully',
+                'data'           => $deliveries->map(function ($delivery) {
                     return [
-                        'id'     => $delivery->id,
-                        'from_id' => $delivery->from_id,
-                        'from_designation' => $delivery->from_designation,
-                        'from_name' => $delivery->from_name,
-                        'to_id' => $delivery->to_id,
-                        'to_designation' => $delivery->to_designation,
-                        'to_data' => $delivery->to_data, // 👈 dynamic warehouse or branch
-                        'remarks' => $delivery->remarks,
-                        'status' => $delivery->status,
-                        'items' => $delivery->items->map(function ($item) {
+                        'id'                 => $delivery->id,
+                        'from_id'            => $delivery->from_id,
+                        'from_designation'   => $delivery->from_designation,
+                        'from_name'          => $delivery->from_name,
+                        'to_id'              => $delivery->to_id,
+                        'to_designation'     => $delivery->to_designation,
+                        'to_data'            => $delivery->to_data, // 👈 dynamic warehouse or branch
+                        'remarks'            => $delivery->remarks,
+                        'status'             => $delivery->status,
+                        'items'              => $delivery->items->map(function ($item) {
                             return [
-                                'id' => $item->id,
-                                'unit_type' => $item->unit_type,
-                                'category' => $item->category,
-                                'quantity' => $item->quantity,
-                                'price_per_unit' => $item->price_per_unit,
-                                'price_per_gram' => $item->price_per_gram,
-                                'gram' => $item->gram,
-                                'pcs' => $item->pcs,
-                                'kilo' => $item->kilo,
+                                'id'                 => $item->id,
+                                'unit_type'          => $item->unit_type,
+                                'category'           => $item->category,
+                                'quantity'           => $item->quantity,
+                                'price_per_unit'     => $item->price_per_unit,
+                                'price_per_gram'     => $item->price_per_gram,
+                                'gram'               => $item->gram,
+                                'pcs'                => $item->pcs,
+                                'kilo'               => $item->kilo,
 
                                 // 👇 include raw material details
-                                'raw_material' => $item->rawMaterial ? [
-                                    'id' => $item->rawMaterial->id,
-                                    'name' => $item->rawMaterial->name,
-                                    'code' => $item->rawMaterial->code,
-                                    'category' => $item->rawMaterial->category,
-                                    'unit' => $item->rawMaterial->unit,
+                                'raw_material'       => $item->rawMaterial ? [
+                                    'id'                     => $item->rawMaterial->id,
+                                    'name'                   => $item->rawMaterial->name,
+                                    'code'                   => $item->rawMaterial->code,
+                                    'category'               => $item->rawMaterial->category,
+                                    'unit'                   => $item->rawMaterial->unit,
                                 ] : null,
                                 ];
                         }),
-                        'created_at' => $delivery->created_at,
-                        'updated_at' => $delivery->updated_at,
+                        'created_at'         => $delivery->created_at,
+                        'updated_at'         => $delivery->updated_at,
                     ];
                 }),
-                'pagination' => [
-                    'total'        => $deliveries->total(),
-                    'per_page'     => $deliveries->perPage(),
-                    'current_page' => $deliveries->currentPage(),
-                    'last_page'    => $deliveries->lastPage(),
-                    'from'         => $deliveries->firstItem(),
-                    'to'           => $deliveries->lastItem(),
+                'pagination'     => [
+                    'total'                  => $deliveries->total(),
+                    'per_page'               => $deliveries->perPage(),
+                    'current_page'           => $deliveries->currentPage(),
+                    'last_page'              => $deliveries->lastPage(),
+                    'from'                   => $deliveries->firstItem(),
+                    'to'                     => $deliveries->lastItem(),
                 ]
             ], 200);
         } catch (\Exception $e) {
@@ -202,50 +203,50 @@ class RawMaterialsDeliveryController extends Controller
             $deliveries = $query->paginate($perPage);
 
             return response()->json([
-                'success' => true,
-                'data' => $deliveries->map(function ($delivery) {
+                'success'    => true,
+                'data'       => $deliveries->map(function ($delivery) {
                     return [
-                        'id' => $delivery->id,
-                        'from_id' => $delivery->from_id,
-                        'from_designation' => $delivery->from_designation,
-                        'from_name' => $delivery->from_name,
-                        'to_id' => $delivery->to_id,
-                        'to_designation' => $delivery->to_designation,
-                        'to_data' => $delivery->to_data, // 👈 dynamic warehouse or branch
-                        'remarks' => $delivery->remarks,
-                        'status' => $delivery->status,
-                        'items' => $delivery->items->map(function ($item) {
+                        'id'                  => $delivery->id,
+                        'from_id'             => $delivery->from_id,
+                        'from_designation'    => $delivery->from_designation,
+                        'from_name'           => $delivery->from_name,
+                        'to_id'               => $delivery->to_id,
+                        'to_designation'      => $delivery->to_designation,
+                        'to_data'             => $delivery->to_data, // 👈 dynamic warehouse or branch
+                        'remarks'             => $delivery->remarks,
+                        'status'              => $delivery->status,
+                        'items'               => $delivery->items->map(function ($item) {
                             return [
-                                'id' => $item->id,
-                                'unit_type' => $item->unit_type,
-                                'category' => $item->category,
-                                'quantity' => $item->quantity,
-                                'price_per_unit' => $item->price_per_unit,
-                                'price_per_gram' => $item->price_per_gram,
-                                'gram' => $item->gram,
-                                'pcs' => $item->pcs,
-                                'kilo' => $item->kilo,
-                                'raw_material_id' => $item->rawMaterial ? $item->rawMaterial->id : null,
-                                'raw_material' => $item->rawMaterial ? [
-                                    'id' => $item->rawMaterial->id,
-                                    'name' => $item->rawMaterial->name,
-                                    'code' => $item->rawMaterial->code,
-                                    'category' => $item->rawMaterial->category,
-                                    'unit' => $item->rawMaterial->unit
+                                'id'                 => $item->id,
+                                'unit_type'          => $item->unit_type,
+                                'category'           => $item->category,
+                                'quantity'           => $item->quantity,
+                                'price_per_unit'     => $item->price_per_unit,
+                                'price_per_gram'     => $item->price_per_gram,
+                                'gram'               => $item->gram,
+                                'pcs'                => $item->pcs,
+                                'kilo'               => $item->kilo,
+                                'raw_material_id'    => $item->rawMaterial ? $item->rawMaterial->id : null,
+                                'raw_material'       => $item->rawMaterial ? [
+                                    'id'                     => $item->rawMaterial->id,
+                                    'name'                   => $item->rawMaterial->name,
+                                    'code'                   => $item->rawMaterial->code,
+                                    'category'               => $item->rawMaterial->category,
+                                    'unit'                   => $item->rawMaterial->unit
                                 ] : null,
                                 ];
                         }),
-                        'created_at' => $delivery->created_at,
-                        'updated_at' => $delivery->updated_at,
+                        'created_at'          => $delivery->created_at,
+                        'updated_at'          => $delivery->updated_at,
                     ];
                 }),
                 'pagination' => [
-                    'total' => $deliveries->total(),
-                    'per_page' => $deliveries->perPage(),
-                    'current_page' => $deliveries->currentPage(),
-                    'last_page' => $deliveries->lastPage(),
-                    'from' => $deliveries->firstItem(),
-                    'to' => $deliveries->lastItem()
+                    'total'                   => $deliveries->total(),
+                    'per_page'                => $deliveries->perPage(),
+                    'current_page'            => $deliveries->currentPage(),
+                    'last_page'               => $deliveries->lastPage(),
+                    'from'                    => $deliveries->firstItem(),
+                    'to'                      => $deliveries->lastItem()
                 ]
             ], 200);
 
@@ -498,12 +499,12 @@ class RawMaterialsDeliveryController extends Controller
                     ];
                 }),
                 'pagination' => [
-                    'total' => $deliveries->total(),
-                    'per_page' => $deliveries->perPage(),
-                    'current_page' => $deliveries->currentPage(),
-                    'last_page' => $deliveries->lastPage(),
-                    'from' => $deliveries->firstItem(),
-                    'to' => $deliveries->lastItem()
+                    'total'          => $deliveries->total(),
+                    'per_page'       => $deliveries->perPage(),
+                    'current_page'   => $deliveries->currentPage(),
+                    'last_page'      => $deliveries->lastPage(),
+                    'from'           => $deliveries->firstItem(),
+                    'to'             => $deliveries->lastItem()
                 ]
             ], 200);
         } catch (\Exception $e) {
@@ -526,6 +527,7 @@ class RawMaterialsDeliveryController extends Controller
                 'to_designation'     => 'required|string|in:Branch,Warehouse',
                 'status'             => 'required|string|in:confirmed',
                 'items'              => 'required|array',
+                'items.*.id'                 => 'required|integer|exists:delivery_stocks_units,id',
                 'items.*.raw_material_id'    => 'required|integer|exists:raw_materials,id',
                 'items.*.quantity'           => 'required|numeric|min:1',
                 'items.*.gram'               => 'nullable|numeric|min:0',
@@ -570,7 +572,7 @@ class RawMaterialsDeliveryController extends Controller
                         // Deduct from BranchRawMaterialsReport
                         $report = BranchRawMaterialsReport::where([
                             'branch_id'          => $validated['from_id'],
-                            'ingredients_id'    => $item['raw_material_id']
+                            'ingredients_id'     => $item['raw_material_id']
                         ])->first();
 
                         if ($report) {
@@ -584,6 +586,7 @@ class RawMaterialsDeliveryController extends Controller
                     /**
                      * 🟢 Add TO destination
                      */
+                    // Note that the total_grams is the quantity in grams here in BranchRmStocks
                     if ($validated['to_designation'] === 'Branch') {
                         $stock = BranchRmStocks::where([
                             'branch_id'          => $validated['to_id'],
@@ -593,14 +596,16 @@ class RawMaterialsDeliveryController extends Controller
 
                         if ($stock) {
                             $stock->update([
-                                'quantity' => DB::raw('quantity + ' . $item['quantity'])
+                                'quantity' => DB::raw('quantity + ' . $item['total_grams']),
+                                'delivery_su_id' => $item['id'],
                             ]);
                         } else {
                             BranchRmStocks::create([
                                 'branch_id'          => $validated['to_id'],
                                 'raw_material_id'    => $item['raw_material_id'],
                                 'price_per_gram'     => $item['price_per_gram'],
-                                'quantity'           => $item['quantity']
+                                'quantity'           => $item['quantity'],
+                                'delivery_su_id'     => $item['id'], // ✅ save link
                             ]);
                         }
 
@@ -615,6 +620,7 @@ class RawMaterialsDeliveryController extends Controller
                                 'total_quantity' => DB::raw('total_quantity + ' . $item['total_grams'])
                             ]);
                         } else {
+
                             BranchRawMaterialsReport::created([
                                 'branch_id'          => $validated['to_id'],
                                 'ingredients_id'     => $item['raw_material_id'],
@@ -631,7 +637,8 @@ class RawMaterialsDeliveryController extends Controller
                         if ($stock) {
                             $stock->update([
                                 'quantity'       => DB::raw('quantity + ' . $item['quantity']),
-                                'total_grams'    => DB::raw('total_grams + ' . $item['total_grams'])
+                                'total_grams'    => DB::raw('total_grams + ' . $item['total_grams']),
+                                'delivery_su_id' => $item['id']
                             ]);
                         } else {
                             WarehouseRmStocks::create([
@@ -642,19 +649,20 @@ class RawMaterialsDeliveryController extends Controller
                                 'gram'               => $item['gram'],
                                 'kilo'               => $item['kilo'],
                                 'pcs'                => $item['pcs'],
-                                'total_grams'        => $item['total_grams']
+                                'total_grams'        => $item['total_grams'],
+                                'delivery_su_id'     => $item['id']
                             ]);
                         }
 
                         // Update warehouse report
                         $report = WarehouseRawMaterialsReport::where([
-                            'warehouse_id'       => $validated['to_id'],
-                            'raw_material_id'    => $item['raw_material_id'],
+                            'warehouse_id'           => $validated['to_id'],
+                            'raw_material_id'        => $item['raw_material_id'],
                         ])->first();
 
                         if ($report) {
                             $report->update([
-                                'total_quantity' => DB::raw('total_quantity + ' . $item['total_grams'])
+                                'total_quantity'     => DB::raw('total_quantity + ' . $item['total_grams'])
                             ]);
                         } else {
                             WarehouseRawMaterialsReport::create([
@@ -699,8 +707,8 @@ class RawMaterialsDeliveryController extends Controller
 
             // ✅ 4. Return success
             return response()->json([
-                'message' => 'Delivery declined successfully.',
-                'status' => 'success'
+                'message'    => 'Delivery declined successfully.',
+                'status'     => 'success'
             ], 200);
 
         } catch (\Exception $e) {
@@ -743,14 +751,12 @@ class RawMaterialsDeliveryController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation Error',
-                'errors' => $validator->errors()
+                'message'    => 'Validation Error',
+                'errors'     => $validator->errors()
             ], 422);
         }
 
-
         // 2️⃣ Wrap in transaction
-
         try {
 
             $delivery = DB::transaction(function () use ($request) {
@@ -768,7 +774,7 @@ class RawMaterialsDeliveryController extends Controller
                 foreach ($request->input('raw_materials_groups') as $group) {
                     DeliveryStocksUnit::create([
                         'rm_delivery_id'     => $rawMaterialsDelivery->id,
-                        'raw_materials_id'   => $group['raw_materials_id'],
+                        'raw_material_id'    => $group['raw_materials_id'],
                         'unit_type'          => $group['unit_type'],
                         'category'           => $group['category'],
                         'quantity'           => $group['quantity'],
@@ -811,6 +817,114 @@ class RawMaterialsDeliveryController extends Controller
     public function show(RawMaterialsDelivery $rawMaterialsDelivery)
     {
         //
+    }
+
+    public function editDeliveryStocks(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'to_designation'     => 'required|string|in:Warehouse,Branch',
+                'item_id'            => 'required|integer|exists:delivery_stocks_units,id',
+                'raw_material_id'    => 'required|integer|exists:raw_materials,id',
+                'quantity'           => 'nullable|numeric|min:1',
+                'gram'               => 'nullable|numeric|min:0',
+                'kilo'               => 'nullable|numeric|min:0',
+                'pcs'                => 'nullable|numeric|min:0',
+                'price_per_unit'     => 'nullable|numeric|min:0',
+                'price_per_gram'     => 'nullable|numeric',
+                'category'           => 'nullable|string',
+                'unit_type'          => 'nullable|string'
+            ]);
+
+            DB::beginTransaction();
+
+            // ✅ 2. Find the existing item
+            $item = DeliveryStocksUnit::findOrFail($validated['item_id']);
+
+            // ✅ Get old and new quantity
+            $oldQuantity = $item->quantity ?? 0;
+            $newQuantity = $validated['quantity'] ?? $item->quantity ?? 0;
+
+            // ✅ Get old and new grams
+            $oldTotalGrams = $item->gram ?? 0;
+            $newTotalGrams = $validated['gram'] ?? $item->gram ?? 0;
+
+            // ✅ Compute difference
+            $quantityDifference = $oldQuantity - $newQuantity;
+            $gramsDifference = $oldTotalGrams - $newTotalGrams;
+
+            // ✅ Update DeliveryStocksUnit
+
+            if (!$item) {
+                return response()->json([
+                    'message' => "Item not found in delivery stocks."
+                ], 404);
+            }
+
+            // ✅ 3. Update item fields
+            $item->update([
+                'quantity'           => $validated['quantity'] ?? $item->quantity,
+                'gram'               => $newTotalGrams,
+                'kilo'               => $validated['kilo'] ?? $item->kilo,
+                'pcs'                => $validated['pcs'] ?? $item->pcs,
+                'price_per_unit'     => $validated['price_per_unit'] ?? $item->price_per_unit,
+                'price_per_gram'     => $validated['price_per_gram'] ?? $item->price_per_gram,
+                'category'           => $validated['category'] ?? $item->category,
+                'unit_type'          => $validated['unit_type'] ?? $item->unit_type,
+            ]);
+
+            // ✅ Adjust stock based on to_designation
+            if ($validated['to_designation'] === 'Branch') {
+                $stock = BranchRmStocks::where('raw_material_id', $validated['raw_material_id'])
+                    ->where('delivery_su_id', $item->id )
+                    ->first();
+
+                if ($stock) {
+                    // Update existing record
+                    $stock->update([
+                        'quantity' => $stock->quantity - $gramsDifference,
+                    ]);
+                } else {
+                    // Create if doesn't exist
+                    BranchRmStocks::create([
+                        'raw_material_id' => $validated['raw_material_id'],
+                        'quantity' => max(0, -$gramsDifference), // Prevent negatives
+                        'delivery_su_id' => $item->id,
+                    ]);
+                }
+            } elseif ($validated['to_designation'] === 'Warehouse') {
+                $stock = WarehouseRmStocks::where('raw_material_id', $validated['raw_material_id'])
+                    ->where('delivery_su_id', $item->id)
+                    ->first();
+
+                if ($stock) {
+                    $stock->update([
+                        'quantity'  => $stock->quantity - $quantityDifference,
+                        'total_grams' => $stock->total_grams - $gramsDifference,
+                    ]);
+                } else {
+                    // Create record if not found
+                    WarehouseRmStocks::create([
+                        'raw_material_id' => $validated['raw_material_id'],
+                        'quantity' => max(0, -$gramsDifference),
+                        'total_grams' => max(0, -$gramsDifference),
+                        'delivery_su_id' => $item->id
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Delivery stock item updated successfully.',
+                'data' => $item,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error updating stock:' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

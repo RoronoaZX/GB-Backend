@@ -56,16 +56,16 @@ class RecipeController extends Controller
 
         if (!$recipe) {
             return response()->json([
-                'success' => false,
-                'message' => 'Recipe not found'
+                'success'    => false,
+                'message'    => 'Recipe not found'
             ], 404);
         }
 
         $recipe->delete();
 
         return response()->json([
-            'success' => true,
-            'message' => 'Recipe deleted successfully'
+            'success'        => true,
+            'message'        => 'Recipe deleted successfully'
         ], 200);
     }
 
@@ -73,7 +73,7 @@ class RecipeController extends Controller
     public function updateTarget(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'target' => 'required|integer',
+            'target'         => 'required|integer',
         ]);
 
         $recipe = Recipe::findOrFail($id);
@@ -88,7 +88,7 @@ class RecipeController extends Controller
         $recipe = Recipe::findOrFail($id);
 
         $validatedData = $request->validate([
-            'name' => 'required|string|max:255|unique:recipes',
+            'name'           => 'required|string|max:255|unique:recipes',
         ]);
 
         $recipe->name = $validatedData['name'];
@@ -99,7 +99,7 @@ class RecipeController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'status' => 'required|string|max:255',
+            'status'         => 'required|string|max:255',
         ]);
 
         $recipe = Recipe::findOrFail($id);

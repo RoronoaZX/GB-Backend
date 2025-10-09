@@ -11,7 +11,7 @@ class DeliveryStocksUnit extends Model
 
     protected $fillable = [
         'rm_delivery_id',
-        'raw_materials_id',
+        'raw_material_id',
         'unit_type',
         'category',
         'quantity',
@@ -30,6 +30,6 @@ class DeliveryStocksUnit extends Model
 
     public function rawMaterial()
     {
-        return $this->belongsTo(RawMaterial::class, 'raw_materials_id');
+        return $this->belongsTo(RawMaterial::class, 'raw_material_id');
     }
 }

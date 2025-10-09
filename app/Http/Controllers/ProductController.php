@@ -46,7 +46,7 @@ class ProductController extends Controller
         $productResponseData =  $product->fresh();
 
         return response()->json([
-            'message' => "Product saved successfully",
+            'message'    => "Product saved successfully",
             $productResponseData
         ], 201);
     }
@@ -57,7 +57,7 @@ class ProductController extends Controller
     public function show($id)
     {
         return response()->json([
-            'data' => ['sample']
+            'data'       => ['sample']
         ]);
     }
 
@@ -78,7 +78,7 @@ class ProductController extends Controller
 
        if (!$product) {
         return response()->json([
-            'message' => 'Product not found'
+            'message'        => 'Product not found'
         ], 404);
        }
 

@@ -36,8 +36,8 @@ class OtherStocksReportController extends Controller
         } catch (\Exception $e) {
             // Handle and return an error response
             return response()->json([
-                'success' => false,
-                'message' => 'Failed to fetch reports. ' . $e->getMessage(),
+                'success'    => false,
+                'message'    => 'Failed to fetch reports. ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -46,7 +46,7 @@ class OtherStocksReportController extends Controller
     {
         // Validate the category parameter, if provided
         $request->validate([
-            'status' => 'nullable|string'
+            'status'     => 'nullable|string'
         ]);
 
         // Set category to 'pending' by default, if not provided

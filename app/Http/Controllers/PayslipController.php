@@ -40,10 +40,7 @@ class PayslipController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    // public function store(StorePayslipRequest $request)
-    // {
-    //     // Check
-    // }
+
     public function store(Request $request)
     {
         // 1️⃣ Validate the request before doing anything

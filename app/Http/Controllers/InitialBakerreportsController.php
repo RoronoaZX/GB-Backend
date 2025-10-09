@@ -72,66 +72,17 @@ class InitialBakerreportsController extends Controller
         return response()->json($reports);
     }
 
-    // public function adminCreateAdminInsertRecipeBakerReport(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'reports' => 'required|array',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status' => 'error',
-    //             'message' => 'validation failed for reports array',
-    //             'errors' => $validator->errors()
-    //         ], 422);
-    //     }
-
-    //     foreach ($request->reports as $report) {
-    //         $reportValidator = Validator::make($report, [
-    //             'branch_id' => 'required|integer|exists:branches,id',
-    //             'user_id' => 'required|integer|exists:users,id',
-    //             'branch_recipe_id' => 'required|integer\exists:branch_recipes,id',
-    //             'recipe_category' => 'required|string|in:Dough,Filling',
-    //             'status' => 'required|string|max:255',
-    //             'kilo' => 'required|numeric',
-    //             'over' => 'required|integer',
-    //             'short' => 'required|integer',
-    //             'target' => 'required|numeric',
-    //             'actual_target' => 'required|integer',
-    //             'breads' => 'required|array',
-    //             'breads.*.bread_id' => 'required|integer',
-    //             'breads.*.bread_production' => 'required|integer',
-    //             'ingredients' => 'required|array',
-    //             'ingredients.*.ingredients_id' => 'required|integer',
-    //             'ingredients.*.quantity' => 'required|numeric',
-    //             'ingredients.*.unit' => 'required|string|max:191',
-    //             'created_at' => 'nullable|date', // Optional created_at
-    //         ]);
-
-    //         if ($reportValidator->fails()) {
-    //             return response()->json([
-    //                 'status' => 'error',
-    //                 'message' => 'Validation failed for one or more reports',
-    //                 'errors' => $reportValidator->errors()
-    //             ], 422);
-    //         }
-
-    //         $validatedData = $reportValidator->validated();
-    //         $validatedData['status'] = $report['recipe_category'] === 'Filling' ? 'confirmed' : $report['status'];
-    //     }
-    // }
-
     public function adminCreateReport(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'reports' => 'required|array',
+            'reports'    => 'required|array',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed for reports array',
-                'errors' => $validator->errors()
+                'status'     => 'error',
+                'message'    => 'Validation failed for reports array',
+                'errors'     => $validator->errors()
             ], 422);
         }
 
@@ -204,99 +155,10 @@ class InitialBakerreportsController extends Controller
         }
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'Reports stored successfully',
+            'status'     => 'success',
+            'message'    => 'Reports stored successfully',
         ], 201);
     }
-
-
-    // public function adminCreateReport(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'reports' => 'required|array',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status' => 'error',
-    //             'message' => 'Validation failed for reports array',
-    //             'errors' => $validator->errors()
-    //         ], 422);
-    //     }
-
-    //     foreach ($request->reports as $report) {
-    //         $reportValidator = Validator::make($report, [
-    //             'branch_id' => 'required|integer|exists:branches,id',
-    //             'user_id' => 'required|integer|exists:users,id',
-    //             'branch_recipe_id' => 'required|integer|exists:branch_recipes,id',
-    //             'recipe_category' => 'required|string|in:Dough,Filling',
-    //             'status' => 'required|string|max:255',
-    //             'kilo' => 'required|numeric',
-    //             'over' => 'required|integer',
-    //             'short' => 'required|integer',
-    //             'target' => 'required|numeric',
-    //             'actual_target' => 'required|integer',
-    //             'breads' => 'required|array',
-    //             'breads.*.bread_id' => 'required|integer',
-    //             'breads.*.bread_production' => 'required|integer',
-    //             'ingredients' => 'required|array',
-    //             'ingredients.*.ingredients_id' => 'required|integer',
-    //             'ingredients.*.quantity' => 'required|numeric',
-    //             'ingredients.*.unit' => 'required|string|max:191',
-    //             'created_at' => 'nullable|date', // Optional created_at
-    //         ]);
-
-    //         if ($reportValidator->fails()) {
-    //             return response()->json([
-    //                 'status' => 'error',
-    //                 'message' => 'Validation failed for one or more reports',
-    //                 'errors' => $reportValidator->errors()
-    //             ], 422);
-    //         }
-
-    //         $validatedData = $reportValidator->validated();
-    //         $validatedData['status'] = $report['recipe_category'] === 'Filling' ? 'confirmed' : $report['status'];
-    //         $bakerReport = InitialBakerreports::create($validatedData);
-
-    //         if ($report['recipe_category'] === 'Dough') {
-    //             if (isset($validatedData['breads'])) {
-    //                 $bakerReport->breadBakersReports()->createMany($validatedData['breads']);
-    //             }
-    //             $bakerReport->ingredientBakersReports()->createMany($validatedData['ingredients']);
-    //         }
-
-    //         if ($report['recipe_category'] === 'Filling') {
-    //             if (isset($validatedData['breads'])) {
-    //                 $fillingData = array_map(function($bread) {
-    //                     return [
-    //                         'bread_id' => $bread['bread_id'],
-    //                         'filling_production' => $bread['bread_production']
-    //                     ];
-    //                 }, $validatedData['breads']);
-
-    //                 $bakerReport->fillingBakersReports()->createMany($fillingData);
-    //             }
-    //             $bakerReport->ingredientBakersReports()->createMany($validatedData['ingredients']);
-
-    //             foreach ($validatedData['ingredients'] as $ingredientReport) {
-    //                 $ingredientInventory = BranchRawMaterialsReport::where('ingredients_id', $ingredientReport['ingredients_id'])
-    //                     ->where('branch_id', $validatedData['branch_id'])
-    //                     ->first();
-
-    //                 if ($ingredientInventory) {
-    //                     $ingredientInventory->total_quantity -= $ingredientReport['quantity'];
-    //                     $ingredientInventory->save();
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     return response()->json([
-    //         'status' => 'success',
-    //         'message' => 'Reports stored successfully',
-    //     ], 201);
-
-    // }
 
     public function store(Request $request)
     {

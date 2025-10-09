@@ -12,18 +12,6 @@ class HistoryLogController extends Controller
     /**
      * Display a listing of the resource.
      */
-//     public function index()
-// {
-//     $historyLogs = HistoryLog::all()->map(function($historyLog) {
-//         $historyLog->designation = $historyLog->designation_type === 'branch'
-//             ? Branch::find($historyLog->designation)
-//             : Warehouse::find($historyLog->designation);
-
-//         return $historyLog; // ✅ This is needed to return the modified item
-//     });
-
-//     return response()->json($historyLogs);
-// }
 
     public function index()
     {
