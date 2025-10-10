@@ -515,6 +515,179 @@ class RawMaterialsDeliveryController extends Controller
         }
     }
 
+    // public function confirmDelivery(Request $request)
+    // {
+    //     try {
+    //         // ✅ 1. Validate request
+    //         $validated = $request->validate([
+    //             'id'                 => 'required|integer|exists:raw_materials_deliveries,id',
+    //             'from_id'            => 'nullable|integer',
+    //             'from_designation'   => 'required|string|in:Branch,Warehouse,Supplier',
+    //             'to_id'              => 'required|integer',
+    //             'to_designation'     => 'required|string|in:Branch,Warehouse',
+    //             'status'             => 'required|string|in:confirmed',
+    //             'items'              => 'required|array',
+    //             'items.*.id'                 => 'required|integer|exists:delivery_stocks_units,id',
+    //             'items.*.raw_material_id'    => 'required|integer|exists:raw_materials,id',
+    //             'items.*.quantity'           => 'required|numeric|min:1',
+    //             'items.*.gram'               => 'nullable|numeric|min:0',
+    //             'items.*.kilo'               => 'nullable|numeric|min:0',
+    //             'items.*.pcs'                => 'nullable|numeric|min:0',
+    //             'items.*.price_per_unit'     => 'required|numeric|min:0',
+    //             'items.*.price_per_gram'     => 'required|numeric|min:0',
+    //             'items.*.total_grams'        => 'required|numeric|min:0'
+    //         ]);
+
+    //         // ✅ 2. Find the delivery
+    //         $delivery = RawMaterialsDelivery::findOrFail($validated['id']);
+    //         $delivery->status = $validated['status'];
+    //         $delivery->save();
+
+    //         // ✅ 3. Update stocks if confirmed
+    //         if ($validated['status'] === 'confirmed') {
+    //             foreach ($validated['items'] as $item) {
+    //                 /**
+    //                  * 🟢 Deduct FROM source
+    //                  */
+    //                 if ($validated['from_designation'] === 'Warehouse') {
+    //                     // Deduct from WarehouseRawMaterialsReport
+    //                     $report = WarehouseRawMaterialsReport::where([
+    //                         'warehouse_id'       => $validated['from_id'],
+    //                         'raw_material_id'    => $item['raw_material_id'],
+    //                     ])->first();
+
+    //                     if($report) {
+    //                         // $report->update([
+    //                         //     'total_quantity' => DB::raw('total_quantity - ' . $item['total_grams'])
+    //                         // ]);
+    //                         $report->decrement('total_quantity', $item['total_grams']);
+    //                     } else {
+    //                         // optional
+    //                         return response()->json([
+    //                             'message'            => 'Stock report not found for this raw material in the warehouse.',
+    //                             'raw_material_id'    => $item['raw_material_id']
+    //                         ], 400);
+    //                     }
+    //                 } elseif ($validated['from_designation'] === 'Branch') {
+    //                     // Deduct from BranchRawMaterialsReport
+    //                     $report = BranchRawMaterialsReport::where([
+    //                         'branch_id'          => $validated['from_id'],
+    //                         'ingredients_id'     => $item['raw_material_id']
+    //                     ])->first();
+
+    //                     if ($report) {
+    //                         $report->update([
+    //                             'total_quantity' => DB::raw('total_quantity - ' . $item['total_grams'])
+    //                         ]);
+    //                     }
+    //                 }
+    //                 // Supplier = no deduction
+
+    //                 /**
+    //                  * 🟢 Add TO destination
+    //                  */
+    //                 // Note that the total_grams is the quantity in grams here in BranchRmStocks
+    //                 if ($validated['to_designation'] === 'Branch') {
+    //                     $stock = BranchRmStocks::where([
+    //                         'branch_id'          => $validated['to_id'],
+    //                         'raw_material_id'    => $item['raw_material_id'],
+    //                         'price_per_gram'     => $item['price_per_gram'],
+    //                     ])->first();
+
+    //                     if ($stock) {
+    //                         $stock->update([
+    //                             'quantity' => DB::raw('quantity + ' . $item['total_grams']),
+    //                             'delivery_su_id' => $item['id'],
+    //                         ]);
+    //                     } else {
+    //                         BranchRmStocks::create([
+    //                             'branch_id'          => $validated['to_id'],
+    //                             'raw_material_id'    => $item['raw_material_id'],
+    //                             'price_per_gram'     => $item['price_per_gram'],
+    //                             'quantity'           => $item['quantity'],
+    //                             'delivery_su_id'     => $item['id'], // ✅ save link
+    //                         ]);
+    //                     }
+
+    //                     // Update branch report
+    //                     $report = BranchRawMaterialsReport::where([
+    //                         'branch_id'          => $validated['to_id'],
+    //                         'ingredients_id'     => $item['raw_material_id']
+    //                     ])->first();
+
+    //                     if ($report) {
+    //                         $report->update([
+    //                             'total_quantity' => DB::raw('total_quantity + ' . $item['total_grams'])
+    //                         ]);
+    //                     } else {
+
+    //                         BranchRawMaterialsReport::created([
+    //                             'branch_id'          => $validated['to_id'],
+    //                             'ingredients_id'     => $item['raw_material_id'],
+    //                             'total_quantity'     => $item['total_grams']
+    //                         ]);
+    //                     }
+    //                 } elseif ($validated['to_designation'] === 'Warehouse') {
+    //                     $stock = WarehouseRmStocks::where([
+    //                         'warehouse_id'       => $validated['to_id'],
+    //                         'raw_material_id'    => $item['raw_material_id'],
+    //                         'price_per_gram'     => $item['price_per_gram']
+    //                     ])->first();
+
+    //                     if ($stock) {
+    //                         $stock->update([
+    //                             'quantity'       => DB::raw('quantity + ' . $item['quantity']),
+    //                             'total_grams'    => DB::raw('total_grams + ' . $item['total_grams']),
+    //                             'delivery_su_id' => $item['id']
+    //                         ]);
+    //                     } else {
+    //                         WarehouseRmStocks::create([
+    //                             'warehouse_id'       => $validated['to_id'],
+    //                             'raw_material_id'    => $item['raw_material_id'],
+    //                             'price_per_gram'     => $item['price_per_gram'],
+    //                             'quantity'           => $item['quantity'],
+    //                             'gram'               => $item['gram'],
+    //                             'kilo'               => $item['kilo'],
+    //                             'pcs'                => $item['pcs'],
+    //                             'total_grams'        => $item['total_grams'],
+    //                             'delivery_su_id'     => $item['id']
+    //                         ]);
+    //                     }
+
+    //                     // Update warehouse report
+    //                     $report = WarehouseRawMaterialsReport::where([
+    //                         'warehouse_id'           => $validated['to_id'],
+    //                         'raw_material_id'        => $item['raw_material_id'],
+    //                     ])->first();
+
+    //                     if ($report) {
+    //                         $report->update([
+    //                             'total_quantity'     => DB::raw('total_quantity + ' . $item['total_grams'])
+    //                         ]);
+    //                     } else {
+    //                         WarehouseRawMaterialsReport::create([
+    //                             'warehouse_id'       => $validated['to_id'],
+    //                             'raw_material_id'    => $item['raw_material_id'],
+    //                             'total_quantity'     => $item['total_grams']
+    //                         ]);
+    //                     }
+    //                 }
+    //             }
+    //         }
+
+    //         return response()->json([
+    //             // 'message' => 'Delivery ' . $validated['status'] . ' successfully.',
+    //             'message' => 'Delivery confirmed successfully.',
+    //         ], 200);
+
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'message'    => 'Failed to process delivery.',
+    //             'error'      => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
+
     public function confirmDelivery(Request $request)
     {
         try {
@@ -538,56 +711,42 @@ class RawMaterialsDeliveryController extends Controller
                 'items.*.total_grams'        => 'required|numeric|min:0'
             ]);
 
-            // ✅ 2. Find the delivery
+            // ✅ 2. Update delivery status
             $delivery = RawMaterialsDelivery::findOrFail($validated['id']);
-            $delivery->status = $validated['status'];
-            $delivery->save();
+            $delivery->update(['status' => $validated['status']]);
 
-            // ✅ 3. Update stocks if confirmed
+            // ✅ 3. Process stocks only if confirmed
             if ($validated['status'] === 'confirmed') {
                 foreach ($validated['items'] as $item) {
+
                     /**
                      * 🟢 Deduct FROM source
                      */
                     if ($validated['from_designation'] === 'Warehouse') {
-                        // Deduct from WarehouseRawMaterialsReport
                         $report = WarehouseRawMaterialsReport::where([
                             'warehouse_id'       => $validated['from_id'],
                             'raw_material_id'    => $item['raw_material_id'],
                         ])->first();
 
-                        if($report) {
-                            // $report->update([
-                            //     'total_quantity' => DB::raw('total_quantity - ' . $item['total_grams'])
-                            // ]);
+                        if ($report) {
                             $report->decrement('total_quantity', $item['total_grams']);
-                        } else {
-                            // optional
-                            return response()->json([
-                                'message'            => 'Stock report not found for this raw material in the warehouse.',
-                                'raw_material_id'    => $item['raw_material_id']
-                            ], 400);
                         }
                     } elseif ($validated['from_designation'] === 'Branch') {
-                        // Deduct from BranchRawMaterialsReport
                         $report = BranchRawMaterialsReport::where([
                             'branch_id'          => $validated['from_id'],
                             'ingredients_id'     => $item['raw_material_id']
                         ])->first();
 
                         if ($report) {
-                            $report->update([
-                                'total_quantity' => DB::raw('total_quantity - ' . $item['total_grams'])
-                            ]);
+                            $report->decrement('total_quantity', $item['total_grams']);
                         }
                     }
-                    // Supplier = no deduction
 
                     /**
                      * 🟢 Add TO destination
                      */
-                    // Note that the total_grams is the quantity in grams here in BranchRmStocks
                     if ($validated['to_designation'] === 'Branch') {
+                        // 🔍 Look for same raw_material_id AND same price_per_gram
                         $stock = BranchRmStocks::where([
                             'branch_id'          => $validated['to_id'],
                             'raw_material_id'    => $item['raw_material_id'],
@@ -595,39 +754,40 @@ class RawMaterialsDeliveryController extends Controller
                         ])->first();
 
                         if ($stock) {
+                            // ✅ Same price_per_gram → Add to existing stock
                             $stock->update([
-                                'quantity' => DB::raw('quantity + ' . $item['total_grams']),
-                                'delivery_su_id' => $item['id'],
+                                'quantity'        => DB::raw('quantity + ' . $item['total_grams']),
+                                'delivery_su_id'  => $item['id'],
                             ]);
                         } else {
+                            // ❌ Different price_per_gram → Create new stock entry
                             BranchRmStocks::create([
                                 'branch_id'          => $validated['to_id'],
                                 'raw_material_id'    => $item['raw_material_id'],
                                 'price_per_gram'     => $item['price_per_gram'],
-                                'quantity'           => $item['quantity'],
-                                'delivery_su_id'     => $item['id'], // ✅ save link
+                                'quantity'           => $item['total_grams'],
+                                'delivery_su_id'     => $item['id'],
                             ]);
                         }
 
-                        // Update branch report
+                        // 🔄 Update branch report
                         $report = BranchRawMaterialsReport::where([
                             'branch_id'          => $validated['to_id'],
                             'ingredients_id'     => $item['raw_material_id']
                         ])->first();
 
                         if ($report) {
-                            $report->update([
-                                'total_quantity' => DB::raw('total_quantity + ' . $item['total_grams'])
-                            ]);
+                            $report->increment('total_quantity', $item['total_grams']);
                         } else {
-
-                            BranchRawMaterialsReport::created([
+                            BranchRawMaterialsReport::create([
                                 'branch_id'          => $validated['to_id'],
                                 'ingredients_id'     => $item['raw_material_id'],
                                 'total_quantity'     => $item['total_grams']
                             ]);
                         }
+
                     } elseif ($validated['to_designation'] === 'Warehouse') {
+                        // 🔍 Look for same raw_material_id AND same price_per_gram
                         $stock = WarehouseRmStocks::where([
                             'warehouse_id'       => $validated['to_id'],
                             'raw_material_id'    => $item['raw_material_id'],
@@ -635,12 +795,14 @@ class RawMaterialsDeliveryController extends Controller
                         ])->first();
 
                         if ($stock) {
+                            // ✅ Same price_per_gram → Add to existing stock
                             $stock->update([
-                                'quantity'       => DB::raw('quantity + ' . $item['quantity']),
-                                'total_grams'    => DB::raw('total_grams + ' . $item['total_grams']),
-                                'delivery_su_id' => $item['id']
+                                'quantity'           => DB::raw('quantity + ' . $item['quantity']),
+                                'total_grams'        => DB::raw('total_grams + ' . $item['total_grams']),
+                                'delivery_su_id'     => $item['id']
                             ]);
                         } else {
+                            // ❌ Different price_per_gram → Create new record
                             WarehouseRmStocks::create([
                                 'warehouse_id'       => $validated['to_id'],
                                 'raw_material_id'    => $item['raw_material_id'],
@@ -654,16 +816,14 @@ class RawMaterialsDeliveryController extends Controller
                             ]);
                         }
 
-                        // Update warehouse report
+                        // 🔄 Update warehouse report
                         $report = WarehouseRawMaterialsReport::where([
-                            'warehouse_id'           => $validated['to_id'],
-                            'raw_material_id'        => $item['raw_material_id'],
+                            'warehouse_id'       => $validated['to_id'],
+                            'raw_material_id'    => $item['raw_material_id']
                         ])->first();
 
                         if ($report) {
-                            $report->update([
-                                'total_quantity'     => DB::raw('total_quantity + ' . $item['total_grams'])
-                            ]);
+                            $report->increment('total_quantity', $item['total_grams']);
                         } else {
                             WarehouseRawMaterialsReport::create([
                                 'warehouse_id'       => $validated['to_id'],
@@ -676,8 +836,7 @@ class RawMaterialsDeliveryController extends Controller
             }
 
             return response()->json([
-                // 'message' => 'Delivery ' . $validated['status'] . ' successfully.',
-                'message' => 'Delivery confirmed successfully.',
+                'message' => 'Delivery confirmed successfully.'
             ], 200);
 
         } catch (\Exception $e) {
@@ -687,6 +846,7 @@ class RawMaterialsDeliveryController extends Controller
             ], 500);
         }
     }
+
 
     public function declineDelivery(Request $request)
     {
@@ -882,14 +1042,14 @@ class RawMaterialsDeliveryController extends Controller
                 if ($stock) {
                     // Update existing record
                     $stock->update([
-                        'quantity' => $stock->quantity - $gramsDifference,
+                        'quantity'   => $stock->quantity - $gramsDifference,
                     ]);
                 } else {
                     // Create if doesn't exist
                     BranchRmStocks::create([
-                        'raw_material_id' => $validated['raw_material_id'],
-                        'quantity' => max(0, -$gramsDifference), // Prevent negatives
-                        'delivery_su_id' => $item->id,
+                        'raw_material_id'    => $validated['raw_material_id'],
+                        'quantity'           => max(0, -$gramsDifference), // Prevent negatives
+                        'delivery_su_id'     => $item->id,
                     ]);
                 }
             } elseif ($validated['to_designation'] === 'Warehouse') {
@@ -899,16 +1059,16 @@ class RawMaterialsDeliveryController extends Controller
 
                 if ($stock) {
                     $stock->update([
-                        'quantity'  => $stock->quantity - $quantityDifference,
-                        'total_grams' => $stock->total_grams - $gramsDifference,
+                        'quantity'       => $stock->quantity - $quantityDifference,
+                        'total_grams'    => $stock->total_grams - $gramsDifference,
                     ]);
                 } else {
                     // Create record if not found
                     WarehouseRmStocks::create([
-                        'raw_material_id' => $validated['raw_material_id'],
-                        'quantity' => max(0, -$gramsDifference),
-                        'total_grams' => max(0, -$gramsDifference),
-                        'delivery_su_id' => $item->id
+                        'raw_material_id'    => $validated['raw_material_id'],
+                        'quantity'           => max(0, -$gramsDifference),
+                        'total_grams'        => max(0, -$gramsDifference),
+                        'delivery_su_id'     => $item->id
                     ]);
                 }
             }
@@ -916,13 +1076,13 @@ class RawMaterialsDeliveryController extends Controller
             DB::commit();
 
             return response()->json([
-                'message' => 'Delivery stock item updated successfully.',
-                'data' => $item,
+                'message'    => 'Delivery stock item updated successfully.',
+                'data'       => $item,
             ], 200);
 
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Error updating stock:' . $e->getMessage()
+                'message'    => 'Error updating stock:' . $e->getMessage()
             ], 500);
         }
     }
