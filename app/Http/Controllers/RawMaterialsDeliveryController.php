@@ -52,14 +52,7 @@ class RawMaterialsDeliveryController extends Controller
     //                             'price_per_gram' => $item->price_per_gram,
     //                             'gram' => $item->gram,
     //                             'pcs' => $item->pcs,
-    //                             'kilo' => $item->kilo,
-
-    //                             // 👇 include raw material details
-    //                             'raw_material' => $item->rawMaterial ? [
-    //                                 'id' => $item->rawMaterial->id,
-    //                                 'name' => $item->rawMaterial->name,
-    //                                 'code' => $item->rawMaterial->code,
-    //                                 'category' => $item-
+    //                             'kilo' =>
 
     public function index(Request $request)
     {
