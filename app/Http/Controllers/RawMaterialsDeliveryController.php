@@ -87,14 +87,6 @@ class RawMaterialsDeliveryController extends Controller
 
             $query = RawMaterialsDelivery::with('items.rawMaterial', 'warehouse', 'branch')->latest();
 
-            // Apply search filter if provided
-            // if ($search) {
-            //     $query->whereHas('to_data', function ($q) use ($search) {
-            //         $q->where('to_name', 'like', '%' . $search . '%');
-            //     })->orWhere('from_name', 'like', '%' . $search . '%')
-            //       ->orWhere('status', 'like', '%' . $search . '%');
-            // }
-
             if ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('from_name', 'like', '%' . $search . '%')
