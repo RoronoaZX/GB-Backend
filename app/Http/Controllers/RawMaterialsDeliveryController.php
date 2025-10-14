@@ -59,24 +59,7 @@ class RawMaterialsDeliveryController extends Controller
     //                                 'id' => $item->rawMaterial->id,
     //                                 'name' => $item->rawMaterial->name,
     //                                 'code' => $item->rawMaterial->code,
-    //                                 'category' => $item->rawMaterial->category,
-    //                                 'unit' => $item->rawMaterial->unit,
-    //                             ] : null,
-    //                             ];
-
-    //                     }),
-    //                     'created_at' => $delivery->created_at,
-    //                     'updated_at' => $delivery->updated_at,
-    //                 ];
-    //             })
-    //         ], 200);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'message' => 'Failed to fetch deliveries',
-    //             'error'   => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
+    //                                 'category' => $item-
 
     public function index(Request $request)
     {
