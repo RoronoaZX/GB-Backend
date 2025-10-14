@@ -221,8 +221,8 @@ class InitialBakerreportsController extends Controller
                 if (isset($validatedData['breads'])) {
                     $fillingData = array_map(function($bread) {
                         return [
-                            'bread_id' => $bread['bread_id'],
-                            'filling_production' => $bread['bread_production']
+                            'bread_id'               => $bread['bread_id'],
+                            'filling_production'     => $bread['bread_production']
                         ];
                     }, $validatedData['breads']);
 
@@ -464,7 +464,7 @@ class InitialBakerreportsController extends Controller
                         ->update(['new_production' => $bread['bread_production']]);
                 }
             }
-//             // Update related bread reports
+           // Update related bread reports
 
 
             if ($recipeCategory === 'Filling') {

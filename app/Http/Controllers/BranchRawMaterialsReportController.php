@@ -31,18 +31,26 @@ class BranchRawMaterialsReportController extends Controller
     public function getRawMaterials($branchId)
     {
         $branchRawMaterials = BranchRawMaterialsReport::where('branch_id', $branchId)
-                                                    ->with([
-                                                        'branch',
-                                                        'ingredients',
-                                                        'oldestNonZeroStock' => function ($query) use  ($branchId) {
-                                                            $query->where('branch_id', $branchId)
-                                                                  ->where('quantity', '>', 0) // ✅ strictly greater then 0
-                                                                  ->orderBy('created_at', 'asc') // ✅ oldest first
-                                                                  ->select('id', 'raw_material_id', 'branch_id', 'price_per_gram', 'quantity', 'created_at', 'updated_at')
-                                                                  ->limit(1);
-                                                        }
-                                                        ])
-                                                        ->get();
+                                ->with([
+                                    'branch',
+                                    'ingredients',
+                                    'oldestNonZeroStock' => function ($query) use  ($branchId) {
+                                        $query->where('branch_id', $branchId)
+                                                ->where('quantity', '>', 0) // ✅ strictly greater then 0
+                                                ->orderBy('created_at', 'asc') // ✅ oldest first
+                                                ->select(
+                                                    'id',
+                                                    'raw_material_id',
+                                                    'branch_id',
+                                                    'price_per_gram',
+                                                    'quantity',
+                                                    'created_at',
+                                                    'updated_at'
+                                                    )
+                                                ->limit(1);
+                                    }
+                                    ])
+                                    ->get();
 
         return response()->json($branchRawMaterials, 200);
     }

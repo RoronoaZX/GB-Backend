@@ -1042,8 +1042,8 @@ class RawMaterialsDeliveryController extends Controller
                 if ($stock) {
                     // Update existing record
                     $stock->update([
-                        'quantity'   => $stock->quantity - $gramsDifference,
-                        'price_per_gram' => $validated['price_per_gram']
+                        'quantity'           => $stock->quantity - $gramsDifference,
+                        'price_per_gram'     => $validated['price_per_gram']
                     ]);
                 } else {
                     // Create if doesn't exist
