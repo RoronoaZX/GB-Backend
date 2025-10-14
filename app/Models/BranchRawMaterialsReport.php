@@ -39,4 +39,11 @@ class BranchRawMaterialsReport extends Model
     {
         return $this->belongsTo(RawMaterial::class, 'ingredients_id');
     }
+
+    public function oldestNonZeroStock()
+    {
+        return $this->hasOne(BranchRmStocks::class, 'raw_material_id', 'ingredients_id')
+                    ->where('quantity', '>', 0) // ✅ strictly greater then 0
+                    ->oldest('created_at');
+    }
 }

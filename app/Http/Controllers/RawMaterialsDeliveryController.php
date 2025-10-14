@@ -1043,12 +1043,14 @@ class RawMaterialsDeliveryController extends Controller
                     // Update existing record
                     $stock->update([
                         'quantity'   => $stock->quantity - $gramsDifference,
+                        'price_per_gram' => $validated['price_per_gram']
                     ]);
                 } else {
                     // Create if doesn't exist
                     BranchRmStocks::create([
                         'raw_material_id'    => $validated['raw_material_id'],
                         'quantity'           => max(0, -$gramsDifference), // Prevent negatives
+                        'price_per_gram'     => $validated['price_per_gram'],
                         'delivery_su_id'     => $item->id,
                     ]);
                 }
@@ -1061,6 +1063,7 @@ class RawMaterialsDeliveryController extends Controller
                     $stock->update([
                         'quantity'       => $stock->quantity - $quantityDifference,
                         'total_grams'    => $stock->total_grams - $gramsDifference,
+                        'price_per_gram' => $validated['price_per_gram'],
                     ]);
                 } else {
                     // Create record if not found
@@ -1068,6 +1071,7 @@ class RawMaterialsDeliveryController extends Controller
                         'raw_material_id'    => $validated['raw_material_id'],
                         'quantity'           => max(0, -$gramsDifference),
                         'total_grams'        => max(0, -$gramsDifference),
+                        'price_per_gram'     => $validated['price_per_gram'],
                         'delivery_su_id'     => $item->id
                     ]);
                 }

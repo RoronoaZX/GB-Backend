@@ -13,11 +13,18 @@ return new class extends Migration
     {
         Schema::create('recipe_costs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('initial_bakerreport_id')->references('id')->on('initial_bakerreports');
-            $table->foreign('branch_recipe_id')->references('id')->on('branch_recipes');
-            $table->decimal('total_cost', 10,3)->nullable();
-            $table->string('status')->nullable();
-            $table->decimal('kilo', 10,3)->nullable();
+            $table->foreignId('branch_id')->constrained('branches')->onDelete('cascade');
+            $table->foreignId('recipe_id')->constrained('branch_recipes')->onDelete('cascade');
+            $table->foreignId('raw_material_id')->constrained('raw_materials')->onDelete('cascade');
+            $table->foreignId('initial_bakerreport_id')->constrained('initial_bakerreports')->onDelete('cascade');
+            $table->foreignId('branch_recipe_id')->constrained('branch_recipes')->onDelete('cascade');
+
+            $table->decimal('quantity_used', 10,9)->nullable();
+            $table->decimal('price_per_gram', 10,9)->nullable();
+            $table->decimal('total_cost', 12, 9)->nullable();
+
+            $table->foreignId('branch_rm_stock_id')->nullable()->constrained('branch_rm_stocks')->onDelete('set null');
+
             $table->timestamps();
         });
     }

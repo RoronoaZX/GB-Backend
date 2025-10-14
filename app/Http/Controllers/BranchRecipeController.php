@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BranchRecipe;
+use App\Models\BranchRmStocks;
 use App\Models\HistoryLog;
 use Illuminate\Contracts\Support\ValidatedData;
 use Illuminate\Http\Request;
@@ -17,28 +18,78 @@ class BranchRecipeController extends Controller
         //
     }
 
+    // public function getBranchRecipe($branchId)
+    // {
+    //     $branchRecipe = BranchRecipe::orderBy('created_at', 'desc')
+    //                                 ->where('branch_id', $branchId)
+    //                                 ->with([
+    //                                     'branch',
+    //                                     'recipe',
+    //                                     'breadGroups.bread',
+    //                                     'ingredientGroups.ingredient'
+    //                                     ])
+    //                                 ->get();
+
+    //     $formattedBranchRecipes = $branchRecipe->map(function($branchRecipe) {
+    //         return [
+    //             'id'                 => $branchRecipe->id,
+    //             'name'               => $branchRecipe->recipe->name,
+    //             'category'           => $branchRecipe->recipe->category,
+    //             'target'             => $branchRecipe->target,
+    //             'status'             => $branchRecipe->status,
+    //             'bread_groups'       => $branchRecipe->breadGroups->pluck('bread.name'),
+    //             'ingredient_groups'  => $branchRecipe->ingredientGroups->map(function ($ingredientGroup) {
+    //                 return [
+    //                     'ingredient_name'    => $ingredientGroup->ingredient->name,
+    //                     'code'               => $ingredientGroup->ingredient->code,
+    //                     'quantity'           => $ingredientGroup->quantity,
+    //                     'unit'               => $ingredientGroup->ingredient->unit
+    //                 ];
+    //             }),
+    //         ];
+    //     });
+    //     return response()->json($formattedBranchRecipes, 200);
+    // }
+
     public function getBranchRecipe($branchId)
     {
-        $branchRecipe = BranchRecipe::orderBy('created_at', 'desc')->where('branch_id', $branchId)->with(['branch', 'recipe', 'breadGroups.bread', 'ingredientGroups.ingredient'])->get();
+        $branchRecipe = BranchRecipe::orderBy('created_at', 'desc')
+                                    ->where('branch_id', $branchId)
+                                    ->with([
+                                        'branch',
+                                        'recipe',
+                                        'breadGroups.bread',
+                                        'ingredientGroups.ingredient'
+                                    ])
+                                    ->get();
 
-        $formattedBranchRecipes = $branchRecipe->map(function($branchRecipe) {
+        $formattedBranchRecipes = $branchRecipe->map(function ($branchRecipe) use ($branchId) {
             return [
-                'id'                 => $branchRecipe->id,
-                'name'               => $branchRecipe->recipe->name,
-                'category'           => $branchRecipe->recipe->category,
-                'target'             => $branchRecipe->target,
-                'status'             => $branchRecipe->status,
-                'bread_groups'       => $branchRecipe->breadGroups->pluck('bread.name'),
-                'ingredient_groups'  => $branchRecipe->ingredientGroups->map(function ($ingredientGroup) {
+                'id' => $branchRecipe->id,
+                'name' => $branchRecipe->recipe->name,
+                'category' => $branchRecipe->recipe->category,
+                'target' => $branchRecipe->target,
+                'status' => $branchRecipe->status,
+                'bread_groups' => $branchRecipe->breadGroups->pluck('bread.name'),
+                'ingredient_groups' => $branchRecipe->ingredientGroups->map(function ($ingredientGroup) use ($branchId) {
+                    //                 // ✅ Fetch the oldest stock for this ingredient in this branch
+                    $stock = BranchRmStocks::where('branch_id',  $branchId)
+                                           ->where('raw_material_id', $ingredientGroup->ingredient_id)
+                                           ->where('quantity', '>', 0)
+                                           ->orderBy('created_at', 'asc')
+                                           ->first();
+
                     return [
-                        'ingredient_name'    => $ingredientGroup->ingredient->name,
-                        'code'               => $ingredientGroup->ingredient->code,
-                        'quantity'           => $ingredientGroup->quantity,
-                        'unit'               => $ingredientGroup->ingredient->unit
+                        'ingredient_name' => $ingredientGroup->ingredient->name,
+                        'code' => $ingredientGroup->ingredient->code,
+                        'quantity' => $ingredientGroup->quantity,
+                        'unit' => $ingredientGroup->ingredient->unit,
+                        'price_per_gram' => $stock ? $stock->price_per_gram : null
                     ];
                 }),
             ];
         });
+
         return response()->json($formattedBranchRecipes, 200);
     }
 
