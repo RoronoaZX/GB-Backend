@@ -5,12 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\BakerReports;
 use App\Models\BranchProduct;
 use App\Models\BranchRawMaterialsReport;
+use App\Models\BranchRecipe;
+use App\Models\BranchRmStocks;
 use App\Models\BreadProductionReport;
 use App\Models\IncentiveEmployeeReports;
 use App\Models\IncentivesBases;
 use App\Models\IncentivesReports;
 use App\Models\InitialBakerreports;
 use App\Models\InitialFillingBakerreports;
+use App\Models\RecipeCost;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -275,55 +278,330 @@ class InitialBakerreportsController extends Controller
         return response()->json($reports);
     }
 
+    // public function confirmReport(Request $request, $id)
+    // {
+    //     $initialReport = InitialBakerreports::with('ingredientBakersReports', 'breadBakersReports.bread')->findOrFail($id);
+
+    //     if (strtolower($initialReport->status) === 'pending' && strtolower($initialReport->recipe_category) === 'dough') {
+
+    //         foreach ($initialReport->ingredientBakersReports as $ingredientReport) {
+    //             $ingredientInventory = BranchRawMaterialsReport::where('ingredients_id', $ingredientReport->ingredients_id)
+    //                 ->where('branch_id', $initialReport->branch_id)
+    //                 ->first();
+
+    //             if ($ingredientInventory) {
+    //                 $ingredientInventory->total_quantity -= $ingredientReport->quantity;
+    //                 $ingredientInventory->save();
+    //             }
+    //         }
+
+    //         foreach ($initialReport->breadBakersReports as $breadReport) {
+    //             BreadProductionReport::create([
+    //                 'branch_id'                  => $initialReport->branch_id,
+    //                 'user_id'                    => $initialReport->user_id,
+    //                 'branch_recipe_id'           => $initialReport->branch_recipe_id,
+    //                 'initial_bakerreports_id'    => $initialReport->id,
+    //                 'bread_id'                   => $breadReport->bread_id,
+    //                 'bread_new_production'       => $breadReport->bread_production,
+    //             ]);
+    //              // Update BranchProduct model
+    //         $branchProduct = BranchProduct::where('branches_id', $initialReport->branch_id)
+    //         ->where('product_id', $breadReport->bread_id)
+    //         ->first();
+
+    //     if ($branchProduct) {
+    //         $existingTotalQuantity = $branchProduct->total_quantity;
+
+    //         $branchProduct->new_production = $breadReport->bread_production;
+    //         $branchProduct->total_quantity = $existingTotalQuantity + $branchProduct->new_production;
+    //         $branchProduct->save();
+    //     }
+    //         }
+
+    //         $initialReport->status = 'confirmed';
+    //         $initialReport->save();
+
+    //         return response()->json(['message' => 'Report confirmed and inventory updated successfully'], 200);
+    //     }
+
+    //     return response()->json(['message' => 'Invalid report or status'], 400);
+    // }
+
+    // public function confirmReport(Request $request, $id)
+    // {
+    //     // Wrap everything in a transaction to avoid race conditions
+    //     return DB::transaction(function () use ($id) {
+
+    //         $initialReport = InitialBakerreports::with('ingredientBakersReports', 'breadBakersReports.bread')
+    //             ->findOrFail($id);
+
+    //         if (strtolower($initialReport->status) !== 'pending' ||
+    //             strtolower($initialReport->recipe_category) !== 'dough') {
+    //             return response()->json(['message' => 'Invalid report or status'], 400);
+    //         }
+
+    //         $totalCostsResponse = []; // Collect per-ingredient totals
+    //         $grandTotal = 0;
+
+    //         foreach ($initialReport->ingredientBakersReports as $ingredientReport) {
+    //             $remainingQtyToDeduct = $ingredientReport->quantity;
+    //             $ingredientTotalCost = 0;
+    //             $stockFound = false;
+
+    //             // Get stocks (FIFO) and lock rows for update
+    //             $branchStocks = BranchRmStocks::where('raw_material_id', $ingredientReport->ingredients_id)
+    //                 ->where('branch_id', $initialReport->branch_id)
+    //                 ->where('quantity', '>', 0)
+    //                 ->orderBy('created_at', 'asc')
+    //                 ->lockForUpdate()
+    //                 ->get();
+
+    //             foreach ($branchStocks as $stock) {
+    //                 if ($remainingQtyToDeduct <= 0) break;
+
+    //                 $stockFound = true;
+
+    //                 // Deduct as much as possible from this stock batch
+    //                 $deductQty = min($remainingQtyToDeduct, $stock->quantity);
+
+    //                 // Calculate cost
+    //                 $unitPrice = $stock->price_per_gram ?? 0;
+    //                 $cost = $deductQty * $unitPrice;
+
+    //                 // Update stock record
+    //                 $stock->quantity = max(0, $stock->quantity - $deductQty);
+    //                 $stock->save();
+
+    //                 // Create a recipe_cost entry per batch deducted
+    //                 RecipeCost::create([
+    //                     'branch_rm_stock_id'     => $stock->id,
+    //                     'branch_id'              => $initialReport->branch_id,
+    //                     'recipe_id'              => $initialReport->branch_recipe_id,
+    //                     'raw_material_id'        => $ingredientReport->ingredients_id,
+    //                     'initial_bakerreport_id' => $initialReport->id,
+    //                     'branch_recipe_id'       => $initialReport->branch_recipe_id,
+    //                     'quantity_used'          => $deductQty,
+    //                     'price_per_gram'         => $unitPrice,
+    //                     'total_cost'             => $cost,
+    //                     'status'                 => 'confirmed',
+    //                     'kilo'                   => $initialReport->kilo,
+    //                 ]);
+
+    //                 // Accumulate totals
+    //                 $ingredientTotalCost += $cost;
+    //                 $grandTotal += $cost;
+
+    //                 // Reduce remaining quantity
+    //                 $remainingQtyToDeduct -= $deductQty;
+    //             }
+
+    //             // ⚠️ If no stock found at all — create default record
+    //             if (!$stockFound) {
+    //                 RecipeCost::create([
+    //                     'branch_rm_stock_id'     => null,
+    //                     'branch_id'              => $initialReport->branch_id,
+    //                     'recipe_id'              => $initialReport->branch_recipe_id,
+    //                     'raw_material_id'        => $ingredientReport->ingredients_id,
+    //                     'initial_bakerreport_id' => $initialReport->id,
+    //                     'branch_recipe_id'       => $initialReport->branch_recipe_id,
+    //                     'quantity_used'          => $ingredientReport->quantity,
+    //                     'price_per_gram'         => 0,
+    //                     'total_cost'             => 0,
+    //                     'status'                 => 'missing_stock',
+    //                     'kilo'                   => $initialReport->kilo,
+    //                 ]);
+    //             }
+
+    //             // Update branch inventory if exists
+    //             $ingredientInventory = BranchRawMaterialsReport::where('ingredients_id', $ingredientReport->ingredients_id)
+    //                 ->where('branch_id', $initialReport->branch_id)
+    //                 ->first();
+
+    //             if ($ingredientInventory) {
+    //                 $ingredientInventory->total_quantity = max(0, $ingredientInventory->total_quantity - $ingredientReport->quantity);
+    //                 $ingredientInventory->save();
+    //             }
+
+    //             $totalCostsResponse[$ingredientReport->ingredients_id] = [
+    //                 'quantity_used'  => $ingredientReport->quantity,
+    //                 'total_cost'     => round($ingredientTotalCost, 2),
+    //                 'status'         => $stockFound ? 'confirmed' : 'missing_stock'
+    //             ];
+    //         }
+
+    //         // 🥖 Handle bread production and update branch product
+    //         foreach ($initialReport->breadBakersReports as $breadReport) {
+    //             BreadProductionReport::create([
+    //                 'branch_id'                  => $initialReport->branch_id,
+    //                 'user_id'                    => $initialReport->user_id,
+    //                 'branch_recipe_id'           => $initialReport->branch_recipe_id,
+    //                 'initial_bakerreports_id'    => $initialReport->id,
+    //                 'bread_id'                   => $breadReport->bread_id,
+    //                 'bread_new_production'       => $breadReport->bread_production,
+    //             ]);
+
+    //             $branchProduct = BranchProduct::where('branches_id', $initialReport->branch_id)
+    //                 ->where('product_id', $breadReport->bread_id)
+    //                 ->first();
+
+    //             if ($branchProduct) {
+    //                 $branchProduct->new_production = $breadReport->bread_production;
+    //                 $branchProduct->total_quantity += $breadReport->bread_production;
+    //                 $branchProduct->save();
+    //             }
+    //         }
+
+    //         // ✅ Finalize
+    //         $initialReport->status = 'confirmed';
+    //         $initialReport->save();
+
+    //         return response()->json([
+    //             'message'          => 'Report confirmed successfully. Stocks deducted and costs recorded.',
+    //             'ingredient_costs' => $totalCostsResponse,
+    //             'grand_total'      => round($grandTotal, 2),
+    //         ], 200);
+    //     });
+    // }
+
     public function confirmReport(Request $request, $id)
     {
-        $initialReport = InitialBakerreports::with('ingredientBakersReports', 'breadBakersReports.bread')->findOrFail($id);
+        // Wrap everything in a transaction to avoid race conditions
+        return DB::transaction(function () use ($id) {
 
-        if (strtolower($initialReport->status) === 'pending' && strtolower($initialReport->recipe_category) === 'dough') {
+            $initialReport = InitialBakerreports::with('ingredientBakersReports', 'breadBakersReports.bread')
+                                ->findOrFail($id);
+
+            if (strtolower($initialReport->status) !== 'pending' ||
+                strtolower($initialReport->recipe_category) !== 'dough') {
+                return response()->json(['message' => 'Invalid report or status'], 400);
+            }
+
+            $totalCostsResponse = []; // Collect per-ingredient totals
+            $grandTotal = 0;
+
+            // ✅ Get the actual recipe_id from branch_recipes
+            $branchRecipe = BranchRecipe::find($initialReport->branch_recipe_id);
+            $recipeId = $branchRecipe ? $branchRecipe->recipe_id : null;
 
             foreach ($initialReport->ingredientBakersReports as $ingredientReport) {
-                $ingredientInventory = BranchRawMaterialsReport::where('ingredients_id', $ingredientReport->ingredients_id)
-                    ->where('branch_id', $initialReport->branch_id)
-                    ->first();
+                $remainingQtyToDeduct = $ingredientReport->quantity;
+                $ingredientTotalCost = 0;
+                $stockFound = false;
+
+                // Get stocks (FIFO) and lock rows for update
+                $branchStocks = BranchRmStocks::where('raw_material_id', $ingredientReport->ingredients_id)
+                                ->where('branch_id', $initialReport->branch_id)
+                                ->where('quantity', '>', 0)
+                                ->orderBy('created_at', 'asc')
+                                ->lockForUpdate()
+                                ->get();
+
+                foreach ($branchStocks as $stock) {
+                    if ($remainingQtyToDeduct <= 0) break;
+
+                    $stockFound = true;
+
+                    // Deduct as much as possible from this stock batch
+                    $deductQty = min($remainingQtyToDeduct, $stock->quantity);
+
+                    // Calculate cost
+                    $unitPrice = $stock->price_per_gram ?? 0;
+                    $cost = $deductQty * $unitPrice;
+
+                    // Update stock record
+                    $stock->quantity = max(0, $stock->quantity - $deductQty);
+                    $stock->save();
+
+                    // Create a recipe_cost entry per batch deducted
+                    RecipeCost::create([
+                        'branch_rm_stock_id'         => $stock->id,
+                        'branch_id'                  => $initialReport->branch_id,
+                        'recipe_id'                  => $recipeId,
+                        'raw_material_id'            => $ingredientReport->ingredients_id,
+                        'initial_bakerreport_id'     => $initialReport->id,
+                        'branch_recipe_id'           => $initialReport->branch_recipe_id,
+                        'quantity_used'              => $deductQty,
+                        'price_per_gram'             => $unitPrice,
+                        'total_cost'                 => $cost,
+                        'status'                     => 'confirmed',
+                        'kilo'                       => $initialReport->kilo,
+                    ]);
+
+                    // Accumulate totals
+                    $ingredientTotalCost += $cost;
+                    $grandTotal += $cost;
+
+                    // Reduce remaining quantity
+                    $remainingQtyToDeduct -= $deductQty;
+                }
+
+                 // ⚠️ If no stock found at all — create default record
+                 if (!$stockFound) {
+                    RecipeCost::create([
+                        'branch_rm_stock_id' => null,
+                        'branch_id' => $initialReport->branch_id,
+                        'recipe_id' => $recipeId,
+                        'raw_material_id' => $ingredientReport->ingredients_id,
+                        'initial_bakerreport_id' => $initialReport->id,
+                        'branch_recipe_id' => $initialReport->branch_recipe_id,
+                        'quantity_used' => $ingredientReport->quantity,
+                        'price_per_gram' => 0,
+                        'total_cost' => 0,
+                        'status' => 'missing_stock',
+                        'kilo' => $initialReport->kilo,
+                    ]);
+                 }
+
+                 // Update branch inventory if exist
+                 $ingredientInventory = BranchRawMaterialsReport::where('ingredients_id', $ingredientReport->ingredients_id)
+                                        ->where('branch_id', $initialReport->branch_id)
+                                        ->first();
 
                 if ($ingredientInventory) {
-                    $ingredientInventory->total_quantity -= $ingredientReport->quantity;
+                    $ingredientInventory->total_quantity = max(0, $ingredientInventory->total_quantity - $ingredientReport->quantity);
                     $ingredientInventory->save();
+                }
+
+                $totalCostResponse[$ingredientReport->ingredients_id] = [
+                    'quantity_used' => $ingredientReport->quantity,
+                    'total_cost' => round($ingredientTotalCost, 2),
+                    'status' => $stockFound ? 'confirmed' : 'missing_stock'
+                ];
+            }
+
+            // 🥖 Handle bread production and update branch product
+            foreach ($initialReport->breadBakersReports as $breadReport) {
+                BreadProductionReport::create([
+                    'branch_id' => $initialReport->branch_id,
+                    'user_id' => $initialReport->user_id,
+                    'branch_recipe_id' => $initialReport->branch_recipe_id,
+                    'initial_bakerreports_id' => $initialReport->id,
+                    'bread_id' => $breadReport->bread_id,
+                    'bread_new_production' => $breadReport->bread_production
+                ]);
+
+                $branchProduct = BranchProduct::where('branches_id', $initialReport->branch_id)
+                                    ->where('product_id', $breadReport->bread_id)
+                                    ->first();
+
+                if ($branchProduct) {
+                    $branchProduct->new_production = $breadReport->bread_production;
+                    $branchProduct->total_quantity += $breadReport->bread_production;
+                    $branchProduct->save();
                 }
             }
 
-            foreach ($initialReport->breadBakersReports as $breadReport) {
-                BreadProductionReport::create([
-                    'branch_id'                  => $initialReport->branch_id,
-                    'user_id'                    => $initialReport->user_id,
-                    'branch_recipe_id'           => $initialReport->branch_recipe_id,
-                    'initial_bakerreports_id'    => $initialReport->id,
-                    'bread_id'                   => $breadReport->bread_id,
-                    'bread_new_production'       => $breadReport->bread_production,
-                ]);
-                 // Update BranchProduct model
-            $branchProduct = BranchProduct::where('branches_id', $initialReport->branch_id)
-            ->where('product_id', $breadReport->bread_id)
-            ->first();
-
-        if ($branchProduct) {
-            $existingTotalQuantity = $branchProduct->total_quantity;
-
-            $branchProduct->new_production = $breadReport->bread_production;
-            $branchProduct->total_quantity = $existingTotalQuantity + $branchProduct->new_production;
-            $branchProduct->save();
-        }
-            }
-
+            // ✅ Finalize
             $initialReport->status = 'confirmed';
             $initialReport->save();
 
-            return response()->json(['message' => 'Report confirmed and inventory updated successfully'], 200);
-        }
-
-        return response()->json(['message' => 'Invalid report or status'], 400);
+            return response()->json([
+                'message' => 'Report confirmed successfully. Stocks deducted and costs recorded.',
+                'ingredient_costs' => $totalCostResponse,
+                'grand_total' => round($grandTotal, 2),
+            ], 200);
+        });
     }
-
 
     public function declineReport(Request $request, $id)
     {

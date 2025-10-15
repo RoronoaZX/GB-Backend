@@ -38,21 +38,7 @@ class RawMaterialsDeliveryController extends Controller
     //                     'from_designation' => $delivery->from_desisnation,
     //                     'from_name' => $delivery->from_name,
     //                     'to_id' => $delivery->to_id,
-    //                     'to_designation' => $delivery->to_designation,
-    //                     'to_data' => $delivery->to_data, // 👈 dynamic warehouse or branch
-    //                     'remarks' => $delivery->remarks,
-    //                     'status' => $delivery->status,
-    //                     'items' => $delivery->items->map(function ($item) {
-    //                         return [
-    //                             'id' => $item->id,
-    //                             'unit_type' => $item->unit_type,
-    //                             'category' => $item->category,
-    //                             'quantity' => $item->quantity,
-    //                             'price_per_unit' => $item->price_per_unit,
-    //                             'price_per_gram' => $item->price_per_gram,
-    //                             'gram' => $item->gram,
-    //                             'pcs' => $item->pcs,
-    //                             'kilo' =>
+    //
 
     public function index(Request $request)
     {
