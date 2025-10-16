@@ -39,6 +39,7 @@ use App\Http\Controllers\OtherProductsController;
 use App\Http\Controllers\OtherStocksReportController;
 use App\Http\Controllers\PayslipController;
 use App\Http\Controllers\RawMaterialsDeliveryController;
+use App\Http\Controllers\RecipeCostController;
 use App\Http\Controllers\RequestPremixController;
 use App\Http\Controllers\SalesReportsController;
 use App\Http\Controllers\SelectaAddedStockController;
@@ -291,6 +292,7 @@ Route::put('updateDTROTStatus', [DailyTimeRecordController::class, 'updateDTROTS
 Route::put('updateDTROTApprovedBy', [DailyTimeRecordController::class, 'updateDTROTApprovedBy']);
 Route::put('editDeliveryStocks', [RawMaterialsDeliveryController::class, 'editDeliveryStocks']);
 
+Route::get('fetch-recipe-costs/{branchId}', [RecipeCostController::class, 'fetchRecipeCosts']);
 Route::get('raw-materials-delivery-branch/{id}', [RawMaterialsDeliveryController::class, 'fetchDeliveryStocksBranch']);
 Route::get('raw-materials-delivery-pending/{id}', [RawMaterialsDeliveryController::class, 'fetchPendingDelivery']);
 Route::get('raw-materials-delivery-confirmed/{id}', [RawMaterialsDeliveryController::class, 'fetchConfirmedDelivery']);

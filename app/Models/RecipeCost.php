@@ -11,6 +11,7 @@ class RecipeCost extends Model
 
     protected $fillable = [
         'branch_rm_stock_id',
+        'user_id',
         'branch_id',
         'recipe_id',
         'raw_material_id',
@@ -46,5 +47,15 @@ class RecipeCost extends Model
     public function branchRmStock()
     {
         return $this->belongsTo(BranchRmStocks::class, 'branch_rm_stock_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class)->with('employee');
+    }
+
+    public function rawMaterial()
+    {
+        return $this->belongsTo(RawMaterial::class);
     }
 }

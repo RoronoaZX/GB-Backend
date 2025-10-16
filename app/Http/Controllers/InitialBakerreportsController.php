@@ -476,7 +476,7 @@ class InitialBakerreportsController extends Controller
                 return response()->json(['message' => 'Invalid report or status'], 400);
             }
 
-            $totalCostsResponse = []; // Collect per-ingredient totals
+            $totalCostResponse = []; // Collect per-ingredient totals
             $grandTotal = 0;
 
             // ✅ Get the actual recipe_id from branch_recipes
@@ -515,6 +515,7 @@ class InitialBakerreportsController extends Controller
                     // Create a recipe_cost entry per batch deducted
                     RecipeCost::create([
                         'branch_rm_stock_id'         => $stock->id,
+                        'user_id'                    => $initialReport->user_id,
                         'branch_id'                  => $initialReport->branch_id,
                         'recipe_id'                  => $recipeId,
                         'raw_material_id'            => $ingredientReport->ingredients_id,
@@ -538,17 +539,18 @@ class InitialBakerreportsController extends Controller
                  // ⚠️ If no stock found at all — create default record
                  if (!$stockFound) {
                     RecipeCost::create([
-                        'branch_rm_stock_id' => null,
-                        'branch_id' => $initialReport->branch_id,
-                        'recipe_id' => $recipeId,
-                        'raw_material_id' => $ingredientReport->ingredients_id,
-                        'initial_bakerreport_id' => $initialReport->id,
-                        'branch_recipe_id' => $initialReport->branch_recipe_id,
-                        'quantity_used' => $ingredientReport->quantity,
-                        'price_per_gram' => 0,
-                        'total_cost' => 0,
-                        'status' => 'missing_stock',
-                        'kilo' => $initialReport->kilo,
+                        'branch_rm_stock_id'         => null,
+                        'user_id'                    => $initialReport->user_id,
+                        'branch_id'                  => $initialReport->branch_id,
+                        'recipe_id'                  => $recipeId,
+                        'raw_material_id'            => $ingredientReport->ingredients_id,
+                        'initial_bakerreport_id'     => $initialReport->id,
+                        'branch_recipe_id'           => $initialReport->branch_recipe_id,
+                        'quantity_used'              => $ingredientReport->quantity,
+                        'price_per_gram'             => 0,
+                        'total_cost'                 => 0,
+                        'status'                     => 'missing_stock',
+                        'kilo'                       => $initialReport->kilo,
                     ]);
                  }
 
@@ -572,12 +574,12 @@ class InitialBakerreportsController extends Controller
             // 🥖 Handle bread production and update branch product
             foreach ($initialReport->breadBakersReports as $breadReport) {
                 BreadProductionReport::create([
-                    'branch_id' => $initialReport->branch_id,
-                    'user_id' => $initialReport->user_id,
-                    'branch_recipe_id' => $initialReport->branch_recipe_id,
-                    'initial_bakerreports_id' => $initialReport->id,
-                    'bread_id' => $breadReport->bread_id,
-                    'bread_new_production' => $breadReport->bread_production
+                    'branch_id'                  => $initialReport->branch_id,
+                    'user_id'                    => $initialReport->user_id,
+                    'branch_recipe_id'           => $initialReport->branch_recipe_id,
+                    'initial_bakerreports_id'    => $initialReport->id,
+                    'bread_id'                   => $breadReport->bread_id,
+                    'bread_new_production'       => $breadReport->bread_production
                 ]);
 
                 $branchProduct = BranchProduct::where('branches_id', $initialReport->branch_id)
@@ -596,9 +598,9 @@ class InitialBakerreportsController extends Controller
             $initialReport->save();
 
             return response()->json([
-                'message' => 'Report confirmed successfully. Stocks deducted and costs recorded.',
-                'ingredient_costs' => $totalCostResponse,
-                'grand_total' => round($grandTotal, 2),
+                'message'            => 'Report confirmed successfully. Stocks deducted and costs recorded.',
+                'ingredient_costs'   => $totalCostResponse,
+                'grand_total'        => round($grandTotal, 2),
             ], 200);
         });
     }
