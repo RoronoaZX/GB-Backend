@@ -50,11 +50,13 @@ use App\Http\Controllers\SoftdrinksAddedStocksController;
 use App\Http\Controllers\SoftdrinksSalesReportController;
 use App\Http\Controllers\SoftdrinksStocksReportController;
 use App\Http\Controllers\SupervisorController;
+use App\Http\Controllers\SupplierRecordController;
 use App\Http\Controllers\UniformController;
 use App\Http\Controllers\WarehouseEmployeeController;
 use App\Http\Controllers\WarehouseRawMaterialsReportController;
 use App\Http\Controllers\WarehouseScalingReportController;
 use App\Http\Controllers\WarehouseStockReportsController;
+use App\Models\SupplierRecord;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -292,6 +294,7 @@ Route::put('updateDTROTStatus', [DailyTimeRecordController::class, 'updateDTROTS
 Route::put('updateDTROTApprovedBy', [DailyTimeRecordController::class, 'updateDTROTApprovedBy']);
 Route::put('editDeliveryStocks', [RawMaterialsDeliveryController::class, 'editDeliveryStocks']);
 
+Route::get('fetch-supplier-records', [SupplierRecordController::class, 'getSupplierRecords']);
 Route::get('fetch-recipe-costs/{branchId}', [RecipeCostController::class, 'fetchRecipeCosts']);
 Route::get('raw-materials-delivery-branch/{id}', [RawMaterialsDeliveryController::class, 'fetchDeliveryStocksBranch']);
 Route::get('raw-materials-delivery-pending/{id}', [RawMaterialsDeliveryController::class, 'fetchPendingDelivery']);
