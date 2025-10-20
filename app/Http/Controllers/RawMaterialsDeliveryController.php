@@ -820,7 +820,7 @@ class RawMaterialsDeliveryController extends Controller
                 'items.*.quantity'           => 'required|numeric|min:1',
                 'items.*.gram'               => 'nullable|numeric|min:0',
                 'items.*.kilo'               => 'nullable|numeric|min:0',
-                'items.*.pcs'                => 'nullable|numeric|mmin:0',
+                'items.*.pcs'                => 'nullable|numeric|min:0',
                 'items.*.price_per_unit'     => 'required|numeric|min:0',
                 'items.*.price_per_gram'     => 'required|numeric|min:0',
                 'items.*.total_grams'        => 'required|numeric|min:0'
