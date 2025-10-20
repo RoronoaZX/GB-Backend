@@ -810,7 +810,7 @@ class RawMaterialsDeliveryController extends Controller
             $validated = $request->validate([
                 'id'                         => 'required|integer|exists:raw_materials_deliveries,id',
                 'from_id'                    => 'nullable|integer',
-                'from_designation'           => 'requried|string|in:Branch,Warehouse,Supplier',
+                'from_designation'           => 'required|string|in:Branch,Warehouse,Supplier',
                 'to_id'                      => 'required|integer',
                 'to_designation'             => 'required|string|in:Branch,Warehouse',
                 'status'                     => 'required|string|in:confirmed',
