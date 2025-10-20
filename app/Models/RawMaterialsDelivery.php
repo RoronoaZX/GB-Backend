@@ -10,6 +10,8 @@ class RawMaterialsDelivery extends Model
     use HasFactory;
 
     protected $fillable = [
+        'employee_id',
+        'approved_by',
         'from_id',
         'from_designation',
         'from_name',
@@ -18,6 +20,11 @@ class RawMaterialsDelivery extends Model
         'remarks',
         'status'
     ];
+
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class, 'employee_id');
+    }
 
     public function items()
     {

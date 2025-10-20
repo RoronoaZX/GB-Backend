@@ -46,4 +46,9 @@ class RawMaterial extends Model
     {
         return $this->hasMany(BranchRawMaterialsReport::class, 'branch_id');
     }
+
+    public function warehouse_rawMaterials()
+    {
+        return $this->hasMany(WarehouseRawMaterialsReport::class, 'warehouse_id');
+    }
 }

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BranchRawMaterialsReport;
 use App\Models\RawMaterial;
+use App\Models\WarehouseRawMaterialsReport;
 use Illuminate\Http\Request;
 
 class RawMaterialController extends Controller
@@ -12,6 +14,39 @@ class RawMaterialController extends Controller
 
         $raw_materials = RawMaterial::orderBy('created_at', 'desc')->get();
         return  $raw_materials;
+    }
+
+    public function fetchrawMaterialsBranchWarehouse(Request $request, $id)
+    {
+        $designation = strtolower($request->input('designation'));
+
+        if ($designation === 'branch') {
+            $rawMaterials = BranchRawMaterialsReport::where('branch_id', $id)
+            ->with('ingredients')
+            ->get()
+            ->pluck('ingredients');
+        } elseif ($designation === 'warehouse') {
+            $rawMaterials = WarehouseRawMaterialsReport::where('warehouse_id', $id)
+            ->with('rawMaterials')
+            ->get()
+            ->pluck('rawMaterials');
+        } else {
+            return response()->json([
+                'message' => 'Invalid designation'
+            ], 400);
+        }
+
+        if ($rawMaterials->isEmpty()) {
+            return response()->json([
+                'message' => "No raw materials found for this {$designation}",
+                'data' => [],
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Raw materials fetched successfully',
+            'data' => $rawMaterials,
+        ]);
     }
 
     public function searchRawMaterials(Request $request)

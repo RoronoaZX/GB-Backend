@@ -129,7 +129,7 @@ class RawMaterialsDeliveryController extends Controller
             $search = $request->input('search');
             $toDesignation = $request->query('to_designation');
 
-            $query = RawMaterialsDelivery::with(['items.rawMaterial']);
+            $query = RawMaterialsDelivery::with(['items.rawMaterial', 'employee']);
 
             // Filter by status + destination id
             $query->where('to_id', $id);
@@ -163,6 +163,7 @@ class RawMaterialsDeliveryController extends Controller
                 'data'       => $deliveries->map(function ($delivery) {
                     return [
                         'id'                  => $delivery->id,
+                        'employee'            => $delivery->employee,
                         'from_id'             => $delivery->from_id,
                         'from_designation'    => $delivery->from_designation,
                         'from_name'           => $delivery->from_name,
@@ -221,7 +222,7 @@ class RawMaterialsDeliveryController extends Controller
             $status = $request->query('status', 'pending');
             $toDesignation = $request->query('to_designation');
 
-            $query = RawMaterialsDelivery::with(['items.rawMaterial']);
+            $query = RawMaterialsDelivery::with(['items.rawMaterial', 'employee']);
 
             // Filter by status + destination id
             $query->where('status', $status)
@@ -244,6 +245,7 @@ class RawMaterialsDeliveryController extends Controller
                 'data' => $deliveries->map(function ($delivery) {
                     return [
                         'id'                 => $delivery->id,
+                        'employee'           => $delivery->employee,
                         'from_id'            => $delivery->from_id,
                         'from_designation'   => $delivery->from_designation,
                         'from_name'          => $delivery->from_name,
@@ -301,7 +303,7 @@ class RawMaterialsDeliveryController extends Controller
             $status = $request->query('status', 'confirmed');
             $toDesignation = $request->query('to_designation');
 
-            $query = RawMaterialsDelivery::with(['items.rawMaterial']);
+            $query = RawMaterialsDelivery::with(['items.rawMaterial', 'employee']);
 
             // Filter by status + destination id
             $query->where('status', $status)
@@ -333,6 +335,7 @@ class RawMaterialsDeliveryController extends Controller
                 'data'       => $deliveries->map(function ($delivery) {
                     return [
                         'id'                 => $delivery->id,
+                        'employee'           => $delivery->employee,
                         'from_id'            => $delivery->from_id,
                         'from_designation'   => $delivery->from_designation,
                         'from_name'          => $delivery->from_name,
@@ -392,7 +395,7 @@ class RawMaterialsDeliveryController extends Controller
             $status = $request->query('status', 'declined');
             $toDesignation = $request->query('to_designation');
 
-            $query = RawMaterialsDelivery::with(['items.rawMaterial']);
+            $query = RawMaterialsDelivery::with(['items.rawMaterial', 'employee']);
 
             // Filter by status + destination id
             $query->where('status', $status)
@@ -421,6 +424,7 @@ class RawMaterialsDeliveryController extends Controller
                 'data'       => $deliveries->map(function ($delivery) {
                     return [
                         'id'                 => $delivery->id,
+                        'employee'            => $delivery->employee,
                         'from_id'            => $delivery->from_id,
                         'from_designation'   => $delivery->from_designation,
                         'from_name'          => $delivery->from_name,
@@ -809,6 +813,7 @@ class RawMaterialsDeliveryController extends Controller
             // ✅ 1. Validate request
             $validated = $request->validate([
                 'id'                         => 'required|integer|exists:raw_materials_deliveries,id',
+                'employee_id'                => 'required|integer|exists:employees,id',
                 'from_id'                    => 'nullable|integer',
                 'from_designation'           => 'required|string|in:Branch,Warehouse,Supplier',
                 'to_id'                      => 'required|integer',
@@ -830,7 +835,10 @@ class RawMaterialsDeliveryController extends Controller
 
             // ✅ 2. Update delivery status
             $delivery = RawMaterialsDelivery::findOrFail($validated['id']);
-            $delivery->update(['status' => $validated['status']]);
+            $delivery->update([
+                'status' => $validated['status'],
+                'approved_by' => $validated['employee_id']
+            ]);
 
             // ✅ 3. Also update supplier record if this delivery came from a supplier
             $supplierRecord = SupplierRecord::where('rm_delivery_id', $delivery->id)->first();
@@ -912,7 +920,7 @@ class RawMaterialsDeliveryController extends Controller
 
                         if ($stock) {
                             $stock->update([
-                                'quantity' => DB::raw('quantiy +' . $item['quantity']),
+                                'quantity' => DB::raw('quantity +' . $item['quantity']),
                                 'total_grams' => DB::raw('total_grams + ' . $item['total_grams']),
                                 'delivery_su_id' => $item['id']
                             ]);
@@ -971,6 +979,7 @@ class RawMaterialsDeliveryController extends Controller
             // ✅ 1. Validate request
             $validated = $request->validate([
                 'id'         => 'required|integer|exists:raw_materials_deliveries,id',
+                'employee_id' => 'required|integer|exists:employees,id',
                 'remarks'    => 'required|string|max:1000'
             ]);
 
@@ -980,6 +989,7 @@ class RawMaterialsDeliveryController extends Controller
             // ✅ 3. Update status + remarks
             $delivery->status = 'declined';
             $delivery->remarks = $validated['remarks'];
+            $delivery->approved_by = $validated['employee_id'];
             $delivery->save();
 
             // ✅ 4. Return success
@@ -1108,6 +1118,7 @@ class RawMaterialsDeliveryController extends Controller
     {
         // 1️⃣ Validate the request before doing anything
         $validator = Validator::make($request->all(), [
+            'employee_id'            => 'required|integer',
             'from_id'                => 'nullable|integer',
             'from_designation'       => 'nullable|string',
             'from_name'              => 'nullable|string',
@@ -1141,6 +1152,7 @@ class RawMaterialsDeliveryController extends Controller
             $delivery = DB::transaction(function () use ($request) {
                 // ✅ Step 1: Create Raw Materials Delivery
                 $rawMaterialsDelivery = RawMaterialsDelivery::create([
+                    'employee_id'        => $request->input('employee_id'),
                     'from_id'            => $request->input('from_id'),
                     'from_designation'   => $request->input('from_designation'),
                     'from_name'          => $request->input('from_name'),
