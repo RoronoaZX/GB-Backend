@@ -42,29 +42,29 @@ class RecipeCostController extends Controller
                 $first = $group->first();
 
                 return [
-                    'recipe_id' => $first->recipe_id,
-                    'recipe_name' => $first->recipe?->name,
-                    'total_cost' => $group->sum('total_cost'),
-                    'user' => $first->user,
-                    'created_at' => $first->created_at,
-                    'kilo' => $first->initialBakerreport?->kilo ?? null,
+                    'recipe_id'      => $first->recipe_id,
+                    'recipe_name'    => $first->recipe?->name,
+                    'total_cost'     => $group->sum('total_cost'),
+                    'user'           => $first->user,
+                    'created_at'     => $first->created_at,
+                    'kilo'           => $first->initialBakerreport?->kilo ?? null,
 
                     'items' => $group->map(function ($item) {
                         return [
-                            'raw_material_id' => $item->raw_material_id,
-                            'raw_material_name' => $item->rawMaterial?->name ?? null,
-                            'raw_material_code' => $item->rawMaterial?->code ?? null,
-                            'quantity_used' => $item->quantity_used,
-                            'price_per_gram' => $item->price_per_gram,
-                            'total_cost' => $item->total_cost,
-                            'kilo' => $item->kilo,
-                            'status' => $item->status,
+                            'raw_material_id'    => $item->raw_material_id,
+                            'raw_material_name'  => $item->rawMaterial?->name ?? null,
+                            'raw_material_code'  => $item->rawMaterial?->code ?? null,
+                            'quantity_used'      => $item->quantity_used,
+                            'price_per_gram'     => $item->price_per_gram,
+                            'total_cost'         => $item->total_cost,
+                            'kilo'               => $item->kilo,
+                            'status'             => $item->status,
 
-                            'branch_rm_stock' => $item->branchRmStock ? [
-                                'id' => $item->branchRmStock->id,
-                                'stock_name' => $item->branchRmStock->rawMaterial->name ?? null,
-                                'remaining' => $item->branchRmStock->remaining ?? null,
-                                'price_per_gram' => $item->branchRmStock->price_per_gram ?? null,
+                            'branch_rm_stock'    => $item->branchRmStock ? [
+                                'id'                 => $item->branchRmStock->id,
+                                'stock_name'         => $item->branchRmStock->rawMaterial->name ?? null,
+                                'remaining'          => $item->branchRmStock->remaining ?? null,
+                                'price_per_gram'     => $item->branchRmStock->price_per_gram ?? null,
                             ] : null
                             ];
                     })->values()
@@ -83,20 +83,20 @@ class RecipeCostController extends Controller
             $queryString = http_build_query($queryParams);
 
             $links = [
-                'first' => $baseUrl . '?' . $queryString . '&page=1',
-                'last' => $baseUrl . '?' . $queryString . '&page=' . $lastPage,
-                'prev' => $page > 1 ? $baseUrl . '?' . $queryString .'&page=' . ($page - 1) : null,
-                'next' => $page < $lastPage ? $baseUrl . '?' . $queryString . '&page=' . ($page + 1) : null,
+                'first'  => $baseUrl . '?' . $queryString . '&page=1',
+                'last'   => $baseUrl . '?' . $queryString . '&page=' . $lastPage,
+                'prev'   => $page > 1 ? $baseUrl . '?' . $queryString .'&page=' . ($page - 1) : null,
+                'next'   => $page < $lastPage ? $baseUrl . '?' . $queryString . '&page=' . ($page + 1) : null,
             ];
 
             // ✅ Step 6: Return paginated response
             return response()->json([
-                'data' => $paginated,
-                'total' => $total,
-                'per_page' => $perPage,
-                'current_page' => $perPage,
-                'last_page' => $lastPage,
-                'links' => $links,
+                'data'           => $paginated,
+                'total'          => $total,
+                'per_page'       => $perPage,
+                'current_page'   => $perPage,
+                'last_page'      => $lastPage,
+                'links'          => $links,
             ]);
     }
 

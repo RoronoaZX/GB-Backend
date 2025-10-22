@@ -766,8 +766,8 @@ class RequestPremixController extends Controller
 
             // ✅ Format and respond
             return response()->json([
-                'message' => 'Declined premix reports fetched successfully.',
-                'data' => $declinedPremixes->map(function ($premix) {
+                'message'    => 'Declined premix reports fetched successfully.',
+                'data'       => $declinedPremixes->map(function ($premix) {
                     return [
                         'id'             => $premix->id,
                         'employee'       => $premix->employee,
@@ -790,19 +790,19 @@ class RequestPremixController extends Controller
                     ];
                 }),
                 'pagination' => [
-                    'total' => $declinedPremixes->total(),
-                    'per_page' => $declinedPremixes->perPage(),
-                    'current_page' => $declinedPremixes->currentPage(),
-                    'last_page' => $declinedPremixes->lastPage(),
-                    'from' => $declinedPremixes->firstItem(),
-                    'to' => $declinedPremixes->lastItem()
+                    'total'          => $declinedPremixes->total(),
+                    'per_page'       => $declinedPremixes->perPage(),
+                    'current_page'   => $declinedPremixes->currentPage(),
+                    'last_page'      => $declinedPremixes->lastPage(),
+                    'from'           => $declinedPremixes->firstItem(),
+                    'to'             => $declinedPremixes->lastItem()
                 ]
                 ], 200);
 
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to fetch deliveries',
-                'error' => $e->getMessage()
+                'message'    => 'Failed to fetch deliveries',
+                'error'      => $e->getMessage()
             ], 500);
         }
 
