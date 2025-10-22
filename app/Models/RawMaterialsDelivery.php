@@ -26,6 +26,11 @@ class RawMaterialsDelivery extends Model
         return $this->belongsTo(Employee::class, 'employee_id');
     }
 
+    public function approvedBy()
+    {
+        return $this->belongsTo(Employee::class, 'approved_by');
+    }
+
     public function items()
     {
         return $this->hasMany(DeliveryStocksUnit::class, 'rm_delivery_id');

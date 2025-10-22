@@ -10,6 +10,7 @@ use App\Models\WarehouseRawMaterialsReport;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 // use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -721,25 +722,89 @@ class RequestPremixController extends Controller
         ]);
     }
 
-    public function getDeclineReports($warehouseId)
+    public function getDeclineReports(Request $request,$warehouseId)
     {
-        // Retrieve all decline premix requests for the specified warehouse
-        $declinedPremixes = RequestPremix::where('status', 'declined')
-        ->where('warehouse_id', $warehouseId) // Filter by warehouse
-        ->with([
-            'branchPremix',
-            'employee',
-            'warehouse',
-            'history' => function ($query) { // Fetch only confirmed history records
-                $query->where('status', 'declined')
-                    ->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
-                    ->with('employee'); // Include employee who changed the status
-            }
-        ])
-        ->orderBy('updated_at', 'desc') // Sort by latest update
-        ->get();
+        try {
+            // Status defaults to "declined" if not provided
+            $perPage = $request->input('per_page', 1);
+            $search = $request->input('search');
+            $status = $request->query('status', 'declined');
 
-    return response()->json($declinedPremixes);
+            $query = RequestPremix::with([
+                'branchPremix',
+                'employee',
+                'warehouse',
+                'history' => function ($query) {
+                    // Fetch only confirmed history records
+                    $query->where('status', 'declined')
+                        ->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
+                        ->with('employee'); // Include employee who changed the status
+                }
+            ])
+            ->where('status', $status)
+            ->where('warehouse_id', $warehouseId);
+
+            // ✅ Optional Search Filter
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('branchPremix', function ($subQuery) use ($search) {
+                        $subQuery->where('name', 'like', '%' . $search . '%');
+                    })
+                    ->orWhereHas('employee', function ($subQuery) use ($search) {
+                        $subQuery->where('firstname', 'like', '%' . $search . '%')
+                            ->orWhere('lastname', 'like', '%' . $search . '%');
+                    })
+                    ->orWhere('status', 'like', '%' . $search . '%');
+                });
+            }
+
+            // ✅ Sort latest update
+            $query->latest();
+
+            // ✅ Paginate results
+            $declinedPremixes = $query->paginate($perPage);
+
+            // ✅ Format and respond
+            return response()->json([
+                'message' => 'Declined premix reports fetched successfully.',
+                'data' => $declinedPremixes->map(function ($premix) {
+                    return [
+                        'id'             => $premix->id,
+                        'employee'       => $premix->employee,
+                        'name'           => $premix->branchPremix->name,
+                        'warehouse'      => $premix->warehouse,
+                        'branch_premix'  => $premix->branchPremix,
+                        'status'         => $premix->status,
+                        'remarks'        => $premix->remarks,
+                        'history'        => $premix->history->map(function ($history) {
+                            return [
+                                'id'             => $history->id,
+                                'changed_by'     => $history->changed_by,
+                                'status'         => $history->status,
+                                'updated_at'     => $history->updated_at,
+                                'employee'       => $history->employee,
+                            ];
+                        }),
+                        'created_at'     => $premix->created_at,
+                        'updated_at'     => $premix->updated_at
+                    ];
+                }),
+                'pagination' => [
+                    'total' => $declinedPremixes->total(),
+                    'per_page' => $declinedPremixes->perPage(),
+                    'current_page' => $declinedPremixes->currentPage(),
+                    'last_page' => $declinedPremixes->lastPage(),
+                    'from' => $declinedPremixes->firstItem(),
+                    'to' => $declinedPremixes->lastItem()
+                ]
+                ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch deliveries',
+                'error' => $e->getMessage()
+            ], 500);
+        }
 
     }
     // public function getConfirmReports($warehouseId)

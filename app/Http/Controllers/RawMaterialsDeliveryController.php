@@ -129,7 +129,7 @@ class RawMaterialsDeliveryController extends Controller
             $search = $request->input('search');
             $toDesignation = $request->query('to_designation');
 
-            $query = RawMaterialsDelivery::with(['items.rawMaterial', 'employee']);
+            $query = RawMaterialsDelivery::with(['items.rawMaterial', 'employee', 'approvedBy']);
 
             // Filter by status + destination id
             $query->where('to_id', $id);
@@ -164,6 +164,7 @@ class RawMaterialsDeliveryController extends Controller
                     return [
                         'id'                  => $delivery->id,
                         'employee'            => $delivery->employee,
+                        'approved_by'         => $delivery->approvedBy,
                         'from_id'             => $delivery->from_id,
                         'from_designation'    => $delivery->from_designation,
                         'from_name'           => $delivery->from_name,
@@ -303,7 +304,7 @@ class RawMaterialsDeliveryController extends Controller
             $status = $request->query('status', 'confirmed');
             $toDesignation = $request->query('to_designation');
 
-            $query = RawMaterialsDelivery::with(['items.rawMaterial', 'employee']);
+            $query = RawMaterialsDelivery::with(['items.rawMaterial', 'employee', 'approvedBy']);
 
             // Filter by status + destination id
             $query->where('status', $status)
@@ -336,6 +337,7 @@ class RawMaterialsDeliveryController extends Controller
                     return [
                         'id'                 => $delivery->id,
                         'employee'           => $delivery->employee,
+                        'approved_by'        => $delivery->approvedBy,
                         'from_id'            => $delivery->from_id,
                         'from_designation'   => $delivery->from_designation,
                         'from_name'          => $delivery->from_name,
@@ -395,7 +397,7 @@ class RawMaterialsDeliveryController extends Controller
             $status = $request->query('status', 'declined');
             $toDesignation = $request->query('to_designation');
 
-            $query = RawMaterialsDelivery::with(['items.rawMaterial', 'employee']);
+            $query = RawMaterialsDelivery::with(['items.rawMaterial', 'employee', 'approvedBy']);
 
             // Filter by status + destination id
             $query->where('status', $status)
@@ -425,6 +427,7 @@ class RawMaterialsDeliveryController extends Controller
                     return [
                         'id'                 => $delivery->id,
                         'employee'            => $delivery->employee,
+                        'approved_by'         => $delivery->approvedBy,
                         'from_id'            => $delivery->from_id,
                         'from_designation'   => $delivery->from_designation,
                         'from_name'          => $delivery->from_name,
