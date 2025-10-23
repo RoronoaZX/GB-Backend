@@ -771,7 +771,9 @@ class RequestPremixController extends Controller
                     return [
                         'id'             => $premix->id,
                         'employee'       => $premix->employee,
+                        'branch_premix'  => $premix->branchPremix,
                         'name'           => $premix->branchPremix->name,
+                        'quantity'       => $premix->quantity,
                         'warehouse'      => $premix->warehouse,
                         'branch_premix'  => $premix->branchPremix,
                         'status'         => $premix->status,
