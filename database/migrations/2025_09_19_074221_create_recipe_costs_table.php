@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('branch_id')->constrained('branches')->onDelete('cascade');
             $table->foreignId('recipe_id')->constrained('branch_recipes')->onDelete('cascade');
+            $table->string('recipe_category')->nullable();
             $table->foreignId('raw_material_id')->constrained('raw_materials')->onDelete('cascade');
             $table->foreignId('initial_bakerreport_id')->constrained('initial_bakerreports')->onDelete('cascade');
             $table->foreignId('branch_recipe_id')->constrained('branch_recipes')->onDelete('cascade');

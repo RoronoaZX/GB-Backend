@@ -14,6 +14,7 @@ class RecipeCost extends Model
         'user_id',
         'branch_id',
         'recipe_id',
+        'recipe_category',
         'raw_material_id',
         'initial_bakerreport_id',
         'branch_recipe_id',
