@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SupplierRecord;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class SupplierRecordController extends Controller
@@ -27,7 +28,7 @@ class SupplierRecordController extends Controller
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('supplier_name', 'like', "%{$search}%")
-                  ->orWhere('statu', 'like', "%{$search}%");
+                  ->orWhere('status', 'like', "%{$search}%");
             });
         }
 
@@ -50,6 +51,43 @@ class SupplierRecordController extends Controller
 
         return response()->json($paginated);
     }
+
+    public function updateSupplierHistoriesDateTime($deliveryId, Request $request)
+    {
+        $request->validate([
+            'created_at' => 'required|string'
+        ]);
+
+        // Parse as Manila timezone
+        $parsedCreatedAt = Carbon::createFromFormat('M. d, Y, h:i A',
+            $request->created_at, 'Asia/Manila'
+    );
+
+    // Convert to UTC from saving
+    $parsedCreatedAtUTC = $parsedCreatedAt->copy()->setTImezone('UTC');
+
+    $supplierRecords = SupplierRecord::where('rm_delivery_id', $deliveryId)->get();
+
+    if ($supplierRecords->isEmpty()) {
+        return response()->json([
+            'message' => 'No supplier records found for the delivery.'
+        ], 404);
+    }
+
+     // Update created_at for each related record
+    foreach ($supplierRecords as $record) {
+        $record->created_at = $parsedCreatedAtUTC;
+        $record->save();
+    }
+
+    return response()->json([
+        'message' => 'Supplier records datetimes successfully updated.',
+        'updated_count' => $supplierRecords->count(),
+        'new_created_at' => $parsedCreatedAt->toDateTimeString()
+    ], 200);
+
+    }
+
 
     /**
      * Show the form for creating a new resource.

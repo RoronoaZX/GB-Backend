@@ -293,6 +293,7 @@ Route::put('updatedDTROvertimeDeclineReasons', [DailyTimeRecordController::class
 Route::put('updateDTROTStatus', [DailyTimeRecordController::class, 'updateDTROTStatus']);
 Route::put('updateDTROTApprovedBy', [DailyTimeRecordController::class, 'updateDTROTApprovedBy']);
 Route::put('editDeliveryStocks', [RawMaterialsDeliveryController::class, 'editDeliveryStocks']);
+Route::put('update-delivery-date/{id}', [RawMaterialsDeliveryController::class, 'updateDeliveryDate']);
 
 Route::get('fetchrawMaterialsBranchWarehouse/{id}', [RawMaterialController::class, 'fetchrawMaterialsBranchWarehouse']);
 Route::get('fetch-supplier-records', [SupplierRecordController::class, 'getSupplierRecords']);

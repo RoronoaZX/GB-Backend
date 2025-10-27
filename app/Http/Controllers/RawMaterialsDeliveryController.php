@@ -12,6 +12,7 @@ use App\Models\SupplierRecord;
 use App\Models\Warehouse;
 use App\Models\WarehouseRawMaterialsReport;
 use App\Models\WarehouseRmStocks;
+use Carbon\Carbon;
 use Dotenv\Repository\RepositoryInterface;
 use Illuminate\Auth\Events\Validated;
 use Illuminate\Http\Client\ResponseSequence;
@@ -1347,6 +1348,44 @@ class RawMaterialsDeliveryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message'    => 'Error updating stock:' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateDeliveryDate($id, Request $request)
+    {
+        try {
+            $request->validate([
+                'created_at' => 'required|date',
+            ]);
+
+            // Fetch delivery record
+            $delivery = RawMaterialsDelivery::findOrFail($id);
+
+            // Combine date from forntend + current backend time
+            $currentTime = now()->format('H:i:s');
+            $newDateTime = Carbon::createFromFormat('Y-m-d H:i:s', "{$request->created_at} {$currentTime}");
+
+            // Update main dalivery created_at
+            $delivery->created_at = $newDateTime;
+            $delivery->save();
+
+            // Update all related DeliveryStocksUnit records
+            DeliveryStocksUnit::where('rm_delivery_id', $id)
+            ->update(['created_at' => $newDateTime]);
+
+            // Update all related SupplierRecord records
+            SupplierRecord::where('rm_delivery_id', $id)
+            ->update(['created_at' => $newDateTime]);
+
+            return response()->json([
+                'message' => 'Delivery date updated successfully.',
+                'new_created_at' => $newDateTime->toDateTimeString(),
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update delivery date.',
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
