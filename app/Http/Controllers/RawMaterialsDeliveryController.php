@@ -1356,31 +1356,33 @@ class RawMaterialsDeliveryController extends Controller
     {
         try {
             $request->validate([
-                'created_at' => 'required|date',
+                'created_at' => 'required|string',
             ]);
 
-            // Fetch delivery record
+            // 🕒 Parse frontend datetime (e.g. "2025-10-28 02:30 PM") in Manila timezone
+            $parsedDateTime = Carbon::createFromFormat('Y-m-d h:i A', $request->created_at, 'Asia/Manila');
+
+            // 🔄 Convert to UTC for database consistency
+            $parsedDateTimeUTC = $parsedDateTime->copy()->setTimezone('UTC');
+
+            // 🗃️ Fetch the delivery record
             $delivery = RawMaterialsDelivery::findOrFail($id);
 
-            // Combine date from forntend + current backend time
-            $currentTime = now()->format('H:i:s');
-            $newDateTime = Carbon::createFromFormat('Y-m-d H:i:s', "{$request->created_at} {$currentTime}");
-
-            // Update main dalivery created_at
-            $delivery->created_at = $newDateTime;
+            // ✏️ Update main delivery record
+            $delivery->created_at = $parsedDateTimeUTC;
             $delivery->save();
 
-            // Update all related DeliveryStocksUnit records
+            // ✏️ Update related DeliveryStocksUnit and SupplierRecord records
             DeliveryStocksUnit::where('rm_delivery_id', $id)
-            ->update(['created_at' => $newDateTime]);
+            ->update(['created_at' => $parsedDateTimeUTC]);
 
             // Update all related SupplierRecord records
             SupplierRecord::where('rm_delivery_id', $id)
-            ->update(['created_at' => $newDateTime]);
+            ->update(['created_at' => $parsedDateTimeUTC]);
 
             return response()->json([
                 'message' => 'Delivery date updated successfully.',
-                'new_created_at' => $newDateTime->toDateTimeString(),
+                'new_created_at' => $parsedDateTime->toDateTimeString(),
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

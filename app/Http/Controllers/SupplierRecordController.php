@@ -55,38 +55,52 @@ class SupplierRecordController extends Controller
     public function updateSupplierHistoriesDateTime($deliveryId, Request $request)
     {
         $request->validate([
-            'created_at' => 'required|string'
+            'created_at' => 'required|string',
         ]);
 
-        // Parse as Manila timezone
-        $parsedCreatedAt = Carbon::createFromFormat('M. d, Y, h:i A',
-            $request->created_at, 'Asia/Manila'
-    );
+        try{
+            // Parse frontend value (e.g., "2025-10-24 04:55 PM) as Asia/Manila timezone
+            $parsedCreatedAt = Carbon::createFromFormat(
+                                    'Y-m-d h:i A',
+                                    $request->created_at,
+                                    'Asia/Manila'
+                                );
 
-    // Convert to UTC from saving
-    $parsedCreatedAtUTC = $parsedCreatedAt->copy()->setTImezone('UTC');
+            // Convert to UTC before saving to DB
+            $parsedCreatedAtUTC = $parsedCreatedAt->copy()->setTImezone('UTC');
 
-    $supplierRecords = SupplierRecord::where('rm_delivery_id', $deliveryId)->get();
+            // Update record
+            $supplierRecords = SupplierRecord::where('rm_delivery_id', $deliveryId)->get();
 
-    if ($supplierRecords->isEmpty()) {
-        return response()->json([
-            'message' => 'No supplier records found for the delivery.'
-        ], 404);
+            if ($supplierRecords->isEmpty()) {
+                return response()->json([
+                    'message' => 'No supplier records found for the delivery.'
+                ], 404);
+            }
+
+            // Update created_at for each related record
+            foreach ($supplierRecords as $record) {
+                $record->created_at = $parsedCreatedAtUTC;
+                $record->save();
+            }
+
+            // 🟢 Return one record's actual database value ofter save
+            $latestRecord = $supplierRecords->first();
+            $latestCreatedAt = $latestRecord->fresh()->created_at;
+
+            return response()->json([
+                'message'            => 'Supplier records datetimes successfully updated.',
+                'updated_count'      => $supplierRecords->count(),
+                'created_at'         => $latestCreatedAt,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Invalid datetime format: ' . $e->getMessage(),
+            ], 422);
+        }
     }
 
-     // Update created_at for each related record
-    foreach ($supplierRecords as $record) {
-        $record->created_at = $parsedCreatedAtUTC;
-        $record->save();
-    }
-
-    return response()->json([
-        'message' => 'Supplier records datetimes successfully updated.',
-        'updated_count' => $supplierRecords->count(),
-        'new_created_at' => $parsedCreatedAt->toDateTimeString()
-    ], 200);
-
-    }
 
 
     /**
