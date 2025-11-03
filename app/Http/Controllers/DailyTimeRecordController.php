@@ -927,7 +927,7 @@ class DailyTimeRecordController extends Controller
             'uuid'                   => 'required|string',
             'schedule_in'            => 'required|string',
             'schedule_out'           => 'required|string',
-            'employee_allowance'     => 'required|numeric',
+            'employee_allowance'     => 'nullable|numeric',
         ]);
 
         if ($validator->fails()) {
