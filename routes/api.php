@@ -211,6 +211,7 @@ Route::post('saveEmployeeDtr', [DailyTimeRecordController::class, 'saveEmployeeD
 Route::post('raw-materials-delivery-declined', [RawMaterialsDeliveryController::class, 'declinraw-materials-delivery-pendingeDelivery']);
 Route::post('raw-materials-delivery-confirmed', [RawMaterialsDeliveryController::class, 'confirmDelivery']);
 
+Route::put('update-employment-type/salary/{id}', [EmploymentTypeController::class, 'updateEmployeementTypeSalary']);
 Route::put('incentives-bases/update-number-employee/{id}', [IncentivesBasesController::class, 'updateNumberEmployee']);
 Route::put('incentives-bases/update-target/{id}', [IncentivesBasesController::class, 'updateTarget']);
 Route::put('incentives-bases/update-baker-multipier/{id}', [IncentivesBasesController::class, 'updateBakerMultipier']);

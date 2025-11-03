@@ -23,6 +23,25 @@ class EmploymentTypeController extends Controller
     //     return response()->json($employmentType, 200);
     // }
 
+    public function updateEmployeementTypeSalary(Request $request, $id)
+    {
+        $validateData = $request->validate([
+            'salary' => 'required|numeric'
+        ]);
+
+        $employmentTypeSalary = EmploymentType::find($id);
+
+        if (!$employmentTypeSalary) {
+            return response()->json(['error' => 'Employment type not found.'], 404);
+        }
+
+        $employmentTypeSalary->update([
+            'salary' => $validateData['salary']
+        ]);
+
+        return response()->json($employmentTypeSalary, 200);
+    }
+
     /**
      * Show the form for creating a new resource.
      */
