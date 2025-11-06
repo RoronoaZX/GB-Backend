@@ -32,29 +32,115 @@ class RequestPremixController extends Controller
         //
     }
 
-    public function getBranchEmployeePremix(Request $request, $branchId, $employeeId)
-    {
-         // Get pagination size (default to 10 if not provided)
-         $perPage = $request->query('per_page', 10);
-         $page = $request->query('page', 1); // Default to page 1
+    // public function getBranchEmployeePremix(Request $request, $branchId, $employeeId)
+    // {
+    //      // Get pagination size (default to 10 if not provided)
+    //      $perPage = $request->query('per_page', 10);
+    //      $page = $request->query('page', 1); // Default to page 1
 
-        $branchPremix = RequestPremix::whereHas('branchPremix', function ($query) use ($branchId) {
-                $query->where('branch_id', $branchId);
-            })
-            ->where('employee_id', $employeeId) // Filter by employee_id
-            ->with([
+    //     $branchPremix = RequestPremix::whereHas('branchPremix', function ($query) use ($branchId) {
+    //             $query->where('branch_id', $branchId);
+    //         })
+    //         ->where('employee_id', $employeeId) // Filter by employee_id
+    //         ->with([
+    //             'branchPremix',
+    //             'employee',
+    //             'warehouse',
+    //             'history' => function ($query) {
+    //                 $query->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
+    //                     ->with('employee'); // Include employee who changed the status
+    //             }
+    //         ])
+    //         ->latest('updated_at')
+    //         ->paginate($perPage, ['*'], 'page', $page);
+
+    //     return response()->json($branchPremix);
+    // }
+
+     public function getBranchEmployeePremix(Request $request, $branchId, $employeeId)
+    {
+        try {
+            // ✅ Pagination and filters
+            $perPage = $request->input('per_page', 10);
+            $search = $request->input('search');
+            $premixName = $request->query('name');
+
+            // ✅ Base query with relationships
+            $query = RequestPremix::with([
                 'branchPremix',
                 'employee',
                 'warehouse',
-                'history' => function ($query) {
-                    $query->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
-                        ->with('employee'); // Include employee who changed the status
+                'history' => function ($q) {
+                    $q->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
+                      ->with('employee');
                 }
             ])
-            ->latest('updated_at')
-            ->paginate($perPage, ['*'], 'page', $page);
+            ->whereHas('branchPremix', function ($q) use ($branchId) {
+                $q->where('branch_id', $branchId);
+            })
+            ->where('employee_id', $employeeId);
 
-        return response()->json($branchPremix);
+            // ✅ Optional name filter
+            if ($premixName) {
+                $query->where('name', 'like', "%{$premixName}%");
+            }
+
+            // ✅ Optional search filter
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('status', 'like', "%{$search}%");
+                });
+            }
+
+            // ✅ Order latest first
+            $query->latest();
+
+            // ✅ Apply pagination
+            $premixes = $query->paginate($perPage);
+
+            // ✅ Structured JSON response (consistent format)
+            return response()->json([
+                'success'    => true,
+                'data'       => $premixes->map(function ($premix) {
+                    return [
+                        'id'             => $premix->id,
+                        'name'           => $premix->name,
+                        'status'         => $premix->status,
+                        'quantity'       => $premix->quantity,
+                        'remarks'        => $premix->remarks,
+                        'branch_premix'  => $premix->branchPremix,
+                        'employee'       => $premix->employee,
+                        'warehouse'      => $premix->warehouse,
+                        'history'        => $premix->history->map(function ($history) {
+                            return [
+                                'id'             => $history->id,
+                                'changed_by'     => $history->changed_by,
+                                'status'         => $history->status,
+                                'employee'       => $history->employee,
+                                'updated_at'     => $history->updated_at
+                            ];
+                        }),
+                        'created_at'     => $premix->created_at,
+                        'updated_at'     => $premix->updated_at,
+                    ];
+                }),
+                'pagination' => [
+                    'total'          => $premixes->total(),
+                    'per_page'       => $premixes->perPage(),
+                    'current_page'   => $premixes->currentPage(),
+                    'last_page'      => $premixes->lastPage(),
+                    'from'           => $premixes->firstItem(),
+                    'to'             => $premixes->lastItem()
+                ]
+                ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message'    => 'Failed to fetch branch premix.',
+                'error'      => $e->getMessage(),
+            ], 500);
+        }
     }
 
     // public function getBranchPremix($branchId)

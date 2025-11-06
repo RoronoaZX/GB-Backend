@@ -51,18 +51,131 @@ class InitialBakerreportsController extends Controller
         return response()->json($reports);
     }
 
+    // public function getReportsByUserId(Request $request, $userId)
+    // {
+    //     // Get pagination size (default to 10 if not provided)
+    //     $perPage = $request->query('per_page', 10);
+    //     $page = $request->query('page', 1); // Default to page 1
+
+    //     // Fetch reports by user ID and order by creation date
+    //     $reports = InitialBakerreports::where('user_id', $userId)
+    //                                     ->orderBy('created_at', 'desc')
+    //                                     ->paginate($perPage, ['*'], 'page', $page);
+
+    //     // Loop through each report to load relationships conditionally
+    //     foreach ($reports as $report) {
+    //         if (strtolower($report->recipe_category) === 'dough') {
+    //             $report->load(['branch','user','branchRecipe','ingredientBakersReports', 'breadBakersReports']);
+    //         } elseif (strtolower($report->recipe_category) === 'filling') {
+    //             $report->load(['branch','user','branchRecipe','ingredientBakersReports', 'fillingBakersReports']);
+    //         }
+    //     }
+
+    //     // Return the response as JSON
+    //     return response()->json($reports);
+    // }
+
+    // public function getReportsByUserId(Request $request, $userId)
+    // {
+    //     try {
+    //         $perPage = (int) $request->query('per_page', 10);
+    //         $page = (int) $request->query('page', 1);
+    //         // $search = $request->query('search'); // added search
+
+    //         // // ✅ Base query
+    //         // $reportsQuery =
+
+    //         $reports = InitialBakerreports::where('user_id', $userId)
+    //             ->orderBy('created_at', 'desc')
+    //             ->paginate($perPage, ['*'], 'page', $page);
+
+    //         // ✅ Load relational data
+    //         foreach ($reports as $report) {
+    //             if (strtolower($report->recipe_category) === 'dough') {
+    //                 $report->load(['branch','user','branchRecipe','ingredientBakersReports', 'breadBakersReports']);
+    //             } elseif (strtolower($report->recipe_category) === 'filling') {
+    //                 $report->load(['branch','user','branchRecipe','ingredientBakersReports', 'fillingBakersReports']);
+    //             }
+    //         }
+
+    //         // ✅ Format output the same as fetchDeliveryStocksBranch()
+    //         return response()->json([
+    //             'success' => true,
+    //             'data' => $reports->map(function ($report) {
+    //                 return [
+    //                     'id'                         => $report->id,
+    //                     'actual_target'              => $report->actual_target,
+    //                     'branch'                     => $report->branch,
+    //                     'branch_id'                  => $report->branch_id,
+    //                     'branch_recipe'              => $report->branchRecipe,
+    //                     'branch_recipe_id'           => $report->branch_recipe_id,
+    //                     'ingredient_bakers_reports'  => $report->ingredientBakersReports,
+    //                     'kilo'                       => $report->kilo,
+    //                     'over'                       => $report->over,
+    //                     'recipe_category'            => $report->recipe_category,
+    //                     'remark'                     => $report->remark,
+    //                     'short'                      => $report->short,
+    //                     'status'                     => $report->status,
+    //                     'target'                     => $report->target,
+    //                     'user'                       => $report->user,
+    //                     'user_id'                    => $report->user_id,
+    //                     'created_at'                 => $report->created_at,
+    //                     'updated_at'                 => $report->updated_at,
+
+    //                     // ✅ CONDITIONAL: Only return one of the two based on category
+    //                      'bread_bakers_reports' =>
+    //                         strtolower($report->recipe_category) === 'dough'
+    //                             ? $report->breadBakersReports
+    //                             : null,
+
+    //                     'filling_bakers_reports' =>
+    //                         strtolower($report->recipe_category) === 'filling'
+    //                             ? $report->fillingBakersReports
+    //                             : null,
+    //                 ];
+    //             }),
+
+    //             'pagination' => [
+    //                 'total'         => $reports->total(),
+    //                 'per_page'      => $reports->perPage(),
+    //                 'current_page'  => $reports->currentPage(),
+    //                 'last_page'     => $reports->lastPage(),
+    //                 'from'          => $reports->firstItem(),
+    //                 'to'            => $reports->lastItem(),
+    //             ]
+    //         ], 200);
+
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'message' => 'Failed to fetch reports',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
     public function getReportsByUserId(Request $request, $userId)
-    {
-        // Get pagination size (default to 10 if not provided)
-        $perPage = $request->query('per_page', 10);
-        $page = $request->query('page', 1); // Default to page 1
+{
+    try {
+        $perPage = (int) $request->query('per_page', 10);
+        $page = (int) $request->query('page', 1);
+        $search = $request->query('search'); // ✅ added search
 
-        // Fetch reports by user ID and order by creation date
-        $reports = InitialBakerreports::where('user_id', $userId)
-                                        ->orderBy('created_at', 'desc')
-                                        ->paginate($perPage, ['*'], 'page', $page);
+        // ✅ Base query
+        $reportsQuery = InitialBakerreports::where('user_id', $userId);
 
-        // Loop through each report to load relationships conditionally
+        // ✅ Search by recipe name in related models
+        if ($search) {
+            $reportsQuery->whereHas('branchRecipe.recipe', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        // ✅ Order and paginate
+        $reports = $reportsQuery
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        // ✅ Load relations depending on category
         foreach ($reports as $report) {
             if (strtolower($report->recipe_category) === 'dough') {
                 $report->load(['branch','user','branchRecipe','ingredientBakersReports', 'breadBakersReports']);
@@ -71,9 +184,60 @@ class InitialBakerreportsController extends Controller
             }
         }
 
-        // Return the response as JSON
-        return response()->json($reports);
+        return response()->json([
+            'success' => true,
+            'data' => $reports->map(function ($report) {
+                return [
+                    'id'                        => $report->id,
+                    'actual_target'             => $report->actual_target,
+                    'branch'                    => $report->branch,
+                    'branch_id'                 => $report->branch_id,
+                    'branch_recipe'             => $report->branchRecipe,
+                    'branch_recipe_id'          => $report->branch_recipe_id,
+                    'ingredient_bakers_reports' => $report->ingredientBakersReports,
+                    'kilo'                      => $report->kilo,
+                    'over'                      => $report->over,
+                    'recipe_category'           => $report->recipe_category,
+                    'remark'                    => $report->remark,
+                    'short'                     => $report->short,
+                    'status'                    => $report->status,
+                    'target'                    => $report->target,
+                    'user'                      => $report->user,
+                    'user_id'                   => $report->user_id,
+                    'created_at'                => $report->created_at,
+                    'updated_at'                => $report->updated_at,
+
+                    // ✅ Conditional return
+                    'bread_bakers_reports' =>
+                        strtolower($report->recipe_category) === 'dough'
+                            ? $report->breadBakersReports
+                            : null,
+
+                    'filling_bakers_reports' =>
+                        strtolower($report->recipe_category) === 'filling'
+                            ? $report->fillingBakersReports
+                            : null,
+                ];
+            }),
+
+            'pagination' => [
+                'total'        => $reports->total(),
+                'per_page'     => $reports->perPage(),
+                'current_page' => $reports->currentPage(),
+                'last_page'    => $reports->lastPage(),
+                'from'         => $reports->firstItem(),
+                'to'           => $reports->lastItem(),
+            ]
+
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Failed to fetch reports',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
 
     public function adminCreateReport(Request $request)
     {

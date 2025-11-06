@@ -147,11 +147,6 @@ class RawMaterialsDeliveryController extends Controller
                       ->orWhere('status', 'like', '%' . $search . '%');
                 });
             }
-            // if ($search) {
-            //     $query->whereHas('items.rawMaterial', function ($q) use ($search) {
-            //         $q->where('name', 'like', '%' . $search . '%');
-            //     });
-            // }
 
             // ✅ Order latest deliveries first
             $query->latest();
