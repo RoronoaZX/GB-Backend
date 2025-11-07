@@ -24,8 +24,8 @@ class BreadSalesReportController extends Controller
             'price' => 'required|integer'
         ]);
 
-        $breadSalesReport = BreadSalesReport::findorFail($id);
-        $breadSalesReport->price = $validatedData['price'];
+        $breadSalesReport            = BreadSalesReport::findorFail($id);
+        $breadSalesReport->price     = $validatedData['price'];
         $breadSalesReport->save();
 
         HistoryLog::create([
@@ -49,8 +49,8 @@ class BreadSalesReportController extends Controller
             'beginnings' => 'required|integer'
         ]);
 
-        $breadSalesReport = BreadSalesReport::findorFail($id);
-        $breadSalesReport->beginnings = $validatedData['beginnings'];
+        $breadSalesReport                = BreadSalesReport::findorFail($id);
+        $breadSalesReport->beginnings    = $validatedData['beginnings'];
         $breadSalesReport->save();
 
         HistoryLog::create([
@@ -66,7 +66,10 @@ class BreadSalesReportController extends Controller
             'user_id'            => $request->input('user_id'),
         ]);
 
-        return response()->json(['message' => 'Beginnings updated successfully', 'beginnings' => $breadSalesReport]);
+        return response()->json([
+            'message' => 'Beginnings updated successfully',
+            'beginnings' => $breadSalesReport
+        ]);
     }
     public function updatedNewProduction(Request $request, $id)
     {
@@ -74,8 +77,8 @@ class BreadSalesReportController extends Controller
             'new_production' => 'required|integer'
         ]);
 
-        $breadSalesReport = BreadSalesReport::findorFail($id);
-        $breadSalesReport->new_production = $validatedData['new_production'];
+        $breadSalesReport                    = BreadSalesReport::findorFail($id);
+        $breadSalesReport->new_production    = $validatedData['new_production'];
         $breadSalesReport->save();
 
         HistoryLog::create([
@@ -91,7 +94,10 @@ class BreadSalesReportController extends Controller
             'user_id'            => $request->input('user_id'),
         ]);
 
-        return response()->json(['message' => 'Beginnings updated successfully', 'new_production' => $breadSalesReport]);
+        return response()->json([
+            'message'            => 'Beginnings updated successfully',
+            'new_production'     => $breadSalesReport
+        ]);
     }
     public function updateRemaining(Request $request, $id)
     {
@@ -99,11 +105,14 @@ class BreadSalesReportController extends Controller
             'remaining' => 'required|integer'
         ]);
 
-        $breadSalesReport = BreadSalesReport::findorFail($id);
-        $breadSalesReport->remaining = $validatedData['remaining'];
+        $breadSalesReport                = BreadSalesReport::findorFail($id);
+        $breadSalesReport->remaining     = $validatedData['remaining'];
         $breadSalesReport->save();
 
-        return response()->json(['message' => 'Remaining updated successfully', 'remaining' => $breadSalesReport]);
+        return response()->json([
+            'message'    => 'Remaining updated successfully',
+            'remaining'  => $breadSalesReport
+        ]);
     }
     public function updateBreadOut(Request $request, $id)
     {
@@ -111,8 +120,8 @@ class BreadSalesReportController extends Controller
             'bread_out' => 'required|integer'
         ]);
 
-        $breadSalesReport = BreadSalesReport::findorFail($id);
-        $breadSalesReport->bread_out = $validatedData['bread_out'];
+        $breadSalesReport                = BreadSalesReport::findorFail($id);
+        $breadSalesReport->bread_out     = $validatedData['bread_out'];
         $breadSalesReport->save();
 
         HistoryLog::create([
@@ -128,7 +137,10 @@ class BreadSalesReportController extends Controller
             'user_id'            => $request->input('user_id'),
         ]);
 
-        return response()->json(['message' => 'Bread out updated successfully', 'bread_out' => $breadSalesReport]);
+        return response()->json([
+            'message'    => 'Bread out updated successfully',
+            'bread_out'  => $breadSalesReport
+        ]);
     }
 
     public function addingBreadProduction(Request $request)
@@ -152,9 +164,9 @@ class BreadSalesReportController extends Controller
         $breadProduction = BreadSalesReport::create($validated);
 
         return response()->json([
-            'success' => true,
-            'message' => 'Bread production recorded successfully!',
-            'data' => $breadProduction,
+            'success'    => true,
+            'message'    => 'Bread production recorded successfully!',
+            'data'       => $breadProduction,
         ]);
     }
 

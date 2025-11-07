@@ -34,30 +34,36 @@ class InitialBakerreports extends Model
 
         public function user()
         {
-            return $this->belongsTo(User::class)->with('employee');
+            return $this->belongsTo(User::class)
+                        ->with('employee');
         }
 
         public function branchRecipe()
         {
-            return $this->belongsTo(BranchRecipe::class)->with('recipe');
+            return $this->belongsTo(BranchRecipe::class)
+                        ->with('recipe');
         }
 
         public function breadBakersReports()
         {
-            return $this->hasMany(InitialBreadBakerreports::class, 'initial_bakerreports_id', 'id')->with('bread');
+            return $this->hasMany(InitialBreadBakerreports::class, 'initial_bakerreports_id', 'id')
+                        ->with('bread');
         }
 
         public function ingredientBakersReports()
         {
-            return $this->hasMany(InitialIngredientsBakerreports::class, 'initial_bakerreports_id', 'id')->with('ingredients');
+            return $this->hasMany(InitialIngredientsBakerreports::class, 'initial_bakerreports_id', 'id')
+                        ->with('ingredients');
         }
         public function fillingBakersReports()
         {
-            return $this->hasMany(InitialFillingBakerreports::class, 'initial_bakerreports_id', 'id')->with('bread');
+            return $this->hasMany(InitialFillingBakerreports::class, 'initial_bakerreports_id', 'id')
+                        ->with('bread');
         }
         public function scopePendingDoughReports($query)
         {
-            return $query->where('recipe_category', 'dough')->where('status', 'pending');
+            return $query->where('recipe_category', 'dough')
+                        ->where('status', 'pending');
         }
         public function breadBakerReports()
         {
@@ -65,7 +71,8 @@ class InitialBakerreports extends Model
         }
         public function breadProductionReports()
         {
-            return $this->hasMany(BreadProductionReport::class, 'initial_bakerreports_id')->with('bread');
+            return $this->hasMany(BreadProductionReport::class, 'initial_bakerreports_id')
+                        ->with('bread');
         }
         public function getCombinedBakersReportsAttribute()
         {

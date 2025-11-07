@@ -26,13 +26,13 @@ class BreadAddedController extends Controller
             'branch_id' => 'required|integer',
         ]);
 
-        $page = $request->get('page', 1);
-        $perPage = $request->get('per_page', 5);
-        $search = $request->get('search');
+        $page        = $request->get('page', 1);
+        $perPage     = $request->get('per_page', 5);
+        $search      = $request->get('search');
 
         // Build base query
-        $query = BreadAdded::with(['employee', 'product', 'fromBranch', 'toBranch'])
-                    ->where('from_branch_id', $validatedData['branch_id']);
+        $query       = BreadAdded::with(['employee', 'product', 'fromBranch', 'toBranch'])
+                        ->where('from_branch_id', $validatedData['branch_id']);
 
         // Apply search filter for fromBranch and toBranch names
         if (!empty($search)) {
@@ -71,22 +71,22 @@ class BreadAddedController extends Controller
     public function receivedBread(Request $request)
     {
         try {
-            $validated = $request->validate([
-                'status'         => 'required|string',
-                'branchId'       => 'required|integer',
-                'report_id'      => 'required|integer',
-                'product_id'     => 'required|integer',
-                'bread_added'    => 'required|numeric',
+            $validated   = $request->validate([
+                            'status'         => 'required|string',
+                            'branchId'       => 'required|integer',
+                            'report_id'      => 'required|integer',
+                            'product_id'     => 'required|integer',
+                            'bread_added'    => 'required|numeric',
             ]);
 
-            $branchId = $validated['branchId'];
-            $productId = $validated['product_id'];
-            $breadAdded = $validated['bread_added'];
+            $branchId    = $validated['branchId'];
+            $productId   = $validated['product_id'];
+            $breadAdded  = $validated['bread_added'];
 
             // Find the product based on product_id and branch_id
             $product = BranchProduct::where('product_id', $productId)
-                ->where('branches_id', $branchId)
-                ->first();
+                        ->where('branches_id', $branchId)
+                        ->first();
 
             if (!$product) {
                 return response()->json([
@@ -117,59 +117,22 @@ class BreadAddedController extends Controller
     }
 
 
-    // public function receivedBreadBranchProduct(Request $request)
-    // {
-    //     $validatedData = $request->validate([
-    //         'status' => 'required|string',
-    //         'branchId' => 'required|integer',
-    //         'report_id' => 'required|integer',
-    //         'product_id' => 'required|integer',
-    //         'bread_added' => 'required|numeric',
-    //     ]);
 
-    //     $branchId = $validatedData['branchId'];
-    //     $productId = $validatedData['product_id'];
-    //     $breadAdded = $validatedData['bread_added'];
-
-    //     // Find the product based on product_id and branch_id
-    //     $product = BranchProduct::where('product_id', $productId)
-    //         ->where('branches_id', $branchId)
-    //         ->first();
-    //     if (!$product) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Product not found in the specified branch.',
-    //         ], 404);
-    //     }
-    //      // Add the received bread to the total_quantity
-    //      $product->total_quantity += $breadAdded;
-    //      $product->save();
-
-    //      // Optionally, update status of the report or breadAdded record
-    //      BreadAdded::where('id', $validatedData['report_id'])
-    //          ->update(['status' => $validatedData['status']]);
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'Bread successfully received and stock updated.',
-    //         'product' => $product,
-    //     ]);
-    // }
 
     public function getSentBreadBranchProduct(Request $request, $branchId)
     {
 
-            $page = $request->get('page', 1);
-            $perPage = $request->get('per_page', 5);
+            $page        = $request->get('page', 1);
+            $perPage     = $request->get('per_page', 5);
 
 
             $sentBreadProducts = BreadAdded::with(['employee', 'product', 'fromBranch', 'toBranch'])
-                ->where(function ($query) use ($branchId) {
-                    $query->where('from_branch_id', $branchId)
-                        ->orWhere('to_branch_id', $branchId);
-                })
-                ->orderBy('created_at', 'desc')
-                ->get();
+                                    ->where(function ($query) use ($branchId) {
+                                        $query->where('from_branch_id', $branchId)
+                                            ->orWhere('to_branch_id', $branchId);
+                                    })
+                                    ->orderBy('created_at', 'desc')
+                                    ->get();
 
             if ($perPage == 0) {
                 return response()->json([
@@ -192,26 +155,6 @@ class BreadAddedController extends Controller
             return response()->json($paginate);
 
     }
-
-
-    // public function getSentBreadBranchProduct(Request $request, $branchId)
-    // {
-    //     try {
-    //         $perPage = $request->get('per_page', 5);
-
-    //         $sentBreadProducts = BreadAdded::with(['employee', 'product', 'fromBranch', 'toBranch'])
-    //             ->where('from_branch_id', $branchId)
-    //             ->orderBy('created_at', 'desc') // Order by the creation date
-    //             ->paginate($perPage);
-    //         return response()->json($sentBreadProducts);
-    //     } catch (\Exception $e) {
-    //         // Handle and return an error response
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Failed to fetch reports. ' . $e->getMessage(),
-    //         ], 500);
-    //     }
-    // }
 
     /**
      * Store a newly created resource in storage.
@@ -275,8 +218,8 @@ class BreadAddedController extends Controller
             DB::rollBack();
 
             return response()->json([
-                'message' => 'Failed to transfer bread.',
-                'error' => $e->getMessage(),
+                'message'    => 'Failed to transfer bread.',
+                'error'      => $e->getMessage(),
             ], 500);
         }
     }

@@ -30,8 +30,8 @@ class WarehouseStockReportsController extends Controller
 
     public function fetchWarehouseAddedStocks($warehouseId, Request $request)
     {
-        $page = $request->get('page', 1);
-        $perPage = $request->get('per_page', 5);
+        $page        = $request->get('page', 1);
+        $perPage     = $request->get('per_page', 5);
 
         $warehouseStockReports = WarehouseStockReports::with(['warehouseAddedStocks', 'employee'])
                                 ->where('warehouse_id', $warehouseId)
@@ -90,8 +90,8 @@ class WarehouseStockReportsController extends Controller
             ]);
 
             $warehouseAddedStock = WarehouseRawMaterialsReport::where('warehouse_id', $validatedData['warehouse_id'])
-                                ->where('raw_material_id', $rawMaterial['raw_material_id'])
-                                ->first();
+                                    ->where('raw_material_id', $rawMaterial['raw_material_id'])
+                                    ->first();
             if ($warehouseAddedStock) {
                 $warehouseAddedStock->total_quantity += $rawMaterial['quantity'];
                 $warehouseAddedStock->save();

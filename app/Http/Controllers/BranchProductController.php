@@ -19,35 +19,15 @@ class BranchProductController extends Controller
         //
     }
 
-    // public function search(Request $request)
-    // {
-    //     $branchId = $request->input('branch_id');
-    //     $query = $request->input('query');
-    //     $category = $request->input('category');
-
-    //     $branchProducts = BranchProduct::with('product') // Assuming a relationship exists
-    //         ->when($branchId, function ($q) use ($branchId) {
-    //             return $q->where('branch_id', $branchId);
-    //         })
-    //         ->when($query, function ($q) use ($query) {
-    //             return $q->whereHas('product', function ($productQuery) use ($query) {
-    //                 $productQuery->where('name', 'LIKE', '%' . $query . '%');
-    //             });
-    //         })
-    //         ->when($category, function ($q) use ($category) {
-    //             return $q->where('category', $category);
-    //         })
-    //         ->get();
-
-    //     return response()->json($branchProducts);
-    // }
     public function samplePaginationFretchingBranchProducts(Request $request)
     {
-        $perPage  = $request->query('rowsPerPage', 5);
-        $branchId = $request->query('branchId');
+        $perPage         = $request->query('rowsPerPage', 5);
+        $branchId        = $request->query('branchId');
 
-        $query = BranchProduct::orderBy('created_at', 'desc')->where('branches_id', $branchId)->with(['branch', 'product']);
-        $branchProduct = $query->paginate($perPage);
+        $query           = BranchProduct::orderBy('created_at', 'desc')
+                                ->where('branches_id', $branchId)
+                                ->with(['branch', 'product']);
+        $branchProduct   = $query->paginate($perPage);
 
         return response()->json([
             'data'  => $branchProduct,
@@ -57,7 +37,10 @@ class BranchProductController extends Controller
 
     public function getProducts($branchId)
     {
-        $branchProducts = BranchProduct::orderBy('created_at', 'desc')->where('branches_id', $branchId)->with(['branch', 'product'])->get();
+        $branchProducts = BranchProduct::orderBy('created_at', 'desc')
+                                ->where('branches_id', $branchId)
+                                ->with(['branch', 'product'])
+                                ->get();
         return response()->json($branchProducts, 200);
     }
 
@@ -70,18 +53,18 @@ class BranchProductController extends Controller
 
 
         $products = BranchProduct::where('branches_id', $validated['branches_id'])
-        ->when($validated['category'], function ($query, $category) {
-            $query->where('category', $category);
-        })
-        ->with('product') // Load the product relationship
-        ->get()
-        ->map(function ($branchProduct) {
-            $product = $branchProduct->product;
-            if ($product) {
-                $product->price = $branchProduct->price; // Add price to the product object
-            }
-            return $product;
-        });
+                        ->when($validated['category'], function ($query, $category) {
+                            $query->where('category', $category);
+                        })
+                        ->with('product') // Load the product relationship
+                        ->get()
+                        ->map(function ($branchProduct) {
+                            $product = $branchProduct->product;
+                            if ($product) {
+                                $product->price = $branchProduct->price; // Add price to the product object
+                            }
+                            return $product;
+                        });
 
         return response()->json($products);
     }
@@ -95,18 +78,18 @@ class BranchProductController extends Controller
 
 
     $products = BranchProduct::where('branches_id', $validated['branches_id'])
-    ->when($validated['category'], function ($query, $category) {
-        $query->where('category', $category);
-    })
-    ->with('product') // Load the product relationship
-    ->get()
-    ->map(function ($branchProduct) {
-        $product = $branchProduct->product;
-        if ($product) {
-            $product->price = $branchProduct->price; // Add price to the product object
-        }
-        return $product;
-    });
+                    ->when($validated['category'], function ($query, $category) {
+                        $query->where('category', $category);
+                    })
+                    ->with('product') // Load the product relationship
+                    ->get()
+                    ->map(function ($branchProduct) {
+                        $product = $branchProduct->product;
+                        if ($product) {
+                            $product->price = $branchProduct->price; // Add price to the product object
+                        }
+                        return $product;
+                    });
 
         return response()->json($products);
     }
@@ -120,18 +103,18 @@ class BranchProductController extends Controller
 
 
         $products = BranchProduct::where('branches_id', $validated['branches_id'])
-        ->when($validated['category'], function ($query, $category) {
-            $query->where('category', $category);
-        })
-        ->with('product') // Load the product relationship
-        ->get()
-        ->map(function ($branchProduct) {
-            $product = $branchProduct->product;
-            if ($product) {
-                $product->price = $branchProduct->price; // Add price to the product object
-            }
-            return $product;
-        });
+                        ->when($validated['category'], function ($query, $category) {
+                            $query->where('category', $category);
+                        })
+                        ->with('product') // Load the product relationship
+                        ->get()
+                        ->map(function ($branchProduct) {
+                            $product = $branchProduct->product;
+                            if ($product) {
+                                $product->price = $branchProduct->price; // Add price to the product object
+                            }
+                            return $product;
+                        });
 
         return response()->json($products);
     }
@@ -144,64 +127,20 @@ class BranchProductController extends Controller
         ]);
 
         $products = BranchProduct::where('branches_id', $validated['branches_id'])
-                ->when($validated['category'], function ($query, $category) {
-                    $query->where('category', $category);
-                })
-                ->with('product')
-                ->get()
-                ->map(function ($branchProduct) {
-                    $product = $branchProduct->product;
-                    if ($product) {
-                        $product->price = $branchProduct->price;
-                    }
-                    return $product;
-                });
-                return response()->json($products);
+                        ->when($validated['category'], function ($query, $category) {
+                            $query->where('category', $category);
+                        })
+                        ->with('product')
+                        ->get()
+                        ->map(function ($branchProduct) {
+                            $product = $branchProduct->product;
+                            if ($product) {
+                                $product->price = $branchProduct->price;
+                            }
+                            return $product;
+                        });
+        return response()->json($products);
     }
-
-
-
-//     public function fetchBranchProducts(Request $request)
-// {
-//     $validated = $request->validate([
-//         'branches_id' => 'required|integer',
-//         'category' => 'nullable|string',
-//     ]);
-
-//     $products = BranchProduct::where('branches_id', $validated['branches_id'])
-//         ->when($validated['category'], function ($query, $category) {
-//             $query->where('category', $category);
-//         })
-//         ->with(['product'])
-//         ->get()
-//         ->pluck('product'); // Extract only the product data
-
-//     return response()->json([
-//         'message' => 'Products retrieved successfully.',
-//         'data' => $products,
-//     ]);
-// }
-
-
-    // public function fetchBranchProducts(Request $request)
-    // {
-    //     $validated = $request->validate([
-    //         'branches_id' => 'required|integer',
-    //         'category' => 'nullable|string',
-    //     ]);
-
-    //     $products = BranchProduct::where('branches_id', $validated['branches_id'])
-    //         ->when($validated['category'], function ($query, $category) {
-    //             $query->where('category', $category);
-    //         })
-    //         ->with(['product', 'branch'])
-    //         ->get();
-
-    //     return response()->json([
-    //         'message' => 'Products retrieved successfully.',
-    //         'data' => $products,
-    //     ]);
-    // }
 
     public function searchBranchProducts(Request $request)
     {
@@ -212,16 +151,16 @@ class BranchProductController extends Controller
         ]);
 
         $products = BranchProduct::where('branches_id', $validated['branches_id'])
-            ->when($validated['category'], function ($query, $category) {
-                $query->where('category', $category);
-            })
-            ->when($validated['query'], function ($query, $search) {
-                $query->whereHas('product', function ($subQuery) use ($search) {
-                    $subQuery->where('name', 'like', "%{$search}%");
-                });
-            })
-            ->with(['product', 'branch'])
-            ->get();
+                        ->when($validated['category'], function ($query, $category) {
+                            $query->where('category', $category);
+                        })
+                        ->when($validated['query'], function ($query, $search) {
+                            $query->whereHas('product', function ($subQuery) use ($search) {
+                                $subQuery->where('name', 'like', "%{$search}%");
+                            });
+                        })
+                        ->with(['product', 'branch'])
+                        ->get();
 
         return response()->json($products);
     }
@@ -238,7 +177,9 @@ class BranchProductController extends Controller
             'total_quantity'    => 'required|numeric',
         ]);
 
-        $existingBranchProduct = BranchProduct::where('branches_id', $validatedData['branches_id'])->where('product_id', $validatedData['product_id'])->first();
+        $existingBranchProduct = BranchProduct::where('branches_id', $validatedData['branches_id'])
+                                    ->where('product_id', $validatedData['product_id'])
+                                    ->first();
 
         if ($existingBranchProduct) {
             return response()->json([
@@ -268,8 +209,8 @@ class BranchProductController extends Controller
             'price' => 'required|integer',
         ]);
 
-        $branchProduct = BranchProduct::findorFail($id);
-        $branchProduct->price = $validatedData['price'];
+        $branchProduct          = BranchProduct::findorFail($id);
+        $branchProduct->price   = $validatedData['price'];
         $branchProduct->save();
 
         //Save to history log
@@ -295,8 +236,8 @@ class BranchProductController extends Controller
         $validatedData = $request->validate([
             'total_quantity' => 'required|integer'
         ]);
-        $branchProduct = BranchProduct::findOrFail($id);
-        $branchProduct->total_quantity = $validatedData['total_quantity'];
+        $branchProduct                   = BranchProduct::findOrFail($id);
+        $branchProduct->total_quantity   = $validatedData['total_quantity'];
         $branchProduct->save();
 
         HistoryLog::create([
@@ -312,7 +253,10 @@ class BranchProductController extends Controller
             'user_id'            => $request->input('user_id'),
         ]);
 
-        return response()->json(['message' => 'Total Quantity updated successfully', 'total quantity' => $branchProduct]);
+        return response()->json([
+            'message' => 'Total Quantity updated successfully',
+            'total quantity' => $branchProduct
+        ]);
     }
 
     public function updateNewProduction(Request $request, $id)
@@ -321,8 +265,8 @@ class BranchProductController extends Controller
             'new_production' => 'required|integer'
         ]);
 
-        $branchProduct = BranchProduct::findOrFail($id);
-        $branchProduct->new_production = $validatedData['new_production'];
+        $branchProduct                   = BranchProduct::findOrFail($id);
+        $branchProduct->new_production   = $validatedData['new_production'];
         $branchProduct->save();
 
         HistoryLog::create([
@@ -338,7 +282,10 @@ class BranchProductController extends Controller
             'user_id'            => $request->input('user_id'),
         ]);
 
-        return response()->json(['message' => 'New Production updated successfully', 'new production' => $branchProduct]);
+        return response()->json([
+            'message' => 'New Production updated successfully',
+            'new production' => $branchProduct
+        ]);
     }
 
     public function updateBeginnings(Request $request, $id)
@@ -346,8 +293,8 @@ class BranchProductController extends Controller
         $validatedData = $request->validate([
             'beginnings' => 'required|integer'
         ]);
-        $branchProduct = BranchProduct::findOrFail($id);
-        $branchProduct->beginnings = $validatedData['beginnings'];
+        $branchProduct               = BranchProduct::findOrFail($id);
+        $branchProduct->beginnings   = $validatedData['beginnings'];
         $branchProduct->save();
 
         HistoryLog::create([
@@ -363,7 +310,10 @@ class BranchProductController extends Controller
             'user_id'            => $request->input('user_id'),
         ]);
 
-        return response()->json(['message' => 'Total Quantity updated successfully', 'total quantity' => $branchProduct]);
+        return response()->json([
+            'message' => 'Total Quantity updated successfully',
+            'total quantity' => $branchProduct
+        ]);
     }
 
     public function destroy($id)
@@ -386,20 +336,20 @@ class BranchProductController extends Controller
 
     public function searchProducts(Request $request)
 {
-    $branchId = $request->input('branch_id');
-    $keyword = $request->input('keyword');
+    $branchId    = $request->input('branch_id');
+    $keyword     = $request->input('keyword');
 
     Log::info('Search request received', ['branch_id' => $branchId, 'keyword' => $keyword]);
 
     // Search for products with a join on branch_products to filter by branch_id and keyword
     $products = Product::with(['branch_products' => function ($query) use ($branchId) {
-        $query->where('branches_id', $branchId);
-    }])
-    ->where('products.name', 'like', '%' . $keyword . '%')
-    ->select('products.*', 'branch_products.price')
-    ->join('branch_products', 'products.id', '=', 'branch_products.product_id')
-    ->where('branch_products.branches_id', $branchId)
-    ->get();
+                        $query->where('branches_id', $branchId);
+                    }])
+                    ->where('products.name', 'like', '%' . $keyword . '%')
+                    ->select('products.*', 'branch_products.price')
+                    ->join('branch_products', 'products.id', '=', 'branch_products.product_id')
+                    ->where('branch_products.branches_id', $branchId)
+                    ->get();
 
     Log::info('Search results', ['products' => $products]);
 

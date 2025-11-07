@@ -14,8 +14,8 @@ class UniformController extends Controller
      */
     public function index(Request $request)
     {
-        $page = $request->get('page', 1);
-        $perPage = $request->get('per_page', 7);
+        $page        = $request->get('page', 1);
+        $perPage     = $request->get('per_page', 7);
         $search = $request->query('search', '');
 
         $query = Uniform::orderBy('created_at', 'desc')->with(['employee','tShirt','pants']);
@@ -61,16 +61,16 @@ class UniformController extends Controller
         $keyword = $request->input('keyword');
 
         $uniforms = Uniform::with('employee', 'tShirt', 'pants')
-        ->when($keyword !== null, function ($query) use ($keyword) {
-            $query->whereHas('employee', function($q) use ($keyword) {
-                $q->where('firstname', 'LIKE', '%' . $keyword . '%')
-                  ->orWhere('middlename', 'LIKE', '%' . $keyword . '%')
-                  ->orWhere('lastname', 'LIKE', '%' . $keyword . '%');
-            });
-        })
-        ->orderBy('created_at', 'desc')
-        ->take(7)
-        ->get();
+                        ->when($keyword !== null, function ($query) use ($keyword) {
+                            $query->whereHas('employee', function($q) use ($keyword) {
+                                $q->where('firstname', 'LIKE', '%' . $keyword . '%')
+                                ->orWhere('middlename', 'LIKE', '%' . $keyword . '%')
+                                ->orWhere('lastname', 'LIKE', '%' . $keyword . '%');
+                            });
+                        })
+                        ->orderBy('created_at', 'desc')
+                        ->take(7)
+                        ->get();
 
      return response()->json($uniforms);
     }

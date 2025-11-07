@@ -66,8 +66,8 @@ class IncentivesBasesController extends Controller
         }
 
         $alreadyExists = IncentivesBases::where('number_of_employees', $validateData['number_of_employees'])
-            ->where('id', '!=', $id)
-            ->exists();
+                            ->where('id', '!=', $id)
+                            ->exists();
 
         if ($alreadyExists) {
             return response()->json([

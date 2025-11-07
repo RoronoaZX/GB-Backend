@@ -35,6 +35,7 @@ class EmployeeCredits extends Model
 
     public function creditProducts()
     {
-        return $this->hasMany(EmployeeCreditProducts::class )->with('product', 'creditUserId');
+        return $this->hasMany(EmployeeCreditProducts::class )
+                    ->with('product', 'creditUserId');
     }
 }

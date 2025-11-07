@@ -21,8 +21,10 @@ class RawMaterial extends Model
         parent::boot();
 
         static::deleting((function ($rawMaterial) {
-            $rawMaterial->rawMaterialGroups()->delete();
-        } ));
+                $rawMaterial->rawMaterialGroups()
+                            ->delete();
+            }
+        ));
     }
 
     public function rawMaterialGroups()

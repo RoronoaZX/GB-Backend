@@ -22,21 +22,24 @@ class BranchPremixController extends Controller
         $searchBranchPremixId = $request->input('branch_id');
 
         $branchPremix = BranchPremix::with('branch_recipe')
-            ->where('status', 'active')
-            ->when($searchBranchPremix, function ($query, $searchBranchPremix) {
-                return $query->where('name', 'LIKE', "%{$searchBranchPremix}%");
-            })
-            ->when($searchBranchPremixId, function ($query, $searchBranchPremixId) {
-                return $query->where('branch_id', $searchBranchPremixId);
-            })
-            ->get();
+                            ->where('status', 'active')
+                            ->when($searchBranchPremix, function ($query, $searchBranchPremix) {
+                                return $query->where('name', 'LIKE', "%{$searchBranchPremix}%");
+                            })
+                            ->when($searchBranchPremixId, function ($query, $searchBranchPremixId) {
+                                return $query->where('branch_id', $searchBranchPremixId);
+                            })
+                            ->get();
 
         return response()->json($branchPremix);
     }
 
     public function getBranchPremix($branchId)
     {
-        $branchPremix = BranchPremix::orderBy('created_at', 'desc')->where('branch_id', $branchId)->with(['branch_recipe.recipe'])->get();
+        $branchPremix = BranchPremix::orderBy('created_at', 'desc')
+                        ->where('branch_id', $branchId)
+                        ->with(['branch_recipe.recipe'])
+                        ->get();
 
         return response()->json($branchPremix);
     }
@@ -72,16 +75,16 @@ class BranchPremixController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Branch premix created successfully.',
-            'branchPremix' => $branchPremix
+            'message'        => 'Branch premix created successfully.',
+            'branchPremix'   => $branchPremix
         ], 201);
     }
 
     public function updatePremixAvailableStocks(Request $request, $id)
     {
-        $validatedData = $request->validate(['available_stocks' => 'required|numeric']);
-        $recipe = BranchPremix::findOrFail($id);
-        $recipe->available_stocks = $validatedData['available_stocks'];
+        $validatedData               = $request->validate(['available_stocks' => 'required|numeric']);
+        $recipe                      = BranchPremix::findOrFail($id);
+        $recipe->available_stocks    = $validatedData['available_stocks'];
         $recipe->save();
 
         HistoryLog::create([
@@ -118,7 +121,10 @@ class BranchPremixController extends Controller
             'type_of_report'     => $request->input('type_of_report'),
             'user_id'            => $request->input('user_id'),
         ]);
-        return response()->json(['message' => 'Status updated successfully', 'recipe' => $recipe]);
+        return response()->json([
+            'message' => 'Status updated successfully',
+            'recipe' => $recipe
+        ]);
     }
 
 

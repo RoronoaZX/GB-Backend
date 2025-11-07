@@ -34,9 +34,4 @@ class Warehouse extends Model
         return $this->hasMany(WarehouseEmployee::class);
     }
 
-    // public function scopeSearch($query, $keyword)
-    // {
-    //     return $query->where('name', 'LIKE', "%{$keyword}%")->orWhere('person_incharge','LIKE', "%{$keyword}%");
-    // }
-
 }

@@ -89,29 +89,6 @@ class Employee extends Model
      *
      */
 
-    // public function getDesignationAttribute(): ?Model
-    // {
-    //     if ($this->relationLoaded('branchEmployee') && $this->branchEmployee) {
-    //         $branch = $this->branchEmployee->branch;
-    //         if ($branch) {
-    //             $branch->time_in = $this->branchEmployee->time_in;
-    //             $branch->time_out = $this->branchEmployee->time_out;
-    //         }
-    //         return $branch;
-    //     }
-
-    //     if ($this->relationLoaded('warehouseEmployee') && $this->warehouseEmployee) {
-    //         $warehouse = $this->warehouseEmployee->warehouse;
-    //         if ($warehouse) {
-    //             $warehouse->time_in = $this->warehouseEmployee->time_in;
-    //             $warehouse->time_out = $this->warehouseEmployee->time_out;
-    //         }
-    //         return $warehouse;
-    //     }
-
-    //     return null;
-    // }
-
 
      public function getDesignationAttribute(): ?Model
     {
@@ -148,22 +125,4 @@ class Employee extends Model
         return null;
     }
 
-
-    // public function getDesignationAttribute(): ?Model
-    // {
-    //     // Check if the branch relationship is loaded and exists
-    //     if ($this->relationLoaded('branchEmployee') && $this->branchEmployee) {
-    //         // Return the entire branch object. The ?-> is a nullsafe operator.
-    //         return $this->branchEmployee->branch;
-    //     }
-
-    //     // Otherwise, check if the warehouse relationship is loaded and exists
-    //     if ($this->relationLoaded('warehouseEmployee') && $this->warehouseEmployee) {
-    //         // Return the entire warehouse object
-    //         return $this->warehouseEmployee->warehouse;
-    //     }
-
-    //     // If no designation is found, return null
-    //     return null;
-    // }
 }

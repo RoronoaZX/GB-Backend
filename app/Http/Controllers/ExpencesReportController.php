@@ -24,11 +24,14 @@ class ExpencesReportController extends Controller
 
         ]);
 
-        $expensesReport = ExpencesReport::findorFail($id);
-        $expensesReport->name = $validatedData['name'];
+        $expensesReport          = ExpencesReport::findorFail($id);
+        $expensesReport->name    = $validatedData['name'];
         $expensesReport->save();
 
-        return response()->json(['message' => 'name updated successfully', 'name' => $expensesReport]);
+        return response()->json([
+            'message' => 'name updated successfully',
+            'name' => $expensesReport
+        ]);
     }
     public function updateDescription(Request $request, $id)
     {
@@ -37,11 +40,14 @@ class ExpencesReportController extends Controller
 
         ]);
 
-        $expensesReport = ExpencesReport::findorFail($id);
-        $expensesReport->description = $validatedData['description'];
+        $expensesReport                  = ExpencesReport::findorFail($id);
+        $expensesReport->description     = $validatedData['description'];
         $expensesReport->save();
 
-        return response()->json(['message' => 'description updated successfully', 'description' => $expensesReport]);
+        return response()->json([
+            'message' => 'description updated successfully',
+            'description' => $expensesReport
+        ]);
     }
     public function updateAmount(Request $request, $id)
     {
@@ -49,11 +55,14 @@ class ExpencesReportController extends Controller
             'amount' => 'required|numeric'
         ]);
 
-        $expensesReport = ExpencesReport::findorFail($id);
-        $expensesReport->amount = $validatedData['amount'];
+        $expensesReport          = ExpencesReport::findorFail($id);
+        $expensesReport->amount  = $validatedData['amount'];
         $expensesReport->save();
 
-        return response()->json(['message' => 'amount updated successfully', 'amount' => $expensesReport]);
+        return response()->json([
+            'message' => 'amount updated successfully',
+            'amount' => $expensesReport
+        ]);
     }
     public function updateExpensesReport(Request $request)
     {

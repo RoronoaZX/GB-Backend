@@ -21,11 +21,14 @@ class OtherProductsController extends Controller
             'price' => 'required|integer'
         ]);
 
-        $otherProducts = OtherProducts::findorFail($id);
-        $otherProducts->price = $validatedData['price'];
+        $otherProducts           = OtherProducts::findorFail($id);
+        $otherProducts->price    = $validatedData['price'];
         $otherProducts->save();
 
-        return response()->json(['message' => 'Price updated successfully', 'price' => $otherProducts]);
+        return response()->json([
+            'message' => 'Price updated successfully',
+            'price' => $otherProducts
+        ]);
     }
     public function updatedBeginnings(Request $request, $id)
     {
@@ -33,8 +36,8 @@ class OtherProductsController extends Controller
             'beginnings' => 'required|integer'
         ]);
 
-        $otherProducts = OtherProducts::findorFail($id);
-        $otherProducts->beginnings = $validatedData['beginnings'];
+        $otherProducts               = OtherProducts::findorFail($id);
+        $otherProducts->beginnings   = $validatedData['beginnings'];
         $otherProducts->save();
 
         return response()->json(['message' => 'beginnings updated successfully', 'beginnings' => $otherProducts]);
@@ -45,11 +48,14 @@ class OtherProductsController extends Controller
             'remaining' => 'required|integer'
         ]);
 
-        $otherProducts = OtherProducts::findorFail($id);
-        $otherProducts->remaining = $validatedData['remaining'];
+        $otherProducts               = OtherProducts::findorFail($id);
+        $otherProducts->remaining    = $validatedData['remaining'];
         $otherProducts->save();
 
-        return response()->json(['message' => 'remaining updated successfully', 'remaining' => $otherProducts]);
+        return response()->json([
+            'message' => 'remaining updated successfully',
+            'remaining' => $otherProducts
+        ]);
     }
     public function updatedOtherProductsOut(Request $request, $id)
     {
@@ -57,11 +63,14 @@ class OtherProductsController extends Controller
             'out' => 'required|integer'
         ]);
 
-        $otherProducts = OtherProducts::findorFail($id);
-        $otherProducts->out = $validatedData['out'];
+        $otherProducts       = OtherProducts::findorFail($id);
+        $otherProducts->out  = $validatedData['out'];
         $otherProducts->save();
 
-        return response()->json(['message' => 'out updated successfully', 'out' => $otherProducts]);
+        return response()->json([
+            'message' => 'out updated successfully',
+            'out' => $otherProducts
+        ]);
     }
     public function updatedAddedStocks(Request $request, $id)
     {
@@ -69,11 +78,14 @@ class OtherProductsController extends Controller
             'added_stocks' => 'required|integer'
         ]);
 
-        $otherProducts = OtherProducts::findorFail($id);
-        $otherProducts->added_stocks = $validatedData['added_stocks'];
+        $otherProducts                   = OtherProducts::findorFail($id);
+        $otherProducts->added_stocks     = $validatedData['added_stocks'];
         $otherProducts->save();
 
-        return response()->json(['message' => 'added_stocks updated successfully', 'added_stocks' => $otherProducts]);
+        return response()->json([
+            'message' => 'added_stocks updated successfully',
+            'added_stocks' => $otherProducts
+        ]);
     }
 
     public function addingOtherProduction(Request $request)
@@ -96,7 +108,10 @@ class OtherProductsController extends Controller
 
         $selectaSalesReport = OtherProducts::create($validated);
 
-        return response()->json(['message' => 'Other Production added successfully', 'selectaSalesReport' => $selectaSalesReport]);
+        return response()->json([
+            'message' => 'Other Production added successfully',
+            'selectaSalesReport' => $selectaSalesReport
+        ]);
     }
 
     /**

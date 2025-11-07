@@ -14,11 +14,11 @@ class EmployeeBenefitController extends Controller
      */
     public function index(Request $request)
     {
-        $page = $request->get('page', 1);
-        $perPage = $request->get('per_page', 7);
-        $search = $request->query('search', '');
+        $page        = $request->get('page', 1);
+        $perPage     = $request->get('per_page', 7);
+        $search      = $request->query('search', '');
 
-        $query = EmployeeBenefit::with('employee')->orderBy('created_at', 'desc');
+        $query       = EmployeeBenefit::with('employee')->orderBy('created_at', 'desc');
 
         if (!empty($search)) {
             $query->whereHas('employee',function ($q) use ($search) {
@@ -68,18 +68,18 @@ class EmployeeBenefitController extends Controller
         $keyword = $request->input('keyword');
 
         $benefits = EmployeeBenefit::with('employee')
-            ->when($keyword !== null, function ($query) use ($keyword) {
-                $query->whereHas('employee', function($q) use ($keyword) {
-                    $q->where('firstname', 'LIKE', '%' . $keyword . '%')
-                      ->orWhere('middlename', 'LIKE', '%' . $keyword . '%')
-                      ->orWhere('lastname', 'LIKE', '%' . $keyword . '%');
-                });
-            })
-            ->orderBy('created_at', 'desc')
-            ->take(7)
-            ->get();
+                        ->when($keyword !== null, function ($query) use ($keyword) {
+                            $query->whereHas('employee', function($q) use ($keyword) {
+                                $q->where('firstname', 'LIKE', '%' . $keyword . '%')
+                                ->orWhere('middlename', 'LIKE', '%' . $keyword . '%')
+                                ->orWhere('lastname', 'LIKE', '%' . $keyword . '%');
+                            });
+                        })
+                        ->orderBy('created_at', 'desc')
+                        ->take(7)
+                        ->get();
 
-            return response()->json($benefits);
+        return response()->json($benefits);
     }
 
     /**
@@ -114,29 +114,6 @@ class EmployeeBenefitController extends Controller
             'last_page'      => 1
         ], 201);
     }
-
-    // public function store(Request $request)
-    // {
-    //     $validateData = $request->validate([
-    //         'employee_id' => 'required|exists:employees,id',
-    //         'sss' => 'required|numeric',
-    //         'hdmf' => 'required|numeric',
-    //         'phic' => 'required|numeric'
-    //     ]);
-
-    //     $existingBenefits = EmployeeBenefit::where('employee_id', $validateData['employee_id'])->first();
-
-    //     if($existingBenefits) {
-    //         return response()->json(['error' => 'Benefits for this employee already exists.'], 409);
-    //     }
-
-    //     $benefit = EmployeeBenefit::create($validateData);
-
-    //     return response()->json([
-    //         $benefit, 201
-    //     ]);
-
-    // }
 
     public function updateEmployeeSssNumberBenefit(Request $request, $id)
     {

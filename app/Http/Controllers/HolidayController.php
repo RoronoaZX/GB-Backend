@@ -28,10 +28,10 @@ class HolidayController extends Controller
 
         // 2. Build the query using the validated year and month
         $holidays = Holiday::query()
-            ->whereYear('date', $validated['year'])   // Filter by year on the 'date' column
-            ->whereMonth('date', $validated['month'])  // Filter by month on the 'date' column
-            ->orderBy('date', 'asc')                   // Order by the actual date, which is more useful
-            ->get();
+                        ->whereYear('date', $validated['year'])   // Filter by year on the 'date' column
+                        ->whereMonth('date', $validated['month'])  // Filter by month on the 'date' column
+                        ->orderBy('date', 'asc')                   // Order by the actual date, which is more useful
+                        ->get();
 
         // 3. Return the filtered results as JSON
         return response()->json($holidays);
@@ -92,13 +92,17 @@ class HolidayController extends Controller
     public function update(Request $request, $id)
     {
         $holiday = Holiday::find($id);
+
         if (!$holiday) {
             return response()->json([
                 'message' => 'Device not found'
             ]);
         }
+
         $holiday->update($request->all());
+
         $updated_holiday = $holiday->fresh();
+
         return response()->json($updated_holiday);
     }
 
@@ -116,6 +120,7 @@ class HolidayController extends Controller
         }
 
         $holiday->delete();
+
         return response()->json([
             'message' => 'Holiday deleted successfully'
         ]);

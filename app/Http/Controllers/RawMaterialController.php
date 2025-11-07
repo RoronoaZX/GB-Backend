@@ -21,31 +21,33 @@ class RawMaterialController extends Controller
         $designation = strtolower($request->input('designation'));
 
         if ($designation === 'branch') {
-            $rawMaterials = BranchRawMaterialsReport::where('branch_id', $id)
-            ->with('ingredients')
-            ->get()
-            ->pluck('ingredients');
+                $rawMaterials = BranchRawMaterialsReport::where('branch_id', $id)
+                ->with('ingredients')
+                ->get()
+                ->pluck('ingredients');
+
         } elseif ($designation === 'warehouse') {
-            $rawMaterials = WarehouseRawMaterialsReport::where('warehouse_id', $id)
-            ->with('rawMaterials')
-            ->get()
-            ->pluck('rawMaterials');
+                $rawMaterials = WarehouseRawMaterialsReport::where('warehouse_id', $id)
+                ->with('rawMaterials')
+                ->get()
+                ->pluck('rawMaterials');
+
         } else {
-            return response()->json([
-                'message' => 'Invalid designation'
-            ], 400);
+                return response()->json([
+                    'message' => 'Invalid designation'
+                ], 400);
         }
 
         if ($rawMaterials->isEmpty()) {
             return response()->json([
-                'message' => "No raw materials found for this {$designation}",
-                'data' => [],
+                'message'    => "No raw materials found for this {$designation}",
+                'data'       => [],
             ]);
         }
 
         return response()->json([
-            'message' => 'Raw materials fetched successfully',
-            'data' => $rawMaterials,
+            'message'    => 'Raw materials fetched successfully',
+            'data'       => $rawMaterials,
         ]);
     }
 

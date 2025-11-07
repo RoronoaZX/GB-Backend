@@ -17,7 +17,9 @@ class SoftdrinksAddedStocksController extends Controller
 
     public function fetchPendingReports($branchId)
     {
-        $query = SoftdrinksAddedStocks::with(['branch', 'product'])->where('status', 'pending');
+        $query = SoftdrinksAddedStocks::with(['branch', 'product'])
+                    ->where('status', 'pending');
+
         if ($branchId) {
             $query->where('branches_id', $branchId);
         }

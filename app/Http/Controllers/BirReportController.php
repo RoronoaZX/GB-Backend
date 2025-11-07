@@ -133,41 +133,19 @@ class BirReportController extends Controller
         return response()->json($branchDataBirReports);
     }
 
-    // public function fetchNonVATBirReports(Request $request,$branchId)
-    // {
-
-    //     $startDate = $request->query('startDate');
-    //     $endDate = $request->query('endDate');
-
-    //     $birReports = BirReport::where('branch_id', $branchId)
-    //         ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
-    //             $query->whereBetween('created_at', [$startDate, $endDate]);
-    //         })
-    //         ->with(['user', 'branch'])
-    //         ->orderBy('created_at', 'desc')
-    //         ->get()
-    //         ->map(function ($report) {
-    //             $report->category = 'Non-VAT';
-    //             return $report;
-    //         });
-
-    //     return response()->json($birReports);
-
-    // }
-
     public function fetchNonVATBirReports(Request $request, $branchId)
     {
-        $startDate = $request->query('startDate');
-        $endDate = $request->query('endDate');
+        $startDate   = $request->query('startDate');
+        $endDate     = $request->query('endDate');
 
-        $birReports = BirReport::where('branch_id', $branchId)
-            ->where('category', 'Non-VAT') // filter for Non-VAT only
-            ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('created_at', [$startDate, $endDate]);
-            })
-            ->with(['user', 'branch'])
-            ->orderBy('created_at', 'asc')
-            ->get();
+        $birReports  = BirReport::where('branch_id', $branchId)
+                        ->where('category', 'Non-VAT') // filter for Non-VAT only
+                        ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                            $query->whereBetween('created_at', [$startDate, $endDate]);
+                        })
+                        ->with(['user', 'branch'])
+                        ->orderBy('created_at', 'asc')
+                        ->get();
 
         return response()->json($birReports);
     }
@@ -175,17 +153,17 @@ class BirReportController extends Controller
     public function fetchVATBirReports(Request $request,$branchId)
     {
 
-        $startDate = $request->query('startDate');
-        $endDate = $request->query('endDate');
+        $startDate   = $request->query('startDate');
+        $endDate     = $request->query('endDate');
 
-        $birReports = BirReport::where('branch_id', $branchId)
-            ->where('category', 'VAT') // filter for Non-VAT only
-            ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('created_at', [$startDate, $endDate]);
-            })
-            ->with(['user', 'branch'])
-            ->orderBy('created_at', 'asc')
-            ->get();
+        $birReports  = BirReport::where('branch_id', $branchId)
+                        ->where('category', 'VAT') // filter for Non-VAT only
+                        ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                            $query->whereBetween('created_at', [$startDate, $endDate]);
+                        })
+                        ->with(['user', 'branch'])
+                        ->orderBy('created_at', 'asc')
+                        ->get();
 
         return response()->json($birReports);
 
@@ -193,17 +171,17 @@ class BirReportController extends Controller
     public function fetchExpensesReports(Request $request,$branchId)
     {
 
-        $startDate = $request->query('startDate');
-        $endDate = $request->query('endDate');
+        $startDate   = $request->query('startDate');
+        $endDate     = $request->query('endDate');
 
-        $birReports = ExpencesReport::where('branch_id', $branchId)
-            ->where('category', '!=', 'premium') // filter for Non-VAT only
-            ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('created_at', [$startDate, $endDate]);
-            })
-            ->with(['user', 'branch'])
-            ->orderBy('created_at', 'asc')
-            ->get();
+        $birReports  = ExpencesReport::where('branch_id', $branchId)
+                        ->where('category', '!=', 'premium') // filter for Non-VAT only
+                        ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                            $query->whereBetween('created_at', [$startDate, $endDate]);
+                        })
+                        ->with(['user', 'branch'])
+                        ->orderBy('created_at', 'asc')
+                        ->get();
 
         return response()->json($birReports);
 
@@ -216,15 +194,15 @@ class BirReportController extends Controller
     public function savingBIRReportAdmin(Request $request)
     {
         $validatedData = $request->validate([
-            'user_id' => 'required|integer',
-            'branch_id' => 'required|integer',
-            'receipt_no' => 'required|integer',
-            'tin_no' => 'required|integer',
-            'description' => 'nullable|string|max:255',
-            'address' => 'nullable|string|max:255',
-            'amount' => 'nullable|numeric',
-            'category' => 'nullable|string|max:255',
-            'created_at' => 'nullable|date',
+            'user_id'        => 'required|integer',
+            'branch_id'      => 'required|integer',
+            'receipt_no'     => 'required|integer',
+            'tin_no'         => 'required|integer',
+            'description'    => 'nullable|string|max:255',
+            'address'        => 'nullable|string|max:255',
+            'amount'         => 'nullable|numeric',
+            'category'       => 'nullable|string|max:255',
+            'created_at'     => 'nullable|date',
         ]);
 
         BirReport::create($validatedData);
@@ -235,14 +213,14 @@ class BirReportController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'user_id' => 'required|integer',
-            'branch_id' => 'required|integer',
-            'receipt_no' => 'required|integer',
-            'tin_no' => 'required|integer',
-            'description' => 'nullable|string|max:255',
-            'address' => 'nullable|string|max:255',
-            'amount' => 'nullable|numeric',
-            'category' => 'nullable|string|max:255',
+            'user_id'        => 'required|integer',
+            'branch_id'      => 'required|integer',
+            'receipt_no'     => 'required|integer',
+            'tin_no'         => 'required|integer',
+            'description'    => 'nullable|string|max:255',
+            'address'        => 'nullable|string|max:255',
+            'amount'         => 'nullable|numeric',
+            'category'       => 'nullable|string|max:255',
         ]);
 
         BirReport::create($request->all());

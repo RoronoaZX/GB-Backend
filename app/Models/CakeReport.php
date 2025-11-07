@@ -27,12 +27,14 @@ class CakeReport extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class)->with('employee');
+        return $this->belongsTo(User::class)
+                    ->with('employee');
     }
 
     public function cakeIngredientReports()
     {
-        return $this->hasMany(CakeIngredientReports::class, 'cake_reports_id')->with('branchRawMaterialsReports.ingredients');
+        return $this->hasMany(CakeIngredientReports::class, 'cake_reports_id')
+                    ->with('branchRawMaterialsReports.ingredients');
     }
 
 }

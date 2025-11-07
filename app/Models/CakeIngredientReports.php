@@ -24,7 +24,8 @@ class CakeIngredientReports extends Model
 
     public function branchRawMaterialsReports()
     {
-        return $this->belongsTo(BranchRawMaterialsReport::class)->with('ingredients');
+        return $this->belongsTo(BranchRawMaterialsReport::class)
+                    ->with('ingredients');
     }
 
 }

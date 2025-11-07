@@ -52,7 +52,8 @@ class RecipeCost extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class)->with('employee');
+        return $this->belongsTo(User::class)
+                    ->with('employee');
     }
 
     public function rawMaterial()

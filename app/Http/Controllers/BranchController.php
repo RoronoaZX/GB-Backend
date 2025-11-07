@@ -81,8 +81,8 @@ class BranchController extends Controller
         ]);
         $branchResponseData = $branch->fresh()->load('employees', 'warehouse');
         return response()->json([
-            'message' => 'Branch saved successfully',
-            'branch' => $branchResponseData
+            'message'    => 'Branch saved successfully',
+            'branch'     => $branchResponseData
         ], 201);
     }
 

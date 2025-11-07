@@ -17,8 +17,8 @@ class EmployeeController extends Controller
     public function index()
     {
         $employees = Employee::orderBy('created_at', 'desc')
-            ->take(7)
-            ->get();
+                        ->take(7)
+                        ->get();
 
         return response()->json($employees);
     }
@@ -26,28 +26,30 @@ class EmployeeController extends Controller
     public function fetchAllEmployee()
     {
         $employee = Employee::orderBy('created_at', 'desc')->get();
+
         return response()->json($employee, 201);
     }
 
     public function fetchEmployeeUserID($employee_id)
     {
         $employeeUserID = Employee::with('user')->where('id', $employee_id)->first();
+
         return response()->json($employeeUserID);
     }
 
     public function fetchEmployeeWithEmploymentType(Request $request)
     {
-        $page = $request->get('page', 1);
-        $perPage = $request->get('per_page', 5);
-        $search = $request->query('search', '');
+        $page        = $request->get('page', 1);
+        $perPage     = $request->get('per_page', 5);
+        $search      = $request->query('search', '');
 
         $query = Employee::with(
-            'userDesignation',
-            'employmentType',
-            'branchEmployee.branch',
-            'warehouseEmployee.warehouse'
-            )
-            ->where('position', '!=', 'super admin');
+                    'userDesignation',
+                    'employmentType',
+                    'branchEmployee.branch',
+                    'warehouseEmployee.warehouse'
+                    )
+                    ->where('position', '!=', 'super admin');
 
         // $employees = Employee::with('employmentType')->orderBy('created_at', 'desc')->take(7)->get();
         // return response()->json($employees, 201);
@@ -81,13 +83,13 @@ class EmployeeController extends Controller
         $search = $request->query('search', '');
 
         $query = Employee::with([
-            'userDesignation',
-            'employmentType',
-            'branchEmployee.branch',
-            'warehouseEmployee.warehouse'
-        ])
-        ->where('position', '!=', 'super admin')
-        ->orderBy('firstname', 'asc');
+                    'userDesignation',
+                    'employmentType',
+                    'branchEmployee.branch',
+                    'warehouseEmployee.warehouse'
+                ])
+                ->where('position', '!=', 'super admin')
+                ->orderBy('firstname', 'asc');
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
@@ -110,14 +112,14 @@ class EmployeeController extends Controller
             // Use findOrFail to get the model or automatically throw a 404 exception.
             // We chain the 'with' and 'where' clauses before the final find.
             $employee = Employee::with([
-                    'user',
-                    'userDesignation',
-                    'employmentType',
-                    'branchEmployee.branch',
-                    'warehouseEmployee.warehouse'
-                ])
-                ->where('position', '!=', 'super admin') // Prevents fetching super admins
-                ->findOrFail($id); // This is the key change!
+                            'user',
+                            'userDesignation',
+                            'employmentType',
+                            'branchEmployee.branch',
+                            'warehouseEmployee.warehouse'
+                        ])
+                        ->where('position', '!=', 'super admin') // Prevents fetching super admins
+                        ->findOrFail($id); // This is the key change!
 
             // If found, return the employee data with a 200 OK status.
             return response()->json($employee);
@@ -132,97 +134,28 @@ class EmployeeController extends Controller
         }
     }
 
-
-    // public function fetchEmployeeWithEmploymentTypeAndDesignation(Request $request)
-    // {
-    //     // Search term is still useful, so we keep it.
-    //     $search = $request->query('search', '');
-
-    //     // The query builder remains the same.
-    //     $query = Employee::with([
-    //         'userDesignation',
-    //         'employmentType',
-    //         'branchEmployee.branch',
-    //         'warehouseEmployee.warehouse'
-    //     ])
-    //     ->where('position', '!=', 'super admin')
-    //     ->orderBy('created_at', 'desc');
-
-    //     // The search logic is also kept.
-    //     if (!empty($search)) {
-    //         $query->where(function ($q) use ($search) {
-    //             $q->where('firstname', 'like', "%$search%")
-    //             ->orWhere('lastname', 'like', "%$search%")
-    //             // This is a good place to uncomment the advanced search now
-    //             ->orWhereHas('branchEmployee.branch', function ($branchQuery) use ($search) {
-    //                 $branchQuery->where('name', 'like', "%$search%");
-    //             })
-    //             ->orWhereHas('warehouseEmployee.warehouse', function ($warehouseQuery) use ($search) {
-    //                 $warehouseQuery->where('name', 'like', "%$search%");
-    //             });
-    //         });
-    //     }
-
-    //     // --- MODIFICATION ---
-    //     // We remove all pagination logic and ALWAYS fetch all results.
-    //     $data = $query->get();
-
-    //     // We return the data in the consistent wrapper object that your
-    //     // original "fetch all" logic used.
-    //     return response()->json([
-    //         'data' => $data,
-    //         'total' => $data->count(),
-    //         'per_page' => $data->count(),
-    //         'current_page' => 1,
-    //         'last_page' => 1
-    //     ]);
-    // }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    // public function searchEmployees(Request $request)
-    // {
-    //     $keyword = $request->input('keyword');
-
-    //     // Search by firstname or lastname
-    //     $employees = Employee::with('employmentType')
-    //         ->where('firstname', 'like', "%$keyword%")
-    //         ->orWhere('lastname', 'like', "%$keyword%")
-    //         ->take(7)
-    //         ->get();
-
-    //     // Check if employees are found
-    //     if ($employees->isEmpty()) {
-    //         // return response()->json([], 200); // Return an empty array if no results
-    //         $employees = Employee::orderBy('created_at', 'asc')->with('employmentType')->take(7)->get();
-    //     }
-
-    //     return response()->json($employees, 200);
-    // }
-
     public function searchEmployees(Request $request)
     {
         $keyword = $request->input('keyword');
 
         // Search by firstname or lastname, excluding "super admin"
         $employees = Employee::with('employmentType', 'employeeAllowance')
-            ->where(function ($query) use ($keyword) {
-                $query->where('firstname', 'like', "%$keyword%")
-                    ->orWhere('lastname', 'like', "%$keyword%");
-            })
-            ->where('position', '!=', 'super admin')  // Exclude employees with the role "super admin"
-            ->take(7)
-            ->get();
+                        ->where(function ($query) use ($keyword) {
+                            $query->where('firstname', 'like', "%$keyword%")
+                                ->orWhere('lastname', 'like', "%$keyword%");
+                        })
+                        ->where('position', '!=', 'super admin')  // Exclude employees with the role "super admin"
+                        ->take(7)
+                        ->get();
 
         // Check if employees are found
         if ($employees->isEmpty()) {
             // If no results, return the first 7 employees excluding "super admin"
             $employees = Employee::with('employmentType')
-                ->where('position', '!=', 'super admin')  // Exclude "super admin" from the fallback
-                ->orderBy('created_at', 'asc')
-                ->take(7)
-                ->get();
+                            ->where('position', '!=', 'super admin')  // Exclude "super admin" from the fallback
+                            ->orderBy('created_at', 'asc')
+                            ->take(7)
+                            ->get();
         }
 
         return response()->json($employees, 200);
@@ -234,21 +167,21 @@ class EmployeeController extends Controller
 
         // Search by firstname or lastname, excluding "super admin"
         $employees = Employee::with('employmentType')
-            ->where(function ($query) use ($keyword) {
-                $query->where('firstname', 'like', "%$keyword%")
-                    ->orWhere('lastname', 'like', "%$keyword%");
-            })
-            ->take(7)
-            ->get();
+                        ->where(function ($query) use ($keyword) {
+                            $query->where('firstname', 'like', "%$keyword%")
+                                ->orWhere('lastname', 'like', "%$keyword%");
+                        })
+                        ->take(7)
+                        ->get();
 
         // Check if employees are found
         if ($employees->isEmpty()) {
             // If no results, return the first 7 employees excluding "super admin"
             $employees = Employee::with('employmentType')
-                ->where('position', '!=', 'super admin')  // Exclude "super admin" from the fallback
-                ->orderBy('created_at', 'asc')
-                ->take(7)
-                ->get();
+                            ->where('position', '!=', 'super admin')  // Exclude "super admin" from the fallback
+                            ->orderBy('created_at', 'asc')
+                            ->take(7)
+                            ->get();
         }
 
         return response()->json($employees, 200);
@@ -260,10 +193,10 @@ class EmployeeController extends Controller
 
         // Search by firstname or lastname
         $employees = Employee::with('branchEmployee.branch')
-            ->where('firstname', 'like', "%$keyword%")
-            ->orWhere('lastname', 'like', "%$keyword%")
-            ->take(7)
-            ->get();
+                        ->where('firstname', 'like', "%$keyword%")
+                        ->orWhere('lastname', 'like', "%$keyword%")
+                        ->take(7)
+                        ->get();
 
         // Check if employees are found
         if ($employees->isEmpty()) {
@@ -313,9 +246,9 @@ class EmployeeController extends Controller
             'lastname'       => 'required|string',
         ]);
         $employee = Employee::findOrFail($id);
-        $employee->firstname = $validateEmployee['firstname'];
-        $employee->middlename = $validateEmployee['middlename'];
-        $employee->lastname = $validateEmployee['lastname'];
+        $employee->firstname     = $validateEmployee['firstname'];
+        $employee->middlename    = $validateEmployee['middlename'];
+        $employee->lastname      = $validateEmployee['lastname'];
 
         $employee->save();
 
@@ -333,8 +266,8 @@ class EmployeeController extends Controller
         $validateEmployee = $request->validate([
             'employment_type_id' => 'required|integer',
         ]);
-        $employee = Employee::findOrFail($id);
-        $employee->employment_type_id = $validateEmployee['employment_type_id'];
+        $employee                        = Employee::findOrFail($id);
+        $employee->employment_type_id    = $validateEmployee['employment_type_id'];
 
 
         $employee->save();
@@ -352,8 +285,8 @@ class EmployeeController extends Controller
         $validateEmployee = $request->validate([
             'address' => 'required|string',
         ]);
-        $employee = Employee::findOrFail($id);
-        $employee->address = $validateEmployee['address'];
+        $employee            = Employee::findOrFail($id);
+        $employee->address   = $validateEmployee['address'];
 
 
         $employee->save();
@@ -371,8 +304,8 @@ class EmployeeController extends Controller
         $validateEmployee = $request->validate([
             'birthdate' => 'required|date',
         ]);
-        $employee = Employee::findOrFail($id);
-        $employee->birthdate = $validateEmployee['birthdate'];
+        $employee                = Employee::findOrFail($id);
+        $employee->birthdate     = $validateEmployee['birthdate'];
 
 
         $employee->save();
@@ -390,8 +323,8 @@ class EmployeeController extends Controller
         $validateEmployee = $request->validate([
             'phone' => 'required|string',
         ]);
-        $employee = Employee::findOrFail($id);
-        $employee->phone = $validateEmployee['phone'];
+        $employee            = Employee::findOrFail($id);
+        $employee->phone     = $validateEmployee['phone'];
 
 
         $employee->save();
@@ -416,8 +349,8 @@ class EmployeeController extends Controller
         $designationId = $validatedData['designation_id'];
         try{
             if ($employeeType === 'branch') {
-                $employee = BranchEmployee::findOrFail($id);
-                $employee->branch_id = $designationId;
+                $employee                = BranchEmployee::findOrFail($id);
+                $employee->branch_id     = $designationId;
                 $employee->save();
 
                 return response()->json([
@@ -426,8 +359,8 @@ class EmployeeController extends Controller
                 );
             }
             if ($employeeType === 'warehouse') {
-                $employee = WarehouseEmployee::findOrFail($id);
-                $employee->warehouse_id = $designationId;
+                $employee                = WarehouseEmployee::findOrFail($id);
+                $employee->warehouse_id  = $designationId;
                 $employee->save();
             }
         }catch (ModelNotFoundException $e) {

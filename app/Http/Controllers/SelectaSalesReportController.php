@@ -23,11 +23,14 @@ class SelectaSalesReportController extends Controller
             'price' => 'required|integer'
         ]);
 
-        $selectaSalesReport = SelectaSalesReport::findorFail($id);
-        $selectaSalesReport->price = $validatedData['price'];
+        $selectaSalesReport          = SelectaSalesReport::findorFail($id);
+        $selectaSalesReport->price   = $validatedData['price'];
         $selectaSalesReport->save();
 
-        return response()->json(['message' => 'Price updated successfully', 'price' => $selectaSalesReport]);
+        return response()->json([
+            'message' => 'Price updated successfully',
+            'price' => $selectaSalesReport
+        ]);
     }
     public function updatedBeginnings(Request $request, $id)
     {
@@ -35,11 +38,14 @@ class SelectaSalesReportController extends Controller
             'beginnings' => 'required|integer'
         ]);
 
-        $selectaSalesReport = SelectaSalesReport::findorFail($id);
-        $selectaSalesReport->beginnings = $validatedData['beginnings'];
+        $selectaSalesReport              = SelectaSalesReport::findorFail($id);
+        $selectaSalesReport->beginnings  = $validatedData['beginnings'];
         $selectaSalesReport->save();
 
-        return response()->json(['message' => 'beginnings updated successfully', 'beginnings' => $selectaSalesReport]);
+        return response()->json([
+            'message'        => 'beginnings updated successfully',
+            'beginnings'     => $selectaSalesReport
+        ]);
     }
     public function updatedRemaining(Request $request, $id)
     {
@@ -47,11 +53,14 @@ class SelectaSalesReportController extends Controller
             'remaining' => 'required|integer'
         ]);
 
-        $selectaSalesReport = SelectaSalesReport::findorFail($id);
-        $selectaSalesReport->remaining = $validatedData['remaining'];
+        $selectaSalesReport              = SelectaSalesReport::findorFail($id);
+        $selectaSalesReport->remaining   = $validatedData['remaining'];
         $selectaSalesReport->save();
 
-        return response()->json(['message' => 'remaining updated successfully', 'remaining' => $selectaSalesReport]);
+        return response()->json([
+            'message' => 'remaining updated successfully',
+            'remaining' => $selectaSalesReport
+        ]);
     }
     public function updatedSelectaOut(Request $request, $id)
     {
@@ -59,11 +68,14 @@ class SelectaSalesReportController extends Controller
             'out' => 'required|integer'
         ]);
 
-        $selectaSalesReport = SelectaSalesReport::findorFail($id);
-        $selectaSalesReport->out = $validatedData['out'];
+        $selectaSalesReport          = SelectaSalesReport::findorFail($id);
+        $selectaSalesReport->out     = $validatedData['out'];
         $selectaSalesReport->save();
 
-        return response()->json(['message' => 'out updated successfully', 'out' => $selectaSalesReport]);
+        return response()->json([
+            'message' => 'out updated successfully',
+            'out' => $selectaSalesReport
+        ]);
     }
     public function updatedAddedStocks(Request $request, $id)
     {
@@ -71,11 +83,14 @@ class SelectaSalesReportController extends Controller
             'added_stocks' => 'required|integer'
         ]);
 
-        $selectaSalesReport = SelectaSalesReport::findorFail($id);
-        $selectaSalesReport->added_stocks = $validatedData['added_stocks'];
+        $selectaSalesReport                  = SelectaSalesReport::findorFail($id);
+        $selectaSalesReport->added_stocks    = $validatedData['added_stocks'];
         $selectaSalesReport->save();
 
-        return response()->json(['message' => 'added_stocks updated successfully', 'added_stocks' => $selectaSalesReport]);
+        return response()->json([
+            'message' => 'added_stocks updated successfully',
+            'added_stocks' => $selectaSalesReport
+        ]);
     }
 
     public function addingSelectaProduction(Request $request)
@@ -98,7 +113,10 @@ class SelectaSalesReportController extends Controller
 
         $selectaSalesReport = SelectaSalesReport::create($validated);
 
-        return response()->json(['message' => 'Selecta Production added successfully', 'selectaSalesReport' => $selectaSalesReport]);
+        return response()->json([
+            'message' => 'Selecta Production added successfully',
+            'selectaSalesReport' => $selectaSalesReport
+        ]);
     }
 
     /**

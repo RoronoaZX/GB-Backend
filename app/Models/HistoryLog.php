@@ -24,7 +24,8 @@ class HistoryLog extends Model
 
     public function userId()
     {
-        return $this->belongsTo(User::class, 'user_id')->with('employee');
+        return $this->belongsTo(User::class, 'user_id')
+                    ->with('employee');
     }
 
     // Define separate relationships for Branch and Warehouse

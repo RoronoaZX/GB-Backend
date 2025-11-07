@@ -13,16 +13,6 @@ class Recipe extends Model
         'category',
     ];
 
-    // public static function boot()
-    // {
-    //     parent::boot();
-
-    //     static::deleting(function ($recipe) {
-    //         $recipe->breadGroups()->delete();
-    //         $recipe->ingredientGroups()->delete();
-    //     });
-    // }
-
     public function breadGroups()
     {
         return $this->hasMany(BreadGroup::class);

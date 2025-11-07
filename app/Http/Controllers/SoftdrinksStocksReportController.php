@@ -29,9 +29,9 @@ class SoftdrinksStocksReportController extends Controller
 
             // Fetch reports for the specific branch, eager-loading necessary relationships
             $softdrinksStocksReport = SoftdrinksStocksReport::with(['employee', 'branch', 'softdrinksAddedStocks'])
-                ->where('branches_id', $branchId) // Filter by branch ID
-                ->orderBy('created_at', 'desc') // Order by the creation date
-                ->paginate($perPage);
+                                        ->where('branches_id', $branchId) // Filter by branch ID
+                                        ->orderBy('created_at', 'desc') // Order by the creation date
+                                        ->paginate($perPage);
 
             // Return a successful response
             return response()->json($softdrinksStocksReport);
@@ -52,29 +52,29 @@ class SoftdrinksStocksReportController extends Controller
         ]);
 
          // Set category to 'pending' by default, if not provided
-         $status = $request->query('status', 'pending');
-         $page = $request->get('page', 1);
-         $perPage = $request->get('per_page', 5);
+         $status     = $request->query('status', 'pending');
+         $page       = $request->get('page', 1);
+         $perPage    = $request->get('per_page', 5);
 
          // Fetch the SoftdrinksStocksReport with the related SoftdrinksAddedStock and filter by category and branch_id
         $softdrinksStockReports = SoftdrinksStocksReport::where('branches_id', $branchId)
-        ->where('status', $status) // Assuming 'status' is the column representing 'pending' or other states
-        ->with(['branch','employee',
-            'softdrinksAddedStocks' => function ($query) {
-                $query->where('added_stocks', '>', 0); // Optional: Only fetch added stocks greater than 0
-            }
-        ])
-        ->orderBy('created_at', 'desc')
-        ->get();
+                                    ->where('status', $status) // Assuming 'status' is the column representing 'pending' or other states
+                                    ->with(['branch','employee',
+                                        'softdrinksAddedStocks' => function ($query) {
+                                            $query->where('added_stocks', '>', 0); // Optional: Only fetch added stocks greater than 0
+                                        }
+                                    ])
+                                    ->orderBy('created_at', 'desc')
+                                    ->get();
 
         // Paginate manually
         $paginated = new LengthAwarePaginator(
-            $softdrinksStockReports->forPage($page, $perPage)->values(),
-            $softdrinksStockReports->count(),
-            $perPage,
-            $page,
-            ['page' => url()->current()]
-        );
+                        $softdrinksStockReports->forPage($page, $perPage)->values(),
+                        $softdrinksStockReports->count(),
+                        $perPage,
+                        $page,
+                        ['page' => url()->current()]
+                    );
 
         return response()->json($paginated);
     }
@@ -115,29 +115,29 @@ class SoftdrinksStocksReportController extends Controller
         ]);
 
         // Set category to 'pending' by default, if not provided
-        $status = $request->query('status', 'confirmed');
-        $page = $request->get('page',1);
-        $perPage = $request->get('per_page', 5);
+        $status      = $request->query('status', 'confirmed');
+        $page        = $request->get('page',1);
+        $perPage     = $request->get('per_page', 5);
 
          // Fetch the SoftdrinksStocksReport with the related SoftdrinksAddedStock and filter by category and branch_id
          $softdrinksStockReport = SoftdrinksStocksReport::where('branches_id', $branchId)
-         ->where('status', $status) // Assuming 'status' is the column representing 'pending' or other states
-         ->with(['branch','employee',
-             'softdrinksAddedStocks' => function ($query) {
-                 $query->where('added_stocks', '>', 0); // Optional: Only fetch added stocks greater than 0
-             }
-         ])
-         ->orderBy('created_at', 'desc')
-         ->get();
+                                    ->where('status', $status) // Assuming 'status' is the column representing 'pending' or other states
+                                    ->with(['branch','employee',
+                                        'softdrinksAddedStocks' => function ($query) {
+                                            $query->where('added_stocks', '>', 0); // Optional: Only fetch added stocks greater than 0
+                                        }
+                                    ])
+                                    ->orderBy('created_at', 'desc')
+                                    ->get();
 
         // Paginate manually
         $paginated = new LengthAwarePaginator(
-            $softdrinksStockReport->forPage($page, $perPage)->values(),
-            $softdrinksStockReport->count(),
-            $perPage,
-            $page,
-            ['path' => url()->current()]
-        );
+                        $softdrinksStockReport->forPage($page, $perPage)->values(),
+                        $softdrinksStockReport->count(),
+                        $perPage,
+                        $page,
+                        ['path' => url()->current()]
+                    );
 
         return response()->json($paginated);
     }
@@ -159,9 +159,9 @@ class SoftdrinksStocksReportController extends Controller
 
                     if ($branchProduct) {
                         // Update total_quantity with added stock quantity
-                        $existingTotalQuantity = $branchProduct->total_quantity;
-                        $branchProduct->new_production = $addedStock->added_stocks;
-                        $branchProduct->total_quantity = $existingTotalQuantity + $branchProduct->new_production;
+                        $existingTotalQuantity           = $branchProduct->total_quantity;
+                        $branchProduct->new_production   = $addedStock->added_stocks;
+                        $branchProduct->total_quantity   = $existingTotalQuantity + $branchProduct->new_production;
                         $branchProduct->save();
                     } else {
                         // Optionally handle products not found in BranchProduct table
@@ -193,26 +193,26 @@ class SoftdrinksStocksReportController extends Controller
         ]);
 
         // Set category to 'pending' by default, if not provided
-        $status = $request->query('status', 'declined');
-        $page = $request->get('page', 1);
-        $perPage = $request->get('per_page', 5);
+        $status      = $request->query('status', 'declined');
+        $page        = $request->get('page', 1);
+        $perPage     = $request->get('per_page', 5);
 
         // Fetch the SelectaStocksReport with the related SelectaAddedStock and filter by category and branch_id
         $softdrinksStockReport = SoftdrinksStocksReport::where('branches_id', $branchId)
-            ->where('status', $status)
-            ->with(['branch', 'employee', 'softdrinksAddedStocks' => function($query){
-                $query->where('added_stocks', '>', 0);
-            }])
-            ->get();
+                                    ->where('status', $status)
+                                    ->with(['branch', 'employee', 'softdrinksAddedStocks' => function($query){
+                                        $query->where('added_stocks', '>', 0);
+                                    }])
+                                    ->get();
 
             // Paginate manually
             $paginated= new LengthAwarePaginator(
-                $softdrinksStockReport->forPage($page, $perPage)->values(),
-                $softdrinksStockReport->count(),
-                $perPage,
-                $page,
-                ['path' => url()->current()]
-            );
+                            $softdrinksStockReport->forPage($page, $perPage)->values(),
+                            $softdrinksStockReport->count(),
+                            $perPage,
+                            $page,
+                            ['path' => url()->current()]
+                        );
 
             return response()->json($paginated);
     }

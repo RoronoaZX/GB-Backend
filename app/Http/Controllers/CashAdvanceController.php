@@ -13,11 +13,12 @@ class CashAdvanceController extends Controller
      */
     public function index(Request $request)
     {
-        $page = $request->get('page', 1);
-        $perPage = $request->get('per_page', 7);
-        $search = $request->query('search', '');
+        $page        = $request->get('page', 1);
+        $perPage     = $request->get('per_page', 7);
+        $search      = $request->query('search', '');
 
-        $query = CashAdvance::orderBy('created_at', 'desc')->with('employee');
+        $query       = CashAdvance::orderBy('created_at', 'desc')
+                        ->with('employee');
 
         if (!empty($search)) {
             $query->whereHas('employee', function ($q) use ($search) {
@@ -45,10 +46,10 @@ class CashAdvanceController extends Controller
     public function fetchCashAdvanceForDeduction($employee_id)
     {
         $cashAdvances = CashAdvance::where(['employee_id' => $employee_id])
-        ->where(function ($query) {
-            $query->where('remaining_payments', '>', 0.00);
-        })
-        ->get();
+                            ->where(function ($query) {
+                                $query->where('remaining_payments', '>', 0.00);
+                            })
+                            ->get();
 
         return response()->json($cashAdvances);
     }
@@ -62,17 +63,17 @@ class CashAdvanceController extends Controller
         $keyword = $request->input('keyword');
 
         $cashAdvances = CashAdvance::with('employee')
-        ->when($keyword !== null, function ($query) use ($keyword) {
-            $query->whereHas('employee', function($q) use ($keyword) {
-                $q->where('firstname', 'LIKE', '%' . $keyword . '%')
-                ->orWhere('middlename', 'LIKE', '%' . $keyword . '%')
-                ->orWhere('lastname', 'LIKE', '%' . $keyword . '%');
-            });
-        }, function ($query) {
-            $query->orderBy('created_at', 'desc');
-        })
-        ->take(7)
-        ->get();
+                            ->when($keyword !== null, function ($query) use ($keyword) {
+                                $query->whereHas('employee', function($q) use ($keyword) {
+                                    $q->where('firstname', 'LIKE', '%' . $keyword . '%')
+                                    ->orWhere('middlename', 'LIKE', '%' . $keyword . '%')
+                                    ->orWhere('lastname', 'LIKE', '%' . $keyword . '%');
+                                });
+                            }, function ($query) {
+                                $query->orderBy('created_at', 'desc');
+                            })
+                            ->take(7)
+                            ->get();
 
         return response()->json($cashAdvances);
     }
@@ -91,7 +92,8 @@ class CashAdvanceController extends Controller
             'reason'                 => 'required|string'
         ]);
 
-        $cashAdvance = CashAdvance::create($validatedData)->load('employee');
+        $cashAdvance = CashAdvance::create($validatedData)
+                            ->load('employee');
 
         return response()->json([
             'data'           => [$cashAdvance],
@@ -111,7 +113,9 @@ class CashAdvanceController extends Controller
         $cashAdvance = CashAdvance::find($id);
 
         if (!$cashAdvance) {
-            return response()->json(['error'     => 'Employee cash advance not found.'], 404);
+            return response()->json([
+                'error' => 'Employee cash advance not found.'
+            ], 404);
         }
 
         $cashAdvance->update([
@@ -129,7 +133,9 @@ class CashAdvanceController extends Controller
         $cashAdvance = CashAdvance::find($id);
 
         if (!$cashAdvance) {
-            return response()->json(['error'     => 'Employee cash advance not found.'], 404);
+            return response()->json([
+                'error' => 'Employee cash advance not found.'
+            ], 404);
         }
 
         $cashAdvance->update([

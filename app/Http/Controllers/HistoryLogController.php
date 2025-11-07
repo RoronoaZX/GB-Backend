@@ -16,15 +16,15 @@ class HistoryLogController extends Controller
     public function index()
     {
         $historyLogs = HistoryLog::with('userId.employee')
-            ->orderBy('created_at', 'desc') // or ->latest()
-            ->get()
-            ->map(function($historyLog) {
-                $historyLog->designation = $historyLog->designation_type === 'branch'
-                    ? Branch::find($historyLog->designation)
-                    : Warehouse::find($historyLog->designation);
+                        ->orderBy('created_at', 'desc') // or ->latest()
+                        ->get()
+                        ->map(function($historyLog) {
+                            $historyLog->designation = $historyLog->designation_type === 'branch'
+                                ? Branch::find($historyLog->designation)
+                                : Warehouse::find($historyLog->designation);
 
-                return $historyLog;
-            });
+                            return $historyLog;
+                        });
 
         return response()->json($historyLogs);
     }

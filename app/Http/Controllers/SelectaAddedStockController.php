@@ -16,18 +16,10 @@ class SelectaAddedStockController extends Controller
     }
     public function fetchPendingReports($branchId)
     {
-        // Validate that the branch ID exists (optional)
-        // if ($branchId) {
-        //     $branchExists = Branch::where('id', $branchId)->exists();
-        //     if (!$branchExists) {
-        //         return response()->json([
-        //             'message' => 'Branch not found.',
-        //         ], 404);
-        //     }
-        // }
 
         // Retrieve pending stock reports, filtered by branch if branchId is provided
-        $query = SelectaAddedStock::with(['branch', 'product'])->where('status', 'pending');
+        $query = SelectaAddedStock::with(['branch', 'product'])
+                    ->where('status', 'pending');
 
         if ($branchId) {
             $query->where('branches_id', $branchId);

@@ -20,13 +20,15 @@ class Product extends Model
         parent::boot();
 
         static::deleting((function ($product){
-            $product->breadGroups()->delete();
+            $product->breadGroups()
+                    ->delete();
         }));
     }
 
     public function branches()
     {
-        return $this->belongsToMany(Branch::class, 'branches_products', 'product_id', 'branch_id')->withPivot('price');
+        return $this->belongsToMany(Branch::class, 'branches_products', 'product_id', 'branch_id')
+                    ->withPivot('price');
     }
 
     public function breadGroups()

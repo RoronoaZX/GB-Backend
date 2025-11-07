@@ -18,73 +18,40 @@ class BranchRecipeController extends Controller
         //
     }
 
-    // public function getBranchRecipe($branchId)
-    // {
-    //     $branchRecipe = BranchRecipe::orderBy('created_at', 'desc')
-    //                                 ->where('branch_id', $branchId)
-    //                                 ->with([
-    //                                     'branch',
-    //                                     'recipe',
-    //                                     'breadGroups.bread',
-    //                                     'ingredientGroups.ingredient'
-    //                                     ])
-    //                                 ->get();
-
-    //     $formattedBranchRecipes = $branchRecipe->map(function($branchRecipe) {
-    //         return [
-    //             'id'                 => $branchRecipe->id,
-    //             'name'               => $branchRecipe->recipe->name,
-    //             'category'           => $branchRecipe->recipe->category,
-    //             'target'             => $branchRecipe->target,
-    //             'status'             => $branchRecipe->status,
-    //             'bread_groups'       => $branchRecipe->breadGroups->pluck('bread.name'),
-    //             'ingredient_groups'  => $branchRecipe->ingredientGroups->map(function ($ingredientGroup) {
-    //                 return [
-    //                     'ingredient_name'    => $ingredientGroup->ingredient->name,
-    //                     'code'               => $ingredientGroup->ingredient->code,
-    //                     'quantity'           => $ingredientGroup->quantity,
-    //                     'unit'               => $ingredientGroup->ingredient->unit
-    //                 ];
-    //             }),
-    //         ];
-    //     });
-    //     return response()->json($formattedBranchRecipes, 200);
-    // }
-
     public function getBranchRecipe($branchId)
     {
         $branchRecipe = BranchRecipe::orderBy('created_at', 'desc')
-                                    ->where('branch_id', $branchId)
-                                    ->with([
-                                        'branch',
-                                        'recipe',
-                                        'breadGroups.bread',
-                                        'ingredientGroups.ingredient'
-                                    ])
-                                    ->get();
+                                ->where('branch_id', $branchId)
+                                ->with([
+                                    'branch',
+                                    'recipe',
+                                    'breadGroups.bread',
+                                    'ingredientGroups.ingredient'
+                                ])
+                                ->get();
 
         $formattedBranchRecipes = $branchRecipe->map(function ($branchRecipe) use ($branchId) {
             return [
-                'id' => $branchRecipe->id,
-                'name' => $branchRecipe->recipe->name,
-                'category' => $branchRecipe->recipe->category,
-                'target' => $branchRecipe->target,
-                'status' => $branchRecipe->status,
-                'bread_groups' => $branchRecipe->breadGroups->pluck('bread.name'),
-                'ingredient_groups' => $branchRecipe->ingredientGroups->map(function ($ingredientGroup) use ($branchId) {
+                'id'                 => $branchRecipe->id,
+                'name'               => $branchRecipe->recipe->name,
+                'category'           => $branchRecipe->recipe->category,
+                'target'             => $branchRecipe->target,
+                'status'             => $branchRecipe->status,
+                'bread_groups'       => $branchRecipe->breadGroups->pluck('bread.name'),
+                'ingredient_groups'  => $branchRecipe->ingredientGroups->map(function ($ingredientGroup) use ($branchId) {
                     //                 // ✅ Fetch the oldest stock for this ingredient in this branch
                     $stock = BranchRmStocks::where('branch_id',  $branchId)
-                                           ->where('raw_material_id', $ingredientGroup->ingredient_id)
-                                           ->where('quantity', '>', 0)
-                                           ->orderBy('created_at', 'asc')
-                                           ->first();
+                                        ->where('raw_material_id', $ingredientGroup->ingredient_id)
+                                        ->where('quantity', '>', 0)
+                                        ->orderBy('created_at', 'asc')
+                                        ->first();
 
                     return [
-                        'ingredient_name' => $ingredientGroup->ingredient->name,
-                        'code' => $ingredientGroup->ingredient->code,
-                        'quantity' => $ingredientGroup->quantity,
-                        'unit' => $ingredientGroup->ingredient->unit,
-                        'price_per_gram' => $stock ? $stock->price_per_gram : null
+                        'ingredient_name'    => $ingredientGroup->ingredient->name,
+                        'code'               => $ingredientGroup->ingredient->code,
+                        'quantity'           => $ingredientGroup->quantity,
+                        'unit'               => $ingredientGroup->ingredient->unit,
+                        'price_per_gram'     => $stock ? $stock->price_per_gram : null
                     ];
                 }),
             ];
@@ -110,7 +77,9 @@ class BranchRecipeController extends Controller
             'ingredients.*.quantity'         => 'required',
         ]);
 
-        $existingBranchRecipe = BranchRecipe::where('branch_id', $validatedData['branch_id'])->where('recipe_id', $validatedData['recipe_id'])->first();
+        $existingBranchRecipe = BranchRecipe::where('branch_id', $validatedData['branch_id'])
+                                    ->where('recipe_id', $validatedData['recipe_id'])
+                                    ->first();
 
         if ($existingBranchRecipe) {
             return response()->json([
@@ -123,8 +92,8 @@ class BranchRecipeController extends Controller
         $branchRecipe->breadGroups()->createMany($validatedData['breads']);
 
         return response()->json([
-            'message' => 'Branch recipe saved successfully',
-            'data' => $branchRecipe
+            'message'    => 'Branch recipe saved successfully',
+            'data'       => $branchRecipe
         ]);
     }
 
@@ -134,8 +103,8 @@ class BranchRecipeController extends Controller
             'target' => 'required|numeric',
         ]);
 
-        $recipe = BranchRecipe::findOrFail($id);
-        $recipe->target = $validatedData['target'];
+        $recipe          = BranchRecipe::findOrFail($id);
+        $recipe->target  = $validatedData['target'];
         $recipe->save();
 
         HistoryLog::create([
@@ -159,8 +128,8 @@ class BranchRecipeController extends Controller
             'status' => 'required|string',
         ]);
 
-        $recipe = BranchRecipe::findOrFail($id);
-        $recipe->status = $validatedData['status'];
+        $recipe          = BranchRecipe::findOrFail($id);
+        $recipe->status  = $validatedData['status'];
         $recipe->save();
 
         HistoryLog::create([
@@ -181,24 +150,24 @@ class BranchRecipeController extends Controller
 
     public function branchSearchRecipe(Request $request)
     {
-        $searchBranchRecipe = $request->input('keyword');
-        $searchBranchRecipeId = $request->input('branch_id');
-        $perPage = $request->input('per_page', 12); // default 12 per page
+        $searchBranchRecipe      = $request->input('keyword');
+        $searchBranchRecipeId    = $request->input('branch_id');
+        $perPage                 = $request->input('per_page', 12); // default 12 per page
 
         // Base query
         $query = BranchRecipe::with('recipe')
-            ->where('status', 'active')
-            ->when($searchBranchRecipe !== null, function ($query) use ($searchBranchRecipe) {
-                $query->whereHas('recipe', function ($recipeQuery) use ($searchBranchRecipe) {
-                    $recipeQuery->where('name', 'like', "%{$searchBranchRecipe}%");
-                });
-            })
-            ->when($searchBranchRecipeId !== null, function ($query) use ($searchBranchRecipeId) {
-                $query->where('branch_id', $searchBranchRecipeId);
-            })
-            ->with(['breadGroups.bread', 'ingredientGroups.ingredient'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+                    ->where('status', 'active')
+                    ->when($searchBranchRecipe !== null, function ($query) use ($searchBranchRecipe) {
+                        $query->whereHas('recipe', function ($recipeQuery) use ($searchBranchRecipe) {
+                            $recipeQuery->where('name', 'like', "%{$searchBranchRecipe}%");
+                        });
+                    })
+                    ->when($searchBranchRecipeId !== null, function ($query) use ($searchBranchRecipeId) {
+                        $query->where('branch_id', $searchBranchRecipeId);
+                    })
+                    ->with(['breadGroups.bread', 'ingredientGroups.ingredient'])
+                    ->orderBy('created_at', 'desc')
+                    ->get();
 
         // Make recipes unique by recipe name (to avoid duplicates in result)
         $uniqueRecipes = $query->unique(function ($item) {
@@ -206,8 +175,8 @@ class BranchRecipeController extends Controller
         });
 
         // Paginate manually
-        $page = $request->input('page', 1);
-        $paginated = $uniqueRecipes->forPage($page, $perPage)->values();
+        $page        = $request->input('page', 1);
+        $paginated   = $uniqueRecipes->forPage($page, $perPage)->values();
 
         // Format the response
         $formattedRecipes = $paginated->map(function ($recipe) {
@@ -223,7 +192,7 @@ class BranchRecipeController extends Controller
                         'bread_name' => $breadGroup->bread->name,
                     ];
                 }),
-                'ingredients' => $recipe->ingredientGroups->map(function ($ingredientGroup) {
+                'ingredients'    => $recipe->ingredientGroups->map(function ($ingredientGroup) {
                     return [
                         'raw_materials_id'   => $ingredientGroup->ingredient->id,
                         'code'               => $ingredientGroup->ingredient->code,
@@ -237,23 +206,6 @@ class BranchRecipeController extends Controller
 
         return response()->json($formattedRecipes);
     }
-
-    // public function branchSearchRecipe(Request $request)
-    // {
-    //     $searchBranchRecipe = $request->input('keyword');
-
-    //     $branchRecipe = BranchRecipe::with('recipe')
-    //                 ->when($searchBranchRecipe !== null, function ($query) use ($searchBranchRecipe) {
-    //                     $query->whereHas('recipe', function ($recipeQuery) use ($searchBranchRecipe) {
-    //                         $recipeQuery->where('name', 'like', "%{$searchBranchRecipe}%");
-    //                     });
-    //                 })
-    //                 ->with(['breadGroups.bread', 'ingredientGroups.ingredient'])
-    //                 ->orderBy('created_at', 'desc')
-    //                 ->take(12)
-    //                 ->get();
-    //     return response()->json($branchRecipe);
-    // }
 
     /**
      * Display the specified resource.

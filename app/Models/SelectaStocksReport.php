@@ -28,7 +28,8 @@ class SelectaStocksReport extends Model
 
     public function selectaAddedStocks()
     {
-        return $this->hasMany(SelectaAddedStock::class, 'selecta_stocks_report_id')->with('product');
+        return $this->hasMany(SelectaAddedStock::class, 'selecta_stocks_report_id')
+                    ->with('product');
     }
 
 }

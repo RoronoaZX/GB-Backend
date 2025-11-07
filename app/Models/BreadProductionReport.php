@@ -30,7 +30,8 @@ class BreadProductionReport extends Model
 
     public function branchRecipe()
     {
-        return $this->belongsTo(BranchRecipe::class)->with('recipe');
+        return $this->belongsTo(BranchRecipe::class)
+                    ->with('recipe');
     }
 
     public function initialBakerReport()

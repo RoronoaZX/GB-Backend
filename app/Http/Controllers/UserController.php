@@ -23,14 +23,14 @@ class UserController extends Controller
 
         $users = $users->map(function($user){
             if ($user->employee) {
-                $user->employee_id = $user->employee->id;
-                $user->firstname = $user->employee->firstname;
-                $user->middlename = $user->employee->middlename;
-                $user->lastname = $user->employee->lastname;
-                $user->birthdate = $user->employee->birthdate;
-                $user->phone = $user->employee->phone;
-                $user->address = $user->employee->address;
-                $user->position = $user->employee->position;
+                $user->employee_id   = $user->employee->id;
+                $user->firstname     = $user->employee->firstname;
+                $user->middlename    = $user->employee->middlename;
+                $user->lastname      = $user->employee->lastname;
+                $user->birthdate     = $user->employee->birthdate;
+                $user->phone         = $user->employee->phone;
+                $user->address       = $user->employee->address;
+                $user->position      = $user->employee->position;
 
             }
             unset($user->employee);
@@ -58,14 +58,14 @@ class UserController extends Controller
         // Map the results as in the original function
         $users = $users->map(function($user){
             if ($user->employee) {
-                $user->employee_id = $user->employee->id;
-                $user->firstname = $user->employee->firstname;
-                $user->middlename = $user->employee->middlename;
-                $user->lastname = $user->employee->lastname;
-                $user->birthdate = $user->employee->birthdate;
-                $user->phone = $user->employee->phone;
-                $user->address = $user->employee->address;
-                $user->position = $user->employee->position;
+                $user->employee_id   = $user->employee->id;
+                $user->firstname     = $user->employee->firstname;
+                $user->middlename    = $user->employee->middlename;
+                $user->lastname      = $user->employee->lastname;
+                $user->birthdate     = $user->employee->birthdate;
+                $user->phone         = $user->employee->phone;
+                $user->address       = $user->employee->address;
+                $user->position      = $user->employee->position;
             }
             unset($user->employee);
             return $user;
@@ -108,8 +108,8 @@ class UserController extends Controller
 
     public function searchUserWithID(Request $request)
     {
-        $keyword = $request->input('keyword');
-        $branchId = $request->input('branch_id');
+        $keyword     = $request->input('keyword');
+        $branchId    = $request->input('branch_id');
 
         $request->validate([
             'keyword'    => 'required|string|max:255',
@@ -223,13 +223,13 @@ class UserController extends Controller
         ]);
 
         // Update the User model fields
-        $user->name = $validatedData['name'];
-        $user->address = $validatedData['address'];
-        $user->birthdate = $validatedData['birthdate'];
-        $user->sex = $validatedData['sex'];
-        $user->status = $validatedData['status'];
-        $user->phone = $validatedData['phone'];
-        $user->role = $validatedData['role'];
+        $user->name          = $validatedData['name'];
+        $user->address       = $validatedData['address'];
+        $user->birthdate     = $validatedData['birthdate'];
+        $user->sex           = $validatedData['sex'];
+        $user->status        = $validatedData['status'];
+        $user->phone         = $validatedData['phone'];
+        $user->role          = $validatedData['role'];
 
         // Save changes to the User model
         $user->save();
@@ -244,8 +244,8 @@ class UserController extends Controller
         }
 
         // Update the BranchEmployee model fields
-        $branchEmployee->branch_id = $validatedData['branch_id'];
-        $branchEmployee->time_shift = $validatedData['time_shift'];
+        $branchEmployee->branch_id   = $validatedData['branch_id'];
+        $branchEmployee->time_shift  = $validatedData['time_shift'];
 
         // Save changes to the BranchEmployee model
         $branchEmployee->save();
@@ -262,8 +262,8 @@ class UserController extends Controller
             'email' => 'required|string|max:255'
         ]);
 
-        $user = User::findOrFail($id);
-        $user->email = $validatedData['email'];
+        $user            = User::findOrFail($id);
+        $user->email     = $validatedData['email'];
         $user->save();
 
         // /** @var User $user */

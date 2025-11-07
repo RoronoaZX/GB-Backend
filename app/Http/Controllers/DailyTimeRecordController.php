@@ -23,18 +23,19 @@ class DailyTimeRecordController extends Controller
      */
     public function index(Request $request)
     {
-        $page = $request->get('page', 1);
-        $perPage = $request->get('per_page', 5);
-        $search = $request->query('search', '');
+        $page        = $request->get('page', 1);
+        $perPage     = $request->get('per_page', 5);
+        $search      = $request->query('search', '');
 
         $query = DailyTimeRecord::with([
-            'employee',
-            'deviceIN.branch',
-            'deviceIN.warehouse',
-            'deviceOUT.branch',
-            'deviceOUT.warehouse',
-            'approvedBy'
-        ])->orderBy('created_at', 'desc');
+                    'employee',
+                    'deviceIN.branch',
+                    'deviceIN.warehouse',
+                    'deviceOUT.branch',
+                    'deviceOUT.warehouse',
+                    'approvedBy'
+                ])
+                ->orderBy('created_at', 'desc');
 
         if (!empty($search)) {
             $query->whereHas('employee', function ($q) use ($search) {
@@ -58,9 +59,9 @@ class DailyTimeRecordController extends Controller
             ]);
         }
 
-        $paginated = $query->paginate($perPage, ['*'], 'page', $page);
+        $paginated       = $query->paginate($perPage, ['*'], 'page', $page);
 
-        $formattedData = $paginated->getCollection()->map(function ($record) {
+        $formattedData   = $paginated->getCollection()->map(function ($record) {
             return $this->formatDTR($record);
         });
 
@@ -244,8 +245,10 @@ class DailyTimeRecordController extends Controller
             'status'     => 'success',
             // Send back in Manila time for UI
             'data'       => [
-                            'id' => $dtr->id,
-                            'time_in' => $dtr->time_in->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                            'id'         => $dtr->id,
+                            'time_in'    => $dtr->time_in
+                                            ->setTimezone('Asia/Manila')
+                                            ->format('M. d, Y, h:i A'),
                         ]
         ]);
     }
@@ -267,8 +270,8 @@ class DailyTimeRecordController extends Controller
         // Convert to UTC for saving
         $parsedTimeInUtc = $parsedTimeIn->copy()->setTimezone('UTC');
 
-        $dtr = DailyTimeRecord::find($request->id);
-        $dtr->time_in = $parsedTimeInUtc;
+        $dtr             = DailyTimeRecord::find($request->id);
+        $dtr->time_in    = $parsedTimeInUtc;
         $dtr->save();
 
         return response()->json([
@@ -276,7 +279,9 @@ class DailyTimeRecordController extends Controller
             // Send back in Manila time for UI
             'data'       => [
                             'id' => $dtr->id,
-                            'time_in' => $dtr->time_in->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                            'time_in' => $dtr->time_in
+                            ->setTimezone('Asia/Manila')
+                            ->format('M. d, Y, h:i A'),
                         ]
         ]);
     }
@@ -298,8 +303,8 @@ class DailyTimeRecordController extends Controller
         // Convert to UTC for saving
         $parsedTimeOutUtc = $parsedTimeOut->copy()->setTimezone('UTC');
 
-        $dtr = DailyTimeRecord::find($request->id);
-        $dtr->time_out = $parsedTimeOutUtc;
+        $dtr             = DailyTimeRecord::find($request->id);
+        $dtr->time_out   = $parsedTimeOutUtc;
         $dtr->save();
 
         return response()->json([
@@ -329,8 +334,8 @@ class DailyTimeRecordController extends Controller
         // Convert to UTC for saving
         $parsedTimeOutUtc = $parsedTimeOut->copy()->setTimezone('UTC');
 
-        $dtr = DailyTimeRecord::find($request->id);
-        $dtr->time_out = $parsedTimeOutUtc;
+        $dtr             = DailyTimeRecord::find($request->id);
+        $dtr->time_out   = $parsedTimeOutUtc;
         $dtr->save();
 
         return response()->json([
@@ -360,8 +365,8 @@ class DailyTimeRecordController extends Controller
         // Convert to UTC from saving
         $parsedLunchBreakStartUtc = $parsedLunchBreakStart->copy()->setTimezone('UTC');
 
-        $dtr = DailyTimeRecord::find($request->id);
-        $dtr->lunch_break_start = $parsedLunchBreakStartUtc;
+        $dtr                     = DailyTimeRecord::find($request->id);
+        $dtr->lunch_break_start  = $parsedLunchBreakStartUtc;
         $dtr->save();
 
         return response()->json([
@@ -391,8 +396,8 @@ class DailyTimeRecordController extends Controller
         // Convert to UTC from saving
         $parsedLunchBreakEndUtc = $parsedLunchBreakEnd->copy()->setTimezone('UTC');
 
-        $dtr = DailyTimeRecord::find($request->id);
-        $dtr->lunch_break_end = $parsedLunchBreakEndUtc;
+        $dtr                     = DailyTimeRecord::find($request->id);
+        $dtr->lunch_break_end    = $parsedLunchBreakEndUtc;
         $dtr->save();
 
         return response()->json([
@@ -422,8 +427,8 @@ class DailyTimeRecordController extends Controller
         // Convert to UTC from saving
         $parsedBreakStartUtc = $parsedBreakStart->copy()->setTimezone('UTC');
 
-        $dtr = DailyTimeRecord::find($request->id);
-        $dtr->break_start = $parsedBreakStartUtc;
+        $dtr                 = DailyTimeRecord::find($request->id);
+        $dtr->break_start    = $parsedBreakStartUtc;
         $dtr->save();
 
         return response()->json([
@@ -454,8 +459,8 @@ class DailyTimeRecordController extends Controller
         // Convert to UTC from saving
         $parsedBreakEndUtc = $parsedBreakEnd->copy()->setTimezone('UTC');
 
-        $dtr = DailyTimeRecord::find($request->id);
-        $dtr->break_end = $parsedBreakEndUtc;
+        $dtr             = DailyTimeRecord::find($request->id);
+        $dtr->break_end  = $parsedBreakEndUtc;
         $dtr->save();
 
         return response()->json([
@@ -485,8 +490,8 @@ class DailyTimeRecordController extends Controller
         // Convert to UTC from saving
         $parsedOvertimeStartUtc = $parsedOvertimeStart->copy()->setTimezone('UTC');
 
-        $dtr =DailyTimeRecord::find($request->id);
-        $dtr->overtime_start = $parsedOvertimeStartUtc;
+        $dtr                     = DailyTimeRecord::find($request->id);
+        $dtr->overtime_start     = $parsedOvertimeStartUtc;
         $dtr->save();
 
         return response()->json([
@@ -516,8 +521,8 @@ class DailyTimeRecordController extends Controller
         // Convert to UTC from saving
         $parsedOvertimeEndUtc = $parsedOvertimeEnd->copy()->setTimezone('UTC');
 
-        $dtr = DailyTimeRecord::find($request->id);
-        $dtr->overtime_end = $parsedOvertimeEndUtc;
+        $dtr                 = DailyTimeRecord::find($request->id);
+        $dtr->overtime_end   = $parsedOvertimeEndUtc;
         $dtr->save();
 
         return response()->json([
@@ -537,8 +542,8 @@ class DailyTimeRecordController extends Controller
             'overtime_reason'        => 'required|string',
         ]);
 
-        $dtr = DailyTimeRecord::find($request->id);
-        $dtr->overtime_reason = $request->overtime_reason;
+        $dtr                     = DailyTimeRecord::find($request->id);
+        $dtr->overtime_reason    = $request->overtime_reason;
         $dtr->save();
 
         return response()->json([
@@ -558,8 +563,8 @@ class DailyTimeRecordController extends Controller
             'declined_reason'            => 'required|string',
         ]);
 
-        $dtr = DailyTimeRecord::find($request->id);
-        $dtr->declined_reason = $request->declined_reason;
+        $dtr                     = DailyTimeRecord::find($request->id);
+        $dtr->declined_reason    = $request->declined_reason;
         $dtr->save();
 
         return response()->json([
@@ -579,8 +584,8 @@ class DailyTimeRecordController extends Controller
             'ot_status'      => 'required|string',
         ]);
 
-        $dtr = DailyTimeRecord::find($request->id);
-        $dtr->ot_status = $request->ot_status;
+        $dtr             = DailyTimeRecord::find($request->id);
+        $dtr->ot_status  = $request->ot_status;
         $dtr->save();
 
         return response()->json([
@@ -600,8 +605,8 @@ class DailyTimeRecordController extends Controller
             'approved_by'        => 'required|exists:employees,id',
         ]);
 
-        $dtr = DailyTimeRecord::find($request->id);
-        $dtr->approved_by = $request->approved_by;
+        $dtr                 = DailyTimeRecord::find($request->id);
+        $dtr->approved_by    = $request->approved_by;
         $dtr->save();
 
         return response()->json([
@@ -647,16 +652,16 @@ class DailyTimeRecordController extends Controller
         $keyword = $request->input('keyword');
 
          $dtr = DailyTimeRecord::with('employee')
-             ->when($keyword !== null, function ($query) use ($keyword) {
-                 $query->whereHas('employee', function($q) use ($keyword) {
-                     $q->where('firstname', 'LIKE', '%' . $keyword . '%')
-                       ->orWhere('middlename', 'LIKE', '%' . $keyword . '%')
-                       ->orWhere('lastname', 'LIKE', '%' . $keyword . '%');
-                 });
-             })
-             ->orderBy('created_at', 'desc')
-             ->take(7)
-             ->get();
+                    ->when($keyword !== null, function ($query) use ($keyword) {
+                        $query->whereHas('employee', function($q) use ($keyword) {
+                            $q->where('firstname', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('middlename', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('lastname', 'LIKE', '%' . $keyword . '%');
+                        });
+                    })
+                    ->orderBy('created_at', 'desc')
+                    ->take(7)
+                    ->get();
 
          return response()->json($dtr);
     }
@@ -671,10 +676,10 @@ class DailyTimeRecordController extends Controller
         ]);
 
             // Extract data from the validated request
-        $employeeId = $validatedData['employee_id'];
-        $regularDateIN = $validatedData['regularDateIN'];
-        $dateTimeIn = $validatedData['overtime_in'];
-        $dateTimeOut = $validatedData['overtime_out'] ?? null;
+        $employeeId      = $validatedData['employee_id'];
+        $regularDateIN   = $validatedData['regularDateIN'];
+        $dateTimeIn      = $validatedData['overtime_in'];
+        $dateTimeOut     = $validatedData['overtime_out'] ?? null;
 
           // Convert dateTimeIn to the database format (DATETIME)
         $dateTimeInFormatted = Carbon::createFromFormat('Y-m-d h:i A', $dateTimeIn)->format('Y-m-d H:i:s');
@@ -689,8 +694,8 @@ class DailyTimeRecordController extends Controller
 
         if ($overtimeRecord) {
             // Update the existing record with the new dateTimeIn and dateTimeOut
-            $overtimeRecord->overtime_start = $dateTimeInFormatted;
-            $overtimeRecord->overtime_end = $dateTimeOutFormatted;
+            $overtimeRecord->overtime_start  = $dateTimeInFormatted;
+            $overtimeRecord->overtime_end    = $dateTimeOutFormatted;
             $overtimeRecord->save();
         } else {
             return response()->json([
@@ -715,12 +720,17 @@ class DailyTimeRecordController extends Controller
         $dtr = DailyTimeRecord::find($request->id);
 
         if ($dtr->ot_status !== 'pending' && $dtr->ot_status !== 'NULL') {
-            return response()->json(['message'   => 'Overtime request is not pending or has already been processed.'], 400);
+            return response()->json([
+                'message' => 'Overtime request is not pending or has already been processed.'
+            ], 400);
         }
-        $dtr->ot_status = 'approved';
-        $dtr->approved_by = $request->approved_by;
+        $dtr->ot_status      = 'approved';
+        $dtr->approved_by    = $request->approved_by;
         $dtr->save();
-        return response()->json(['message'       => 'Overtime request approved successfully!', 'data' => $dtr]);
+        return response()->json([
+            'message' => 'Overtime request approved successfully!',
+            'data' => $dtr
+        ]);
     }
 
     public function declineOvertime(Request $request)
@@ -732,24 +742,32 @@ class DailyTimeRecordController extends Controller
         ]);
 
         $dtr = DailyTimeRecord::find($request->id);
+
         if ($dtr->ot_status !== 'pending' && $dtr->ot_status !== 'NULL') {
-            return response()->json(['message'   => 'Overtime request is not pending or has already been processed.'], 400);
+            return response()->json([
+                'message' => 'Overtime request is not pending or has already been processed.'
+            ], 400);
         }
-        $dtr->ot_status = 'declined';
-        $dtr->approved_by = $request->declined_by;
-        $dtr->declined_reason = $request->reason;
+
+        $dtr->ot_status          = 'declined';
+        $dtr->approved_by        = $request->declined_by;
+        $dtr->declined_reason    = $request->reason;
         $dtr->save();
-        return response()->json(['message'       => 'Overtime request declined successfully!', 'data' => $dtr]);
+
+        return response()->json([
+            'message' => 'Overtime request declined successfully!',
+            'data' => $dtr
+        ]);
     }
 
     public function updateDtrScheduleIn(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'schedule_in'        => 'required|string|max:10'
+            'schedule_in' => 'required|string|max:10'
         ]);
 
-        $dtr = DailyTimeRecord::findOrFail($id);
-        $dtr->schedule_in = $validatedData['schedule_in'];
+        $dtr                 = DailyTimeRecord::findOrFail($id);
+        $dtr->schedule_in    = $validatedData['schedule_in'];
 
         $dtr->save();
 
@@ -765,8 +783,8 @@ class DailyTimeRecordController extends Controller
             'schedule_out'       => 'required|string'
         ]);
 
-        $dtr = DailyTimeRecord::findOrFail($id);
-        $dtr->schedule_out = $validatedData['schedule_out'];
+        $dtr                 = DailyTimeRecord::findOrFail($id);
+        $dtr->schedule_out   = $validatedData['schedule_out'];
 
         $dtr->save();
 
@@ -778,34 +796,34 @@ class DailyTimeRecordController extends Controller
 
     public function getDTRData(Request $request)
     {
-        $employeeId = $request->input('employee_id');
-        $startDate = Carbon::parse($request->input('start_date', date('Y-m-10')))->startOfDay();
-        $endDate = Carbon::parse($request->input('end_date', date('Y-m-25')))->endOfDay();
+        $employeeId  = $request->input('employee_id');
+        $startDate   = Carbon::parse($request->input('start_date', date('Y-m-10')))->startOfDay();
+        $endDate     = Carbon::parse($request->input('end_date', date('Y-m-25')))->endOfDay();
 
-        $dtrData = DailyTimeRecord::with(['employee.branch'])
-            ->where('employee_id', $employeeId)
-            ->where(function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('time_in', [$startDate, $endDate])
-                    ->orWhereBetween('time_out', [$startDate, $endDate])
-                    ->orWhere(function ($q) use ($startDate, $endDate) {
-                        $q->where('time_in', '<', $startDate)
-                            ->where('time_out', '>', $endDate);
-                    });
-            })
-            ->orderBy('time_in', 'desc')
-            ->get()
-            ->map(function ($record) {
-                $record->time_in = Carbon::parse($record->time_in)
-                    ->timezone('Asia/Manila')->format('M. d, Y, g:i A');
+        $dtrData     = DailyTimeRecord::with(['employee.branch'])
+                        ->where('employee_id', $employeeId)
+                        ->where(function ($query) use ($startDate, $endDate) {
+                            $query->whereBetween('time_in', [$startDate, $endDate])
+                                ->orWhereBetween('time_out', [$startDate, $endDate])
+                                ->orWhere(function ($q) use ($startDate, $endDate) {
+                                    $q->where('time_in', '<', $startDate)
+                                        ->where('time_out', '>', $endDate);
+                                });
+                        })
+                        ->orderBy('time_in', 'desc')
+                        ->get()
+                        ->map(function ($record) {
+                            $record->time_in = Carbon::parse($record->time_in)
+                                ->timezone('Asia/Manila')->format('M. d, Y, g:i A');
 
-                $record->time_out = $record->time_out ? Carbon::parse($record->time_out)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-                $record->break_start = $record->break_start ? Carbon::parse($record->break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-                $record->break_end = $record->break_end ? Carbon::parse($record->break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-                $record->lunch_break_start = $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-                $record->lunch_break_end = $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+                            $record->time_out = $record->time_out ? Carbon::parse($record->time_out)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+                            $record->break_start = $record->break_start ? Carbon::parse($record->break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+                            $record->break_end = $record->break_end ? Carbon::parse($record->break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+                            $record->lunch_break_start = $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+                            $record->lunch_break_end = $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
 
-                return $record;
-            });
+                            return $record;
+                        });
 
         return response()->json($dtrData);
     }
@@ -827,7 +845,9 @@ class DailyTimeRecordController extends Controller
 
         // Check if the user (employee) exists with the given ID
         // Eager load necessary relationships for the 'designation' accessor
-        $employee = Employee::with(['branchEmployee.branch', 'warehouseEmployee.warehouse', 'employeeAllowance'])->where('id', $request->id)->first();
+        $employee = Employee::with(['branchEmployee.branch', 'warehouseEmployee.warehouse', 'employeeAllowance'])
+                        ->where('id', $request->id)
+                        ->first();
 
         if ($device && $employee) {
             // Both UUID and ID match
@@ -896,8 +916,8 @@ class DailyTimeRecordController extends Controller
         ]);
 
         $dtr = DailyTimeRecord::where('employee_id', $request->id)
-            ->orderBy('created_at', 'desc')
-            ->first();
+                ->orderBy('created_at', 'desc')
+                ->first();
 
         if (!$dtr || !$dtr->time_out) {
             return response()->json(['message' => 'Cannot start OT without regular time out'], 400);
@@ -935,21 +955,21 @@ class DailyTimeRecordController extends Controller
         }
 
         $lastDtr = DailyTimeRecord::where('employee_id', $request->employee_id)
-            ->whereNull('time_out')
-            ->orderBy('created_at', 'desc')
-            ->first();
+                        ->whereNull('time_out')
+                        ->orderBy('created_at', 'desc')
+                        ->first();
 
         if ($lastDtr) {
             return response()->json(['message' => 'Already timed in, cannot time in again without timing out'], 400);
         }
 
-        $dtr = new DailyTimeRecord();
-        $dtr->employee_id = $request->employee_id;
-        $dtr->employee_allowance = $request->employee_allowance;
-        $dtr->device_uuid_in = $request->uuid; // Store the UUID of the device
-        $dtr->schedule_in = $request->schedule_in;
-        $dtr->schedule_out = $request->schedule_out;
-        $dtr->time_in = now();
+        $dtr                         = new DailyTimeRecord();
+        $dtr->employee_id            = $request->employee_id;
+        $dtr->employee_allowance     = $request->employee_allowance;
+        $dtr->device_uuid_in         = $request->uuid; // Store the UUID of the device
+        $dtr->schedule_in            = $request->schedule_in;
+        $dtr->schedule_out           = $request->schedule_out;
+        $dtr->time_in                = now();
         $dtr->save();
 
         return response()->json([
@@ -979,11 +999,14 @@ class DailyTimeRecordController extends Controller
         }
 
         // Mark the time_out
-        $dtr->time_out = now();
-        $dtr->device_uuid_out = $request->uuid; // Store the UUID of the device for time out
+        $dtr->time_out           = now();
+        $dtr->device_uuid_out    = $request->uuid; // Store the UUID of the device for time out
         $dtr->save();
 
-        return response()->json(['message' => 'Time Out marked successfully!', 'data' => $dtr]);
+        return response()->json([
+            'message' => 'Time Out marked successfully!',
+            'data' => $dtr
+        ]);
     }
 
     public function markHalfDayOut(Request $request)
@@ -1008,10 +1031,10 @@ class DailyTimeRecordController extends Controller
         }
 
         // Mark the time_out
-        $dtr->time_out = now();
-        $dtr->device_uuid_out = $request->uuid; // Store the UUID of the device for time out
-        $dtr->shift_status = $request->shift_status;
-        $dtr->half_day_reason = $request->half_day_reason;
+        $dtr->time_out           = now();
+        $dtr->device_uuid_out    = $request->uuid; // Store the UUID of the device for time out
+        $dtr->shift_status       = $request->shift_status;
+        $dtr->half_day_reason    = $request->half_day_reason;
         $dtr->save();
 
         return response()->json(['message' => 'Time Out marked successfully!', 'data' => $dtr]);
@@ -1029,11 +1052,11 @@ class DailyTimeRecordController extends Controller
         }
 
         $dtr = DailyTimeRecord::where('employee_id', $request->employee_id)
-            ->whereNotNull('time_out') // Regular work ended
-            ->whereNull('overtime_start')
-            ->whereNull('overtime_end')
-            ->orderBy('created_at', 'desc')
-            ->first();
+                    ->whereNotNull('time_out') // Regular work ended
+                    ->whereNull('overtime_start')
+                    ->whereNull('overtime_end')
+                    ->orderBy('created_at', 'desc')
+                    ->first();
 
         // ❌ This was backward
         if (!$dtr) {
@@ -1041,9 +1064,9 @@ class DailyTimeRecordController extends Controller
         }
 
         // ✅ Proceed if record exists
-        $dtr->overtime_start = now();
-        $dtr->overtime_reason = $request->overtime_reason;
-        $dtr->ot_status = 'pending';
+        $dtr->overtime_start     = now();
+        $dtr->overtime_reason    = $request->overtime_reason;
+        $dtr->ot_status          = 'pending';
         $dtr->save();
 
         return response()->json([
@@ -1069,7 +1092,9 @@ class DailyTimeRecordController extends Controller
 
         // Check if a matching DTR record is found
         if (!$dtr) {
-            return response()->json(['message' => 'No active time-in record found for this employee.'], 404);
+            return response()->json([
+                'message' => 'No active time-in record found for this employee.'
+            ], 404);
         }
 
         // Mark the time_out
@@ -1087,8 +1112,8 @@ class DailyTimeRecordController extends Controller
         ]);
 
         $dtr = DailyTimeRecord::where('employee_id', $request->employee_id)
-            ->orderBy('created_at', 'desc')
-            ->first();
+                ->orderBy('created_at', 'desc')
+                ->first();
 
         if(!$dtr) {
             return response()->json(['status' => 'no_dtr_found']);
@@ -1237,8 +1262,8 @@ class DailyTimeRecordController extends Controller
         $structuredData = $groupedDtr->map(function ($recordsForPeriod, $periodKey) {
             list($startDateStr, $endDateStr) = explode('_', $periodKey);
 
-            $startDate = Carbon::parse($startDateStr)->startOfDay();
-            $endDate = Carbon::parse($endDateStr)->endOfDay();
+            $startDate   = Carbon::parse($startDateStr)->startOfDay();
+            $endDate     = Carbon::parse($endDateStr)->endOfDay();
 
             // Fetch holidays for the current cutoff period
             $holidays = Holiday::whereBetween('date', [$startDate, $endDate])
@@ -1251,15 +1276,15 @@ class DailyTimeRecordController extends Controller
                                    ];
                                });
 
-            $formattedRecords = $recordsForPeriod->map(function ($record) {
-            $record->time_in = Carbon::parse($record->time_in)->timezone('Asia/Manila')->format('M. d, Y, g:i A');
-            $record->time_out = $record->time_out ? Carbon::parse($record->time_out)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-            $record->lunch_break_start = $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-            $record->lunch_break_end = $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-            $record->break_start = $record->break_start ? Carbon::parse($record->break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-            $record->break_end = $record->break_end ? Carbon::parse($record->break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-            $record->overtime_start = $record->overtime_start ? Carbon::parse($record->overtime_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
-            $record->overtime_end = $record->overtime_end ? Carbon::parse($record->overtime_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+            $formattedRecords            = $recordsForPeriod->map(function ($record) {
+            $record->time_in             = Carbon::parse($record->time_in)->timezone('Asia/Manila')->format('M. d, Y, g:i A');
+            $record->time_out            = $record->time_out ? Carbon::parse($record->time_out)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+            $record->lunch_break_start   = $record->lunch_break_start ? Carbon::parse($record->lunch_break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+            $record->lunch_break_end     = $record->lunch_break_end ? Carbon::parse($record->lunch_break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+            $record->break_start         = $record->break_start ? Carbon::parse($record->break_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+            $record->break_end           = $record->break_end ? Carbon::parse($record->break_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+            $record->overtime_start      = $record->overtime_start ? Carbon::parse($record->overtime_start)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
+            $record->overtime_end        = $record->overtime_end ? Carbon::parse($record->overtime_end)->timezone('Asia/Manila')->format('M. d, Y, g:i A') : null;
 
             return $record;
             });
@@ -1288,19 +1313,19 @@ class DailyTimeRecordController extends Controller
 
         // Period: From the 11th to the 25th of the month
         if ($day >= 11 && $day <= 25) {
-            $startDate = $date->copy()->day(11);
-            $endDate = $date->copy()->day(25);
+            $startDate   = $date->copy()->day(11);
+            $endDate     = $date->copy()->day(25);
             return $startDate->toDateString() . '_' . $endDate->toDateString();
         }
 
         // Period: From the 26th of the previous month to the 10th of the current month
         if ($day <= 10) {
-            $endDate = $date->copy()->day(10);
-            $startDate = $date->copy()->subMonth()->day(26);
+            $endDate     = $date->copy()->day(10);
+            $startDate   = $date->copy()->subMonth()->day(26);
             return $startDate->toDateString() . '_' . $endDate->toDateString();
         } else { // $day >= 26
-            $startDate = $date->copy()->day(26);
-            $endDate = $date->copy()->addMonth()->day(10);
+            $startDate   = $date->copy()->day(26);
+            $endDate     = $date->copy()->addMonth()->day(10);
             return $startDate->toDateString() . '_' . $endDate->toDateString();
         }
     }

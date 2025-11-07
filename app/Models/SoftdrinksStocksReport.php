@@ -28,6 +28,7 @@ class SoftdrinksStocksReport extends Model
 
     public function softdrinksAddedStocks()
     {
-        return $this->hasMany(SoftdrinksAddedStocks::class, 'softdrinks_stocks_report_id')->with('product');
+        return $this->hasMany(SoftdrinksAddedStocks::class, 'softdrinks_stocks_report_id')
+                    ->with('product');
     }
 }

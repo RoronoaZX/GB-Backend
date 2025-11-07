@@ -73,11 +73,11 @@ class RecipeController extends Controller
     public function updateTarget(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'target'         => 'required|integer',
+            'target' => 'required|integer',
         ]);
 
-        $recipe = Recipe::findOrFail($id);
-        $recipe->target = $validatedData['target'];
+        $recipe          = Recipe::findOrFail($id);
+        $recipe->target  = $validatedData['target'];
         $recipe->save();
 
         return response()->json(['message' => 'Target updated successfully', 'recipe' => $recipe]);
@@ -88,7 +88,7 @@ class RecipeController extends Controller
         $recipe = Recipe::findOrFail($id);
 
         $validatedData = $request->validate([
-            'name'           => 'required|string|max:255|unique:recipes',
+            'name' => 'required|string|max:255|unique:recipes',
         ]);
 
         $recipe->name = $validatedData['name'];
@@ -99,13 +99,16 @@ class RecipeController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'status'         => 'required|string|max:255',
+            'status' => 'required|string|max:255',
         ]);
 
-        $recipe = Recipe::findOrFail($id);
-        $recipe->status = $validatedData['status'];
+        $recipe          = Recipe::findOrFail($id);
+        $recipe->status  = $validatedData['status'];
         $recipe->save();
 
-        return response()->json(['message' => 'Status updated successfully', 'recipe' => $recipe]);
+        return response()->json([
+            'message' => 'Status updated successfully',
+            'recipe' => $recipe
+        ]);
     }
 }

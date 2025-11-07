@@ -21,19 +21,19 @@ class CakeReportController extends Controller
     public function getBranchCakeReport($userId)
     {
         $cakeReports = CakeReport::where('user_id', $userId)
-                    ->orderBy('created_at', 'desc')
-                    ->with('user','branch','cakeIngredientReports' )
-                    ->get();
+                        ->orderBy('created_at', 'desc')
+                        ->with('user','branch','cakeIngredientReports' )
+                        ->get();
         return response()->json($cakeReports);
     }
 
     public function getPendingReport($branchId)
     {
         $cakeReports = CakeReport::where('branch_id', $branchId)
-                    ->where('confirmation_status', 'pending')
-                    ->orderBy('created_at', 'desc')
-                    ->with('user', 'branch')
-                    ->get();
+                        ->where('confirmation_status', 'pending')
+                        ->orderBy('created_at', 'desc')
+                        ->with('user', 'branch')
+                        ->get();
 
         return response()->json($cakeReports);
     }
@@ -41,9 +41,9 @@ class CakeReportController extends Controller
     public function getCakeOnDisplayProduct($branchId)
     {
         $cakeProducts = CakeReport::where('branch_id', $branchId)
-                    ->where('sales_status', 'on display')
-                    ->orderBy('created_at', 'desc')
-                    ->get();
+                        ->where('sales_status', 'on display')
+                        ->orderBy('created_at', 'desc')
+                        ->get();
         return response()->json($cakeProducts);
     }
 
@@ -52,8 +52,8 @@ class CakeReportController extends Controller
         $cakeReport = CakeReport::findOrFail($id);
         if (strtolower($cakeReport->confirmation_status) === 'pending')
         {
-           $cakeReport->confirmation_status = "confirmed";
-           $cakeReport->sales_status = "on display";
+           $cakeReport->confirmation_status  = "confirmed";
+           $cakeReport->sales_status         = "on display";
            $cakeReport->save();
            return response()->json([
             'message'    => 'Report has been confirmed successfully.',
@@ -77,14 +77,18 @@ class CakeReportController extends Controller
         $cakeReport = CakeReport::findOrFail($id);
 
         if ($cakeReport->confirmation_status === 'pending') {
-            $cakeReport->confirmation_status = 'declined';
-            $cakeReport->sales_status = 'declined';
-            $cakeReport->remark = $request->remark;
-            $cakeReport->save();
+                $cakeReport->confirmation_status     = 'declined';
+                $cakeReport->sales_status            = 'declined';
+                $cakeReport->remark                  = $request->remark;
+                $cakeReport->save();
 
-            return response()->json(['message'   => "Report declined successfully"], 200);
+                return response()->json([
+                    'message'   => "Report declined successfully"
+                ], 200);
         }
-        return response()->json(['message'       => "Invalid report or status"], 400);
+        return response()->json([
+            'message' => "Invalid report or status"
+        ], 400);
     }
 
 

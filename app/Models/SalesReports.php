@@ -29,31 +29,37 @@ class SalesReports extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class)->with('employee');
+        return $this->belongsTo(User::class)
+                    ->with('employee');
     }
 
     public function breadReports()
     {
-        return $this->hasMany(BreadSalesReport::class, 'sales_report_id')->with('bread');
+        return $this->hasMany(BreadSalesReport::class, 'sales_report_id')
+                    ->with('bread');
     }
 
     public function selectaReports()
     {
-        return $this->hasMany(SelectaSalesReport::class, 'sales_report_id')->with('selecta');
+        return $this->hasMany(SelectaSalesReport::class, 'sales_report_id')
+                    ->with('selecta');
     }
 
     public function softdrinksReports()
     {
-        return $this->hasMany(SoftdrinksSalesReport::class, 'sales_report_id')->with('softdrinks');
+        return $this->hasMany(SoftdrinksSalesReport::class, 'sales_report_id')
+                    ->with('softdrinks');
     }
     public function otherProductsReports()
     {
-        return $this->hasMany(OtherProducts::class, 'sales_report_id')->with('otherProducts');
+        return $this->hasMany(OtherProducts::class, 'sales_report_id')
+                    ->with('otherProducts');
     }
 
     public function cakeSalesReports()
     {
-        return $this->hasMany(CakeSalesReport::class, 'sales_report_id')->with('cakeReport');
+        return $this->hasMany(CakeSalesReport::class, 'sales_report_id')
+                    ->with('cakeReport');
     }
 
     public function expensesReports()
@@ -68,7 +74,8 @@ class SalesReports extends Model
 
     public function creditReports()
     {
-        return $this->hasMany(EmployeeCredits::class, 'sales_report_id')->with('creditProducts', 'creditUserId');
+        return $this->hasMany(EmployeeCredits::class, 'sales_report_id')
+                    ->with('creditProducts', 'creditUserId');
     }
 
 }

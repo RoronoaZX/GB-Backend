@@ -23,8 +23,8 @@ class SoftdrinksSalesReportController extends Controller
             'price' => 'required|integer'
         ]);
 
-        $softdrinksSalesReport = SoftdrinksSalesReport::findorFail($id);
-        $softdrinksSalesReport->price = $validatedData['price'];
+        $softdrinksSalesReport           = SoftdrinksSalesReport::findorFail($id);
+        $softdrinksSalesReport->price    = $validatedData['price'];
         $softdrinksSalesReport->save();
 
         return response()->json(['message' => 'Price updated successfully', 'price' => $softdrinksSalesReport]);
@@ -35,11 +35,14 @@ class SoftdrinksSalesReportController extends Controller
             'beginnings' => 'required|integer'
         ]);
 
-        $softdrinksSalesReport = SoftdrinksSalesReport::findorFail($id);
-        $softdrinksSalesReport->beginnings = $validatedData['beginnings'];
+        $softdrinksSalesReport               = SoftdrinksSalesReport::findorFail($id);
+        $softdrinksSalesReport->beginnings   = $validatedData['beginnings'];
         $softdrinksSalesReport->save();
 
-        return response()->json(['message' => 'beginnings updated successfully', 'beginnings' => $softdrinksSalesReport]);
+        return response()->json([
+            'message' => 'beginnings updated successfully',
+            'beginnings' => $softdrinksSalesReport
+        ]);
     }
     public function updatedRemaining(Request $request, $id)
     {
@@ -47,11 +50,14 @@ class SoftdrinksSalesReportController extends Controller
             'remaining' => 'required|integer'
         ]);
 
-        $softdrinksSalesReport = SoftdrinksSalesReport::findorFail($id);
-        $softdrinksSalesReport->remaining = $validatedData['remaining'];
+        $softdrinksSalesReport               = SoftdrinksSalesReport::findorFail($id);
+        $softdrinksSalesReport->remaining    = $validatedData['remaining'];
         $softdrinksSalesReport->save();
 
-        return response()->json(['message' => 'remaining updated successfully', 'remaining' => $softdrinksSalesReport]);
+        return response()->json([
+            'message' => 'remaining updated successfully',
+            'remaining' => $softdrinksSalesReport
+        ]);
     }
     public function updatedSoftdrinksOut(Request $request, $id)
     {
@@ -59,11 +65,14 @@ class SoftdrinksSalesReportController extends Controller
             'out' => 'required|integer'
         ]);
 
-        $softdrinksSalesReport = SoftdrinksSalesReport::findorFail($id);
-        $softdrinksSalesReport->out = $validatedData['out'];
+        $softdrinksSalesReport       = SoftdrinksSalesReport::findorFail($id);
+        $softdrinksSalesReport->out  = $validatedData['out'];
         $softdrinksSalesReport->save();
 
-        return response()->json(['message' => 'out updated successfully', 'out' => $softdrinksSalesReport]);
+        return response()->json([
+            'message' => 'out updated successfully',
+            'out' => $softdrinksSalesReport
+        ]);
     }
     public function updatedAddedStocks(Request $request, $id)
     {
@@ -71,11 +80,14 @@ class SoftdrinksSalesReportController extends Controller
             'added_stocks' => 'required|integer'
         ]);
 
-        $softdrinksSalesReport = SoftdrinksSalesReport::findorFail($id);
-        $softdrinksSalesReport->added_stocks = $validatedData['added_stocks'];
+        $softdrinksSalesReport                   = SoftdrinksSalesReport::findorFail($id);
+        $softdrinksSalesReport->added_stocks     = $validatedData['added_stocks'];
         $softdrinksSalesReport->save();
 
-        return response()->json(['message' => 'added_stocks updated successfully', 'added_stocks' => $softdrinksSalesReport]);
+        return response()->json([
+            'message' => 'added_stocks updated successfully',
+            'added_stocks' => $softdrinksSalesReport
+        ]);
     }
 
     public function addingSoftdrinksProduction(Request $request)
@@ -98,7 +110,10 @@ class SoftdrinksSalesReportController extends Controller
 
         $selectaSalesReport = SoftdrinksSalesReport::create($validated);
 
-        return response()->json(['message' => 'Softdrinks Production added successfully', 'selectaSalesReport' => $selectaSalesReport]);
+        return response()->json([
+            'message' => 'Softdrinks Production added successfully',
+            'selectaSalesReport' => $selectaSalesReport
+        ]);
     }
 
     /**

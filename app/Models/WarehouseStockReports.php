@@ -18,7 +18,8 @@ class WarehouseStockReports extends Model
 
     public function warehouseAddedStocks()
     {
-        return $this->hasMany(WarehouseAddedStock::class, 'warehouse_stock_report_id')->with('rawMaterials');
+        return $this->hasMany(WarehouseAddedStock::class, 'warehouse_stock_report_id')
+                    ->with('rawMaterials');
     }
 
     public function employee()

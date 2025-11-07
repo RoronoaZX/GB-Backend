@@ -28,7 +28,8 @@ class OtherStocksReport extends Model
 
     public function otherAddedStock()
     {
-        return $this->hasMany(OtherAddedStocks::class, 'other_stocks_report_id')->with('product');
+        return $this->hasMany(OtherAddedStocks::class, 'other_stocks_report_id')
+                    ->with('product');
     }
 
 }

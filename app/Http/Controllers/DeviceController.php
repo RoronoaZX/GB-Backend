@@ -16,18 +16,18 @@ class DeviceController extends Controller
     public function index()
     {
         $devices = Device::latest()->take(10)->get()->map(function ($device) {
-            $device->reference = $device->designation === 'branch'
-                ? Branch::find($device->reference_id)
-                : Warehouse::find($device->reference_id);
-            return $device;
+                    $device->reference = $device->designation === 'branch'
+                        ? Branch::find($device->reference_id)
+                        : Warehouse::find($device->reference_id);
+                    return $device;
         });
 
         return response()->json($devices);
     }
 
     public function checkDevice(Request $request) {
-        $uuid = $request->input('uuid');
-        $device = Device::where('uuid', $uuid)->first();
+        $uuid    = $request->input('uuid');
+        $device  = Device::where('uuid', $uuid)->first();
         if ($device) {
             return response()->json(['authorized' => true]);
         }

@@ -39,18 +39,13 @@ class BranchRawMaterialsReportController extends Controller
                                                 ->where('quantity', '>', 0) // ✅ strictly greater then 0
                                                 ->orderBy('created_at', 'asc') // ✅ oldest first
                                                 ->select(
-                                                    'id',
-                                                    'raw_material_id',
-                                                    'branch_id',
-                                                    'price_per_gram',
-                                                    'quantity',
-                                                    'created_at',
-                                                    'updated_at'
+                                                    'id', 'raw_material_id', 'branch_id',
+                                                    'price_per_gram', 'quantity', 'created_at','updated_at'
                                                     )
                                                 ->limit(1);
-                                    }
+                                        }
                                     ])
-                                    ->get();
+                                ->get();
 
         return response()->json($branchRawMaterials, 200);
     }
@@ -61,11 +56,11 @@ class BranchRawMaterialsReportController extends Controller
         $branchId = $request->input('branch_id');
 
         $results = BranchRawMaterialsReport::with('ingredients')
-                ->where('branch_id', $branchId)
-                ->whereHas('ingredients', function ($query) use ($keyword){
-                    $query->where('name', 'LIKE', '%' . $keyword . '%');
-                })
-                ->get();
+                        ->where('branch_id', $branchId)
+                        ->whereHas('ingredients', function ($query) use ($keyword){
+                            $query->where('name', 'LIKE', '%' . $keyword . '%');
+                        })
+                        ->get();
         return response()->json($results);
     }
 
@@ -78,12 +73,12 @@ class BranchRawMaterialsReportController extends Controller
 
         // Fetch raw materials with ingredients for the specified branch and category
         $branchRawMaterials = BranchRawMaterialsReport::where('branch_id', $branchId)
-            ->whereHas('ingredients', function ($query) use ($validateData) {
-                // Check category in the RawMaterial table
-                $query->where('category', $validateData['category']);
-            })
-            ->with('ingredients') // Eager load the related ingredient
-            ->get();
+                                ->whereHas('ingredients', function ($query) use ($validateData) {
+                                    // Check category in the RawMaterial table
+                                    $query->where('category', $validateData['category']);
+                                })
+                                ->with('ingredients') // Eager load the related ingredient
+                                ->get();
 
         // Flatten the data to include raw material and ingredient details in each row
         $flattenedData = $branchRawMaterials->map(function ($rawMaterial) {
@@ -107,170 +102,66 @@ class BranchRawMaterialsReportController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function bulkStore(Request $request)
-{
-    $data = $request->input('materials');
+    {
+        $data = $request->input('materials');
 
-    if (!is_array($data) || empty($data)) {
-        return response()->json(['message' => 'No raw materials provided'], 400);
+        if (!is_array($data) || empty($data)) {
+            return response()->json(['message' => 'No raw materials provided'], 400);
+        }
+
+        // Extract ingredient and branch pairs
+        $rawMaterialBranchPairs = collect($data)->map(function ($material) {
+            return [
+                'ingredients_id' => $material['ingredients_id'],
+                'branch_id'      => $material['branch_id']
+            ];
+        });
+
+        // Fetch existing pairs
+        $existingRecords = BranchRawMaterialsReport::whereIn('ingredients_id', $rawMaterialBranchPairs->pluck('ingredients_id'))
+                            ->whereIn('branch_id', $rawMaterialBranchPairs->pluck('branch_id'))
+                            ->get(['ingredients_id', 'branch_id'])
+                            ->toArray();
+
+        // Map existing pairs to a lookup array
+        $existingPairs = [];
+        foreach ($existingRecords as $record) {
+            $existingPairs[$record['ingredients_id'] . '_' . $record['branch_id']] = true;
+        }
+
+        // Filter out new materials that aren't already in DB
+        $newMaterials = array_filter($data, function ($material) use ($existingPairs) {
+                            $key = $material['ingredients_id'] . '_' . $material['branch_id'];
+                            return !isset($existingPairs[$key]);
+        });
+
+        if (empty($newMaterials)) {
+            return response()->json(['message' => 'All raw materials already exist in the warehouse'], 200);
+        }
+
+        // Add timestamps to new records
+        $now = now();
+        foreach ($newMaterials as &$material) {
+            $material['created_at'] = $now;
+            $material['updated_at'] = $now;
+        }
+
+        // Insert into DB
+        BranchRawMaterialsReport::insert($newMaterials);
+
+        // Fetch inserted records with relationships
+        $insertedReports = BranchRawMaterialsReport::with(['ingredients', 'branch'])
+                            ->whereIn('ingredients_id', collect($newMaterials)->pluck('ingredients_id'))
+                            ->whereIn('branch_id', collect($newMaterials)->pluck('branch_id'))
+                            ->orderByDesc('id') // optional: ensure latest ones first
+                            ->get();
+
+        return response()->json([
+            'message'    => 'Raw materials added successfully!',
+            'data'       => $insertedReports
+        ]);
     }
 
-    // Extract ingredient and branch pairs
-    $rawMaterialBranchPairs = collect($data)->map(function ($material) {
-        return [
-            'ingredients_id' => $material['ingredients_id'],
-            'branch_id'      => $material['branch_id']
-        ];
-    });
-
-    // Fetch existing pairs
-    $existingRecords = BranchRawMaterialsReport::whereIn('ingredients_id', $rawMaterialBranchPairs->pluck('ingredients_id'))
-        ->whereIn('branch_id', $rawMaterialBranchPairs->pluck('branch_id'))
-        ->get(['ingredients_id', 'branch_id'])
-        ->toArray();
-
-    // Map existing pairs to a lookup array
-    $existingPairs = [];
-    foreach ($existingRecords as $record) {
-        $existingPairs[$record['ingredients_id'] . '_' . $record['branch_id']] = true;
-    }
-
-    // Filter out new materials that aren't already in DB
-    $newMaterials = array_filter($data, function ($material) use ($existingPairs) {
-        $key = $material['ingredients_id'] . '_' . $material['branch_id'];
-        return !isset($existingPairs[$key]);
-    });
-
-    if (empty($newMaterials)) {
-        return response()->json(['message' => 'All raw materials already exist in the warehouse'], 200);
-    }
-
-    // Add timestamps to new records
-    $now = now();
-    foreach ($newMaterials as &$material) {
-        $material['created_at'] = $now;
-        $material['updated_at'] = $now;
-    }
-
-    // Insert into DB
-    BranchRawMaterialsReport::insert($newMaterials);
-
-    // Fetch inserted records with relationships
-    $insertedReports = BranchRawMaterialsReport::with(['ingredients', 'branch'])
-        ->whereIn('ingredients_id', collect($newMaterials)->pluck('ingredients_id'))
-        ->whereIn('branch_id', collect($newMaterials)->pluck('branch_id'))
-        ->orderByDesc('id') // optional: ensure latest ones first
-        ->get();
-
-    return response()->json([
-        'message' => 'Raw materials added successfully!',
-        'data' => $insertedReports
-    ]);
-}
-
-
-    // public function bulkStore(Request $request)
-    // {
-    //     $data = $request->input('materials');
-
-    //     if (!is_array($data) || empty($data)) {
-    //         return response()->json(['message' => 'No raw materials provided'], 400);
-    //     }
-
-    //     // Extract ingredient and branch pairs
-    //     $rawMaterialBranchPairs = collect($data)->map(function ($material) {
-    //         return ['ingredients_id' => $material['ingredients_id'], 'branch_id' => $material['branch_id']];
-    //     });
-
-    //     // Fetch existing pairs
-    //     $existingRecords = BranchRawMaterialsReport::whereIn('ingredients_id', $rawMaterialBranchPairs->pluck('ingredients_id'))
-    //         ->whereIn('branch_id', $rawMaterialBranchPairs->pluck('branch_id'))
-    //         ->get(['ingredients_id', 'branch_id'])
-    //         ->toArray();
-
-    //     $existingPairs = [];
-    //     foreach ($existingRecords as $record) {
-    //         $existingPairs[$record['ingredients_id'] . '_' . $record['branch_id']] = true;
-    //     }
-
-    //     // Filter new materials
-    //     $newMaterials = array_filter($data, function ($material) use ($existingPairs) {
-    //         $key = $material['ingredients_id'] . '_' . $material['branch_id'];
-    //         return !isset($existingPairs[$key]);
-    //     });
-
-    //     if (empty($newMaterials)) {
-    //         return response()->json(['message' => 'All raw materials already exist in the warehouse'], 200);
-    //     }
-
-    //     // Add timestamps
-    //     foreach ($newMaterials as &$material) {
-    //         $material['created_at'] = now();
-    //         $material['updated_at'] = now();
-    //     }
-
-    //     // Insert materials
-    //     BranchRawMaterialsReport::insert($newMaterials);
-
-    //     // Collect inserted ingredient IDs to fetch full details
-    //     $insertedIngredientIds = collect($newMaterials)->pluck('ingredients_id')->unique();
-
-    //     // Assuming you have an Ingredient model
-    //     $ingredients = RawMaterial::whereIn('id', $insertedIngredientIds)->get();
-
-    //     return response()->json([
-    //         'message' => 'Raw materials added successfully!',
-    //         'ingredients' => $ingredients
-    //     ]);
-    // }
-
-
-
-    // public function bulkStore(Request $request)
-    // {
-    //     $data = $request->input('materials');
-
-    //     if (!is_array($data) || empty($data)) {
-    //         return response()->json(['message' => 'No raw materials provided'], 400);
-    //     }
-
-    //     // Extract ingredients_id and warehouse_id from input data
-    //     $rawMaterialBranchPairs = collect($data)->map(function ($material) {
-    //         return ['ingredients_id' => $material['ingredients_id'], 'branch_id' => $material['branch_id']];
-    //     });
-
-    //     // Fetch existing records that match both raw_material_id and warehouse_id
-    //     $existingRecords = BranchRawMaterialsReport::whereIn('ingredients_id', $rawMaterialBranchPairs->pluck('ingredients_id'))
-    //         ->whereIn('branch_id', $rawMaterialBranchPairs->pluck('branch_id'))
-    //         ->get(['ingredients_id', 'branch_id'])
-    //         ->toArray();
-
-    //     $existingPairs = [];
-    //     foreach ($existingRecords as $record) {
-    //         $existingPairs[$record['ingredients_id'] . '_' . $record['branch_id']] = true;
-    //     }
-
-    //     // Filter out existing materials
-    //     $newMaterials = array_filter($data, function ($material) use ($existingPairs) {
-    //         return !isset($existingPairs[$material['branch_id'] . '_' . $material['branch_id']]);
-    //     });
-
-    //     if (empty($newMaterials)) {
-    //         return response()->json(['message' => 'All raw materials already exist in the warehouse'], 200);
-    //     }
-
-
-    //     // Add timestamps
-    //     foreach ($newMaterials as &$material) {
-    //         $material['created_at'] = now();
-    //         $material['updated_at'] = now();
-    //     }
-
-    //       // Insert only new materials
-    //       BranchRawMaterialsReport::insert($newMaterials);
-
-    //       return response()->json(['message' => 'Raw materials added successfully!', 'data' => ]);
-
-    // }
 
     /**
      * Store a newly created resource in storage.
@@ -301,8 +192,8 @@ class BranchRawMaterialsReportController extends Controller
         ]);
 
         return response()->json([
-            'message' => "Branch Raw Materials saved successfully",
-            'data' => $branchRawMaterials
+            'message'    => "Branch Raw Materials saved successfully",
+            'data'       => $branchRawMaterials
         ], 201);
     }
 
@@ -311,8 +202,8 @@ class BranchRawMaterialsReportController extends Controller
         $validateData = $request->validate([
             'total_quantity' => 'required|integer'
         ]);
-        $branchRawMaterials = BranchRawMaterialsReport::findorFail($id);
-        $branchRawMaterials->total_quantity = $validateData['total_quantity'];
+        $branchRawMaterials                  = BranchRawMaterialsReport::findorFail($id);
+        $branchRawMaterials->total_quantity  = $validateData['total_quantity'];
         $branchRawMaterials->save();
 
         HistoryLog::create([
@@ -328,7 +219,10 @@ class BranchRawMaterialsReportController extends Controller
             'user_id'            => $request->input('user_id'),
         ]);
 
-        return response()->json(['message' => 'Stocks updated successfully', 'total_quantity' => $branchRawMaterials]);
+        return response()->json([
+            'message' => 'Stocks updated successfully',
+            'total_quantity' => $branchRawMaterials
+        ]);
     }
 
     public function destroy($id)

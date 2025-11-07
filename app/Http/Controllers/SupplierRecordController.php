@@ -85,8 +85,8 @@ class SupplierRecordController extends Controller
             }
 
             // 🟢 Return one record's actual database value ofter save
-            $latestRecord = $supplierRecords->first();
-            $latestCreatedAt = $latestRecord->fresh()->created_at;
+            $latestRecord        = $supplierRecords->first();
+            $latestCreatedAt     = $latestRecord->fresh()->created_at;
 
             return response()->json([
                 'message'            => 'Supplier records datetimes successfully updated.',

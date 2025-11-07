@@ -20,6 +20,7 @@ class ProductController extends Controller
     public function searchProducts(Request $request)
     {
         $keyword = $request->input('keyword');
+
         $request->validate([
             'keyword' => 'required|string|max:255'
         ]);
