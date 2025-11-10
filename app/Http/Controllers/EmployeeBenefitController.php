@@ -100,7 +100,9 @@ class EmployeeBenefitController extends Controller
         $existingBenefits = EmployeeBenefit::where('employee_id', $validateData['employee_id'])->first();
 
         if ($existingBenefits) {
-            return response()->json(['error' => 'Benefits for this employee already exists.'], 409);
+            return response()->json([
+                'error' => 'Benefits for this employee already exists.'
+            ], 409);
         }
 
         $benefit = EmployeeBenefit::create($validateData)->load('employee');

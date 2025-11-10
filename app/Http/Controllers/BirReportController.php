@@ -33,9 +33,13 @@ class BirReportController extends Controller
         ]);
 
         if ($updated) {
-            return response()->json(['message' => 'Branch description updated successfully'], 200);
+            return response()->json([
+                'message' => 'Branch description updated successfully'
+            ], 200);
         } else {
-            return response()->json(['message' => 'No records were updated or branch not found'], 404);
+            return response()->json([
+                'message' => 'No records were updated or branch not found'
+            ], 404);
         }
     }
 
@@ -50,9 +54,13 @@ class BirReportController extends Controller
         ]);
 
         if ($updated) {
-            return response()->json(['message' => 'Receipt number updated successfully'], 200);
+            return response()->json([
+                'message' => 'Receipt number updated successfully'
+            ], 200);
         } else {
-            return response()->json(['message' => 'No records were updated or branch not found'], 404);
+            return response()->json([
+                'message' => 'No records were updated or branch not found'
+            ], 404);
         }
     }
 
@@ -67,9 +75,13 @@ class BirReportController extends Controller
         ]);
 
         if ($updated) {
-            return response()->json(['message' => 'Address updated successfully'], 200);
+            return response()->json([
+                'message' => 'Address updated successfully'
+            ], 200);
         } else {
-            return response()->json(['message' => 'No records were updated or branch not found'], 404);
+            return response()->json([
+                'message' => 'No records were updated or branch not found'
+            ], 404);
         }
     }
 
@@ -84,9 +96,13 @@ class BirReportController extends Controller
         ]);
 
         if ($updated) {
-            return response()->json(['message' => 'TIN number updated successfully'], 200);
+            return response()->json([
+                'message' => 'TIN number updated successfully'
+            ], 200);
         } else {
-            return response()->json(['message' => 'No records were updated or branch not found'], 404);
+            return response()->json([
+                'message' => 'No records were updated or branch not found'
+            ], 404);
         }
     }
 
@@ -101,9 +117,13 @@ class BirReportController extends Controller
         ]);
 
         if ($updated) {
-            return response()->json(['message' => 'Amount updated successfully'], 200);
+            return response()->json([
+                'message' => 'Amount updated successfully'
+            ], 200);
         } else {
-            return response()->json(['message' => 'No records were updated or branch not found'], 404);
+            return response()->json([
+                'message' => 'No records were updated or branch not found'
+            ], 404);
         }
     }
 
@@ -118,9 +138,13 @@ class BirReportController extends Controller
         ]);
 
         if ($updated) {
-            return response()->json(['message' => 'Date updated successfully'], 200);
+            return response()->json([
+                'message' => 'Date updated successfully'
+            ], 200);
         } else {
-            return response()->json(['message' => 'No records were updated or branch not found'], 404);
+            return response()->json([
+                'message' => 'No records were updated or branch not found'
+            ], 404);
         }
     }
 
@@ -207,7 +231,9 @@ class BirReportController extends Controller
 
         BirReport::create($validatedData);
 
-        return response()->json(['message' => 'Bir Report created successfully'], 201);
+        return response()->json([
+            'message' => 'Bir Report created successfully'
+        ], 201);
     }
 
     public function store(Request $request)
@@ -225,7 +251,9 @@ class BirReportController extends Controller
 
         BirReport::create($request->all());
 
-        return response()->json(['message' => 'Bir Report created successfully'], 201);
+        return response()->json([
+            'message' => 'Bir Report created successfully'
+        ], 201);
     }
 
     /**

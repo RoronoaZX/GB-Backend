@@ -25,14 +25,17 @@ class EmployeeController extends Controller
 
     public function fetchAllEmployee()
     {
-        $employee = Employee::orderBy('created_at', 'desc')->get();
+        $employee = Employee::orderBy('created_at', 'desc')
+                            ->get();
 
         return response()->json($employee, 201);
     }
 
     public function fetchEmployeeUserID($employee_id)
     {
-        $employeeUserID = Employee::with('user')->where('id', $employee_id)->first();
+        $employeeUserID = Employee::with('user')
+                                    ->where('id', $employee_id)
+                                    ->first();
 
         return response()->json($employeeUserID);
     }
@@ -280,6 +283,25 @@ class EmployeeController extends Controller
             'employee'   => $employee
         ], 200);
     }
+
+    public function updateEmployeePosition(Request $request, $id)
+    {
+       $validateEmployee  = $request->validate([
+        'position' => 'required|string',
+       ]);
+       $employee          = Employee::findOrFail($id);
+       $employee->position = $validateEmployee['position'];
+
+       $employee->save();
+
+       $employee->load('employmentType');
+
+       return response()->json([
+        'message'       => 'Employee position updated successfully',
+        'employee'      => $employee
+       ], 200);
+    }
+
     public function updateEmployeeAddress(Request $request, $id)
     {
         $validateEmployee = $request->validate([
@@ -409,7 +431,9 @@ class EmployeeController extends Controller
 
 
         // This part is unlikely to be reached due to validation, but it's good practice
-        return response()->json(['error' => 'Invalid designation type provided.'], 400);
+        return response()->json([
+            'error' => 'Invalid designation type provided.'
+        ], 400);
     }
     public function updateEmployeeTimeOut(Request $request, $id)
     {
@@ -448,7 +472,9 @@ class EmployeeController extends Controller
 
 
         // This part is unlikely to be reached due to validation, but it's good practice
-        return response()->json(['error' => 'Invalid designation type provided.'], 400);
+        return response()->json([
+            'error' => 'Invalid designation type provided.'
+        ], 400);
     }
 
     /**

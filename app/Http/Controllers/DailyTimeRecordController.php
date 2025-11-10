@@ -176,8 +176,8 @@ class DailyTimeRecordController extends Controller
             'device_uuid_in'     => 'required|string',
         ]);
 
-        $dtr = DailyTimeRecord::find($request->id);
-        $dtr->device_uuid_in = $request->device_uuid_in;
+        $dtr                     = DailyTimeRecord::find($request->id);
+        $dtr->device_uuid_in     = $request->device_uuid_in;
         $dtr->save();
 
         return response()->json([
@@ -193,8 +193,8 @@ class DailyTimeRecordController extends Controller
             'device_uuid_out'    => 'required|string',
         ]);
 
-        $dtr = DailyTimeRecord::find($request->id);
-        $dtr->device_uuid_out = $request->device_uuid_out;
+        $dtr                     = DailyTimeRecord::find($request->id);
+        $dtr->device_uuid_out    = $request->device_uuid_out;
         $dtr->save();
 
         return response()->json([
@@ -210,8 +210,8 @@ class DailyTimeRecordController extends Controller
             'shift_status'   => 'required|string',
         ]);
 
-        $dtr = DailyTimeRecord::find($request->id);
-        $dtr->shift_status = $request->shift_status;
+        $dtr                 = DailyTimeRecord::find($request->id);
+        $dtr->shift_status   = $request->shift_status;
         $dtr->save();
 
         return response()->json([
@@ -237,8 +237,8 @@ class DailyTimeRecordController extends Controller
         // Convert to UTC for saving
         $parsedTimeInUtc = $parsedTimeIn->copy()->setTimezone('UTC');
 
-        $dtr = DailyTimeRecord::find($request->id);
-        $dtr->time_in = $parsedTimeInUtc;
+        $dtr             = DailyTimeRecord::find($request->id);
+        $dtr->time_in    = $parsedTimeInUtc;
         $dtr->save();
 
         return response()->json([

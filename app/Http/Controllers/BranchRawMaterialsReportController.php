@@ -17,16 +17,12 @@ class BranchRawMaterialsReportController extends Controller
      */
     public function index()
     {
-        $branchRawMaterials = BranchRawMaterialsReport::orderBy('created_at', 'desc')->with('ingredients')->get();
+        $branchRawMaterials = BranchRawMaterialsReport::orderBy('created_at', 'desc')
+                                                        ->with('ingredients')
+                                                        ->get();
+
         return $branchRawMaterials;
     }
-
-    // public function getRawMaterials($branchId)
-    // {
-    //     $branchRawMaterials = BranchRawMaterialsReport::where('branch_id', $branchId)->with(['branch', 'ingredients'])->get();
-
-    //     return response()->json($branchRawMaterials, 200);
-    // }
 
     public function getRawMaterials($branchId)
     {
@@ -61,6 +57,7 @@ class BranchRawMaterialsReportController extends Controller
                             $query->where('name', 'LIKE', '%' . $keyword . '%');
                         })
                         ->get();
+
         return response()->json($results);
     }
 
@@ -106,7 +103,9 @@ class BranchRawMaterialsReportController extends Controller
         $data = $request->input('materials');
 
         if (!is_array($data) || empty($data)) {
-            return response()->json(['message' => 'No raw materials provided'], 400);
+            return response()->json([
+                'message' => 'No raw materials provided'
+            ], 400);
         }
 
         // Extract ingredient and branch pairs
@@ -119,7 +118,9 @@ class BranchRawMaterialsReportController extends Controller
 
         // Fetch existing pairs
         $existingRecords = BranchRawMaterialsReport::whereIn('ingredients_id', $rawMaterialBranchPairs->pluck('ingredients_id'))
-                            ->whereIn('branch_id', $rawMaterialBranchPairs->pluck('branch_id'))
+                            ->whereIn('branch_id',
+                                        $rawMaterialBranchPairs->pluck('branch_id')
+                                    )
                             ->get(['ingredients_id', 'branch_id'])
                             ->toArray();
 
@@ -136,7 +137,9 @@ class BranchRawMaterialsReportController extends Controller
         });
 
         if (empty($newMaterials)) {
-            return response()->json(['message' => 'All raw materials already exist in the warehouse'], 200);
+            return response()->json([
+                'message' => 'All raw materials already exist in the warehouse'
+            ], 200);
         }
 
         // Add timestamps to new records
@@ -151,8 +154,14 @@ class BranchRawMaterialsReportController extends Controller
 
         // Fetch inserted records with relationships
         $insertedReports = BranchRawMaterialsReport::with(['ingredients', 'branch'])
-                            ->whereIn('ingredients_id', collect($newMaterials)->pluck('ingredients_id'))
-                            ->whereIn('branch_id', collect($newMaterials)->pluck('branch_id'))
+                            ->whereIn('ingredients_id',
+                                        collect($newMaterials)
+                                        ->pluck('ingredients_id')
+                                    )
+                            ->whereIn('branch_id',
+                                        collect($newMaterials)
+                                        ->pluck('branch_id')
+                                        )
                             ->orderByDesc('id') // optional: ensure latest ones first
                             ->get();
 
@@ -177,7 +186,9 @@ class BranchRawMaterialsReportController extends Controller
             'total_quantity'     => 'required|numeric',
         ]);
 
-        $existingBranchRawMaterials = BranchRawMaterialsReport::where('branch_id', $validatedData['branch_id'])->where('ingredients_id', $validatedData['ingredients_id'])->first();
+        $existingBranchRawMaterials = BranchRawMaterialsReport::where('branch_id', $validatedData['branch_id'])
+                                                                ->where('ingredients_id', $validatedData['ingredients_id'])
+                                                                ->first();
 
         if ($existingBranchRawMaterials) {
             return response()->json([

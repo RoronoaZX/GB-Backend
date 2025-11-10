@@ -44,12 +44,18 @@ class BranchReportController extends Controller
 
                 $salesReports = SalesReports::where('branch_id', $branchId)
                                     ->whereDate('created_at' , $date)
-                                    ->with(['breadReports', 'selectaReports', 'softdrinksReports', 'expensesReports', 'denominationReports'])
+                                    ->with([
+                                        'breadReports', 'selectaReports', 'softdrinksReports',
+                                        'expensesReports', 'denominationReports'
+                                        ])
                                     ->get();
 
                 $bakerReports = InitialBakerreports::where('branch_id', $branchId)
                                     ->whereDate('created_at', $date)
-                                    ->with(['breadBakersReports', 'ingredientBakersReports', 'fillingBakersReports', 'breadProductionReports'])
+                                    ->with([
+                                        'breadBakersReports', 'ingredientBakersReports', 'fillingBakersReports',
+                                        'breadProductionReports'
+                                        ])
                                     ->get();
 
                 $branchReports[] = [
@@ -247,7 +253,9 @@ public function fetchBranchSalesReport($branchId)
     $perPage = request()->get('per_page', 5);
 
     $allDates = $dates; // already ordered DESC form your query
-    $paginatedDates = ($perPage == 0) ? $allDates : (new Collection($dates))->forPage($page, $perPage)->values(); // Reset index
+    $paginatedDates = ($perPage == 0) ? $allDates : (new Collection($dates))
+                        ->forPage($page, $perPage)
+                        ->values(); // Reset index
 
     $branchReports = [];
 

@@ -10,21 +10,29 @@ class BranchController extends Controller
 {
     public function index()
     {
-        $branches = Branch::orderBy('created_at', 'desc')->with('warehouse', 'employees')->get();
+        $branches = Branch::orderBy('created_at', 'desc')
+                            ->with('warehouse', 'employees')
+                            ->get();
 
         return response()->json($branches, 200);
     }
 
     public function fetchBranchUnderWarehouse($warehouseId)
     {
-        $branches = Branch::where('warehouse_id', $warehouseId)->orderBy('name', 'asc')->get();
+        $branches = Branch::where('warehouse_id', $warehouseId)
+                        ->orderBy('name', 'asc')
+                        ->get();
+
         return response()->json($branches, 200);
     }
 
 
     public function show($id)
     {
-        $branch = Branch::where('id', $id)->with('branch_products')->first();
+        $branch = Branch::where('id', $id)
+                        ->with('branch_products')
+                        ->first();
+
         return response()->json($branch );
     }
 
@@ -38,7 +46,9 @@ class BranchController extends Controller
                         ->get();
 
         if ($branch->isEmpty()) {
-            $branch = Branch::orderBy('created_at', 'desc')->take(7)->get();
+            $branch = Branch::orderBy('created_at', 'desc')
+                            ->take(7)
+                            ->get();
         }
 
         return response()->json($branch, 200);
@@ -46,7 +56,10 @@ class BranchController extends Controller
 
     public function fetchBranchWithEmployee()
     {
-        $brancWithEmployee = Branch::with('branchEmployee')->orderBy('name', 'asc')->get();
+        $brancWithEmployee = Branch::with('branchEmployee')
+                                    ->orderBy('name', 'asc')
+                                    ->get();
+
         return response()->json($brancWithEmployee, 200);
     }
 
