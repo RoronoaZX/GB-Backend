@@ -39,6 +39,85 @@ class UserController extends Controller
         return response()->json($users);
     }
 
+    public function verifyAdminPassword(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer|exists:users,id',
+            'password' => 'required|string',
+        ]);
+
+        // Get the user (super admin or admin)
+        $user = User::find($request->user_id);
+
+        if (!$user) {
+            return response()->json(['isValid' => false]);
+        }
+
+        // Check password
+        $isValid = Hash::check($request->password, $user->password);
+
+        return response()->json(['isValid' => $isValid]);
+    }
+
+    // public function updatePassword(Request $request, $id)
+    // {
+    //     $request->validate([
+    //         'user_id' => 'required|integer|exists:users,id',
+    //         'new_password' => 'required|min:6',
+    //         'admin_password' => 'required|string',
+    //     ]);
+
+    //     $admin = auth()->user();
+
+    //     // Validate admin password
+    //     if (!Hash::ckeck($request->admin_password, $admin->password)) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Admin password incorrect.'
+    //         ], 403);
+    //     }
+
+    //     // Update user's password
+    //     $user = User::find($request->user_id);
+    //     $user->password = Hash::make($request->new_password);
+    //     $user->save();
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Password updated successfully.'
+    //     ]);
+    // }
+
+    public function updatePassword(Request $request)
+    {
+        try {
+            // Validate input
+            $request->validate([
+                'user_id' => 'required|exists:users,id',
+                'new_password' => 'required|string|min:6|confirmed',
+            ]);
+
+            // Find the user
+            $user = User::findOrFail($request->user_id);
+
+            // Update password
+            $user->password = Hash::make($request->new_password);
+            $user->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Password updated successfully.'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update password.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function search(Request $request)
     {
         $search = $request->input('keyword'); // Get the search input

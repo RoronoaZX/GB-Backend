@@ -57,6 +57,7 @@ use App\Http\Controllers\WarehouseRawMaterialsReportController;
 use App\Http\Controllers\WarehouseScalingReportController;
 use App\Http\Controllers\WarehouseStockReportsController;
 use App\Models\SupplierRecord;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -131,6 +132,8 @@ Route::apiResource('incentive-employee', IncentiveEmployeeReportsController::cla
 Route::apiResource('payslip', PayslipController::class);
 Route::apiResource('raw-materials-delivery', RawMaterialsDeliveryController::class);
 
+Route::post('/verify-password', [UserController::class, 'verifyAdminPassword']);
+Route::post('/user-password', [UserController::class, 'updatePassword']);
 Route::post('raw-materials-delivery', [RawMaterialsDeliveryController::class, 'create']);
 Route::post('branch/raw-materials/bulk-create', [BranchRawMaterialsReportController::class, 'bulkStore']);
 Route::post('update-branch-date-for-bir-report/{id}', [BirReportController::class, 'updateDateForReports']);
