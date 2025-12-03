@@ -389,6 +389,14 @@ class SalesReportsController extends Controller
         //
     }
 
+    public function updateEmployeeCharges(Request $request, $id)
+    {
+        $salesReports = SalesReports::find($id);
+        $salesReports->charges_amount = $request->charges_amount;
+        $salesReports->save();
+
+        return response()->json(['message' => 'Employee charges updated successfully.'], 200);
+    }
 
     public function edit(SalesReports $salesReports)
     {
