@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\HistoryLog;
 use App\Models\SelectaSalesReport;
 use Illuminate\Http\Request;
 
@@ -27,6 +28,19 @@ class SelectaSalesReportController extends Controller
         $selectaSalesReport->price   = $validatedData['price'];
         $selectaSalesReport->save();
 
+        HistoryLog::create([
+            'report_id'          => $request->input('report_id'),
+            'name'               => $request->input('name'),
+            'original_data'      => $request->input('original_data'),
+            'updated_data'       => $request->input('updated_data'),
+            'updated_field'      => $request->input('updated_field'),
+            'designation'        => $request->input('designation'),
+            'designation_type'   => $request->input('designation_type'),
+            'action'             => $request->input('action'),
+            'type_of_report'     => $request->input('type_of_report'),
+            'user_id'            => $request->input('user_id')
+        ]);
+
         return response()->json([
             'message' => 'Price updated successfully',
             'price' => $selectaSalesReport
@@ -42,6 +56,19 @@ class SelectaSalesReportController extends Controller
         $selectaSalesReport->beginnings  = $validatedData['beginnings'];
         $selectaSalesReport->save();
 
+         HistoryLog::create([
+            'report_id'          => $request->input('report_id'),
+            'name'               => $request->input('name'),
+            'original_data'      => $request->input('original_data'),
+            'updated_data'       => $request->input('updated_data'),
+            'updated_field'      => $request->input('updated_field'),
+            'designation'        => $request->input('designation'),
+            'designation_type'   => $request->input('designation_type'),
+            'action'             => $request->input('action'),
+            'type_of_report'     => $request->input('type_of_report'),
+            'user_id'            => $request->input('user_id'),
+        ]);
+
         return response()->json([
             'message'        => 'beginnings updated successfully',
             'beginnings'     => $selectaSalesReport
@@ -56,6 +83,19 @@ class SelectaSalesReportController extends Controller
         $selectaSalesReport              = SelectaSalesReport::findorFail($id);
         $selectaSalesReport->remaining   = $validatedData['remaining'];
         $selectaSalesReport->save();
+
+        HistoryLog::create([
+            'report_id'          => $request->input('report_id'),
+            'name'               => $request->input('name'),
+            'original_data'      => $request->input('original_data'),
+            'updated_data'       => $request->input('updated_data'),
+            'updated_field'      => $request->input('updated_field'),
+            'designation'        => $request->input('designation'),
+            'designation_type'   => $request->input('designation_type'),
+            'action'             => $request->input('action'),
+            'type_of_report'     => $request->input('type_of_report'),
+            'user_id'            => $request->input('user_id'),
+        ]);
 
         return response()->json([
             'message' => 'remaining updated successfully',

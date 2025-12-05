@@ -258,7 +258,7 @@ Route::put('update-bread-sales-price-report/{id}', [BreadSalesReportController::
 Route::put('update-selecta-sales-price-report/{id}', [SelectaSalesReportController::class, 'updatePrice' ]);
 Route::put('update-selecta-sales-beginnings-report/{id}', [SelectaSalesReportController::class, 'updatedBeginnings' ]);
 Route::put('update-selecta-sales-remaining-report/{id}', [SelectaSalesReportController::class, 'updatedRemaining' ]);
-Route::put('update-selecta-sales-selctaOut-report/{id}', [SelectaSalesReportController::class, 'updatedSelectaOut' ]);
+Route::put('update-selecta-sales-selectaOut-report/{id}', [SelectaSalesReportController::class, 'updatedSelectaOut' ]);
 Route::put('update-selecta-sales-addedstocks-report/{id}', [SelectaSalesReportController::class, 'updatedAddedStocks' ]);
 Route::put('update-selecta-sales-out-report/{id}', [SelectaSalesReportController::class, 'updatedSelectaOut' ]);
 Route::put('update-softdrinks-sales-price-report/{id}', [SoftdrinksSalesReportController::class, 'updatePrice' ]);

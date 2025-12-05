@@ -109,6 +109,19 @@ class BreadSalesReportController extends Controller
         $breadSalesReport->remaining     = $validatedData['remaining'];
         $breadSalesReport->save();
 
+        HistoryLog::create([
+            'report_id'          => $request->input('report_id'),
+            'name'               => $request->input('name'),
+            'original_data'      => $request->input('original_data'),
+            'updated_data'       => $request->input('updated_data'),
+            'updated_field'      => $request->input('updated_field'),
+            'designation'        => $request->input('designation'),
+            'designation_type'   => $request->input('designation_type'),
+            'action'             => $request->input('action'),
+            'type_of_report'     => $request->input('type_of_report'),
+            'user_id'            => $request->input('user_id'),
+        ]);
+
         return response()->json([
             'message'    => 'Remaining updated successfully',
             'remaining'  => $breadSalesReport
