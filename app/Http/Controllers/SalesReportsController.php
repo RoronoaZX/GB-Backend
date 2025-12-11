@@ -7,6 +7,7 @@ use App\Models\BranchEmployee;
 use App\Models\BranchProduct;
 use App\Models\CakeReport;
 use App\Models\CakeSalesReport;
+use App\Models\EmployeeSaleschargesReport;
 use App\Models\SalesReports;
 use App\Models\User;
 use Carbon\Carbon;
@@ -51,6 +52,7 @@ class SalesReportsController extends Controller
             'branch_id'                      => 'required|integer|exists:branches,id',
             'user_id'                        => 'required|integer|exists:users,id',
             'created_at'                     => 'nullable|date',
+            'employee_in_shift'              => 'required|array',
             'denomination_total'             => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
             'expenses_total'                 => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
             'products_total_sales'           => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
@@ -192,10 +194,30 @@ class SalesReportsController extends Controller
             }
         }
 
+        // --- Compute Charges Distribution ---
+        $employees = $request->employee_in_shift;
+
+        // make sure not empty (already validated, but safe check)
+        if (count($employees) > 0) {
+
+            // Divide charges_amount equally
+            $totalCharges = floatval($request->charges_amount);
+            $employeeCount = count($employees);
+            $sharePerEmployee = $employeeCount > 0 ? round($totalCharges / $employeeCount, 2) : 0;
+
+            // Save record far each employee
+            foreach ($employees as $shiftEmployee) {
+                EmployeeSaleschargesReport::create([
+                    'sales_report_id' => $salesReport->id,
+                    'employee_id' => $shiftEmployee['employee_id'],
+                    'charge_amount' => $sharePerEmployee
+                ]);
+            }
+        }
+
+
         return response()->json(['message' => 'Sales report saved successfully.'], 200);
     }
-
-
 
 
     public function store(Request $request)
@@ -203,6 +225,7 @@ class SalesReportsController extends Controller
         $validator = Validator::make($request->all(), [
             'branch_id'                      => 'required|integer|exists:branches,id',
             'user_id'                        => 'required|integer|exists:users,id',
+            'employee_in_shift'              => 'required|array',
             'denomination_total'             => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
             'expenses_total'                 => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
             'products_total_sales'           => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
@@ -367,6 +390,27 @@ class SalesReportsController extends Controller
             foreach ($creditReportData['credits'] as $credit) {
                 $credit['credit_user_id'] = $creditReportData['credit_user_id'];
                 $creditReports->creditProducts()->create($credit);
+            }
+        }
+
+        // --- Compute Charges Distribution ---
+        $employees = $request->employee_in_shift;
+
+        // make sure not empty (already validated, but safe check)
+        if (count($employees) > 0) {
+
+            // Divide charges_amount equally
+            $totalCharges = floatval($request->charges_amount);
+            $employeeCount = count($employees);
+            $sharePerEmployee = $employeeCount > 0 ? round($totalCharges / $employeeCount, 2) : 0;
+
+            // Save record for each employee
+            foreach ($employees as $shiftEmployee) {
+                EmployeeSaleschargesReport::create([
+                    'sales_report_id' => $salesReport->id,
+                    'employee_id'     => $shiftEmployee['employee_id'],
+                    'charge_amount'   => $sharePerEmployee,
+                ]);
             }
         }
     }
