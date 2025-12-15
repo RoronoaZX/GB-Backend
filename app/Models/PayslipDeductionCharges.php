@@ -12,7 +12,7 @@ class PayslipDeductionCharges extends Model
     protected $fillable = [
         'payslip_deduction_id',
         'sales_report_id',
-        'user_id',
+        'employee_id',
         'date',
         'branch_id',
         'charges_amount',

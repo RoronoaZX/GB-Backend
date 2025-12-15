@@ -172,11 +172,11 @@ class PayslipController extends Controller
             'payslip_deductions.payslip_deduction_ca.*.remaining_payments'    => 'required|numeric|min:0',
 
             // Payslip Deduction Charges
-            'payslip_deductions.payslip_deduction_charges.*.id'                    => 'required|integer|exists:sales_reports,id',
-            'payslip_deductions.payslip_deduction_charges.*.user_id'               => 'required|integer|exists:users,id',
-            'payslip_deductions.payslip_deduction_charges.*.created_at'            => 'required|date',
-            'payslip_deductions.payslip_deduction_charges.*.branch_id'             => 'required|integer|exists:branches,id',
-            'payslip_deductions.payslip_deduction_charges.*.charges_amount'        => 'required|numeric|min:0',
+            'payslip_deductions.payslip_deduction_charges.*.sales_report_id'            => 'required|integer|exists:sales_reports,id',
+            'payslip_deductions.payslip_deduction_charges.*.employee_id'                => 'required|integer|exists:users,id',
+            'payslip_deductions.payslip_deduction_charges.*.created_at'                 => 'required|date',
+            'payslip_deductions.payslip_deduction_charges.*.sales_report.branch_id'     => 'required|integer|exists:branches,id',
+            'payslip_deductions.payslip_deduction_charges.*.charge_amount'              => 'required|numeric|min:0',
 
             // Payslip Deduction Uniforms
             'payslip_deductions.payslip_deduction_uniforms.id'                   => 'nullable|integer',
@@ -428,11 +428,11 @@ class PayslipController extends Controller
             foreach ($deductionCharges as $charge) {
                 PayslipDeductionCharges::create([
                     'payslip_deduction_id'      => $payslipDeductions->id,
-                    'sales_report_id'           => $charge['id'],
-                    'user_id'                   => $charge['user_id'],
+                    'sales_report_id'           => $charge['sales_report_id'],
+                    'employee_id'               => $charge['employee_id'],
                     'date'                      => Carbon::parse($charge['created_at'])->timezone('Asia/Manila'),
-                    'branch_id'                 => $charge['branch_id'],
-                    'charges_amount'            => $charge['charges_amount'],
+                    'branch_id'                 =>data_get($charge, 'sales_report.branch_id'),
+                    'charges_amount'            => $charge['charge_amount'],
                 ]);
             }
 
