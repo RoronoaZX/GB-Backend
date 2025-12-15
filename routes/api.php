@@ -26,6 +26,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeCreditProductsController;
 use App\Http\Controllers\EmployeeCreditsController;
 use App\Http\Controllers\EmployeeDeductionController;
+use App\Http\Controllers\EmployeeSaleschargesReportController;
 use App\Http\Controllers\EmploymentTypeController;
 use App\Http\Controllers\ExpencesReportController;
 use App\Http\Controllers\HistoryLogController;
@@ -41,6 +42,7 @@ use App\Http\Controllers\PayslipController;
 use App\Http\Controllers\RawMaterialsDeliveryController;
 use App\Http\Controllers\RecipeCostController;
 use App\Http\Controllers\RequestPremixController;
+use App\Http\Controllers\SalesChargesReportController;
 use App\Http\Controllers\SalesReportsController;
 use App\Http\Controllers\SelectaAddedStockController;
 use App\Http\Controllers\SelectaSalesReportController;
@@ -56,6 +58,7 @@ use App\Http\Controllers\WarehouseEmployeeController;
 use App\Http\Controllers\WarehouseRawMaterialsReportController;
 use App\Http\Controllers\WarehouseScalingReportController;
 use App\Http\Controllers\WarehouseStockReportsController;
+use App\Models\EmployeeSaleschargesReport;
 use App\Models\SupplierRecord;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -131,6 +134,7 @@ Route::apiResource('incentives-bases', IncentivesBasesController::class);
 Route::apiResource('incentive-employee', IncentiveEmployeeReportsController::class);
 Route::apiResource('payslip', PayslipController::class);
 Route::apiResource('raw-materials-delivery', RawMaterialsDeliveryController::class);
+Route::apiResource('sales-charges-report', SalesChargesReportController::class);
 
 Route::post('/verify-password', [UserController::class, 'verifyAdminPassword']);
 Route::post('/user-password', [UserController::class, 'updatePassword']);
@@ -214,7 +218,8 @@ Route::post('saveEmployeeDtr', [DailyTimeRecordController::class, 'saveEmployeeD
 Route::post('raw-materials-delivery-declined', [RawMaterialsDeliveryController::class, 'declinraw-materials-delivery-pendingeDelivery']);
 Route::post('raw-materials-delivery-confirmed', [RawMaterialsDeliveryController::class, 'confirmDelivery']);
 
-Route::put('employee-charges/{id}', [SalesReportsController::class, 'updateEmployeeCharges']);
+Route::put('update-employee-charges/{id}', [EmployeeSaleschargesReportController::class, 'updateCharges']);
+// Route::put('employee-charges/{id}', [SalesReportsController::class, 'updateEmployeeCharges']);
 Route::put('update-employment-type/salary/{id}', [EmploymentTypeController::class, 'updateEmployeementTypeSalary']);
 Route::put('incentives-bases/update-number-employee/{id}', [IncentivesBasesController::class, 'updateNumberEmployee']);
 Route::put('incentives-bases/update-target/{id}', [IncentivesBasesController::class, 'updateTarget']);
@@ -302,6 +307,7 @@ Route::put('editDeliveryStocks', [RawMaterialsDeliveryController::class, 'editDe
 Route::put('update-delivery-date/{id}', [RawMaterialsDeliveryController::class, 'updateDeliveryDate']);
 Route::put('update-supplier-history-date-time/{id}', [SupplierRecordController::class, 'updateSupplierHistoriesDateTime']);
 
+Route::get('fetch-employee-charges-per-cut-off/{from}/{to}/{employee_id}', [EmployeeSaleschargesReportController::class, 'fetchEmployeeChargesPerCutOff']);
 Route::get('fetchrawMaterialsBranchWarehouse/{id}', [RawMaterialController::class, 'fetchrawMaterialsBranchWarehouse']);
 Route::get('fetch-supplier-records', [SupplierRecordController::class, 'getSupplierRecords']);
 Route::get('fetch-recipe-costs/{branchId}', [RecipeCostController::class, 'fetchRecipeCosts']);

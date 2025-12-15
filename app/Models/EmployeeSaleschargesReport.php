@@ -14,4 +14,14 @@ class EmployeeSaleschargesReport extends Model
         'employee_id',
         'charge_amount'
     ];
+
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class, 'employee_id');
+    }
+
+    public function salesReport()
+    {
+        return $this->belongsTo(SalesReports::class, 'sales_report_id');
+    }
 }
