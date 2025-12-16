@@ -444,7 +444,7 @@ class SalesReportsController extends Controller
 
     public function edit(SalesReports $salesReports)
     {
-        //
+        //this is for spa building
     }
 
     /**
