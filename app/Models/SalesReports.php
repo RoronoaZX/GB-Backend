@@ -78,4 +78,9 @@ class SalesReports extends Model
                     ->with('creditProducts', 'creditUserId');
     }
 
+    public function employeeSaleschargesReports()
+    {
+        return $this->hasMany(EmployeeSaleschargesReport::class, 'sales_report_id');
+    }
+
 }

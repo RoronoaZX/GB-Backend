@@ -128,7 +128,8 @@ class BranchReportController extends Controller
                                 ->with([
                                     'user', 'branch', 'breadReports', 'selectaReports',
                                     'softdrinksReports', 'expensesReports', 'denominationReports',
-                                    'creditReports', 'cakeSalesReports', 'otherProductsReports'
+                                    'creditReports', 'cakeSalesReports', 'otherProductsReports',
+                                    'employeeSaleschargesReports.employee'
                                     ])
                                 ->get();
 
@@ -141,7 +142,8 @@ class BranchReportController extends Controller
                                 ->with([
                                     'user', 'branch', 'breadReports', 'selectaReports',
                                      'softdrinksReports', 'expensesReports', 'denominationReports',
-                                     'creditReports', 'cakeSalesReports', 'otherProductsReports'
+                                     'creditReports', 'cakeSalesReports', 'otherProductsReports',
+                                     'employeeSaleschargesReports.employee'
                                      ])
                                 ->get();
 
@@ -233,100 +235,100 @@ class BranchReportController extends Controller
         return response()->json($paginator);
     }
 
-public function fetchBranchSalesReport($branchId)
-{
-    $branch = Branch::find($branchId);
-    if (!$branch) {
-        return response()->json(['message' => 'Branch not found'], 404);
+    public function fetchBranchSalesReport($branchId)
+    {
+        $branch = Branch::find($branchId);
+        if (!$branch) {
+            return response()->json(['message' => 'Branch not found'], 404);
+        }
+
+        // Fetch unique dates from sales_reports (converted to Asia/Manila timezone)
+        $dates = DB::table('sales_reports')
+                    ->select(DB::raw('DATE(CONVERT_TZ(created_at, "+00:00", "+08:00")) as date'))
+                    ->where('branch_id', $branchId)
+                    ->groupBy('date')
+                    ->orderBy('date', 'desc')
+                    ->pluck('date');
+
+        // Setup pagination
+        $page = request()->get('page', 1);
+        $perPage = request()->get('per_page', 5);
+
+        $allDates = $dates; // already ordered DESC form your query
+        $paginatedDates = ($perPage == 0) ? $allDates : (new Collection($dates))
+                            ->forPage($page, $perPage)
+                            ->values(); // Reset index
+
+        $branchReports = [];
+
+        foreach ($paginatedDates as $date) {
+            $carbonDate = Carbon::createFromFormat('Y-m-d', $date, 'Asia/Manila');
+
+            // AM Sales Reports: 6:00 AM - 10:00 PM
+            $amSalesReports = SalesReports::where('branch_id', $branchId)
+                                ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
+                                    $carbonDate->copy()->setTime(6, 0, 0)->toDateTimeString(),
+                                    $carbonDate->copy()->setTime(22, 0, 0)->toDateTimeString(),
+                                ])
+                                ->with([
+                                    'user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports',
+                                    'expensesReports', 'denominationReports', 'creditReports',
+                                    'cakeSalesReports', 'otherProductsReports'
+                                ])
+                                ->get();
+
+            // PM Sales Reports: 10:01 PM - 5:59 AM
+            $pmSalesReports = SalesReports::where('branch_id', $branchId)
+                                ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
+                                    $carbonDate->copy()->setTime(22, 1, 0)->toDateTimeString(),
+                                    $carbonDate->copy()->addDay()->setTime(5, 59, 59)->toDateTimeString(),
+                                ])
+                                ->with([
+                                    'user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports',
+                                    'expensesReports', 'denominationReports', 'creditReports',
+                                    'cakeSalesReports', 'otherProductsReports'
+                                ])
+                                ->get();
+
+            $branchReports[] = [
+                'date'   => $carbonDate->toDateString(),
+                'AM'     => [
+                            'sales_reports'  => $amSalesReports,
+                            'date'           => $carbonDate->toDateString(),
+                            'branch_name'    => $branch->name,
+                        ],
+                'PM'    => [
+                            'sales_reports'  => $pmSalesReports,
+                            'date'           => $carbonDate->toDateString(),
+                            'branch_name'    => $branch->name,
+                        ]
+            ];
+        }
+
+        // Return paginated or full result
+
+        if ($perPage == 0) {
+            return response()->json([
+                'data'           => $branchReports,
+                'total'          => count($branchReports),
+                'per_page'       => count($branchReports),
+                'current_page'   => 1,
+                'last_page'      => 1
+            ]);
+        } else {
+            // Create manual pagination
+            $paginator = new LengthAwarePaginator(
+                $branchReports,
+                count($dates),       // total number of all dates
+                $perPage,
+                $page,
+                ['path'         => url()->current()] // for next_page_url, prev_page_url, etc.
+            );
+        }
+
+
+        return response()->json($paginator);
     }
-
-    // Fetch unique dates from sales_reports (converted to Asia/Manila timezone)
-    $dates = DB::table('sales_reports')
-                ->select(DB::raw('DATE(CONVERT_TZ(created_at, "+00:00", "+08:00")) as date'))
-                ->where('branch_id', $branchId)
-                ->groupBy('date')
-                ->orderBy('date', 'desc')
-                ->pluck('date');
-
-    // Setup pagination
-    $page = request()->get('page', 1);
-    $perPage = request()->get('per_page', 5);
-
-    $allDates = $dates; // already ordered DESC form your query
-    $paginatedDates = ($perPage == 0) ? $allDates : (new Collection($dates))
-                        ->forPage($page, $perPage)
-                        ->values(); // Reset index
-
-    $branchReports = [];
-
-    foreach ($paginatedDates as $date) {
-        $carbonDate = Carbon::createFromFormat('Y-m-d', $date, 'Asia/Manila');
-
-        // AM Sales Reports: 6:00 AM - 10:00 PM
-        $amSalesReports = SalesReports::where('branch_id', $branchId)
-                            ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
-                                $carbonDate->copy()->setTime(6, 0, 0)->toDateTimeString(),
-                                $carbonDate->copy()->setTime(22, 0, 0)->toDateTimeString(),
-                            ])
-                            ->with([
-                                'user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports',
-                                'expensesReports', 'denominationReports', 'creditReports',
-                                'cakeSalesReports', 'otherProductsReports'
-                            ])
-                            ->get();
-
-        // PM Sales Reports: 10:01 PM - 5:59 AM
-        $pmSalesReports = SalesReports::where('branch_id', $branchId)
-                            ->whereBetween(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), [
-                                $carbonDate->copy()->setTime(22, 1, 0)->toDateTimeString(),
-                                $carbonDate->copy()->addDay()->setTime(5, 59, 59)->toDateTimeString(),
-                            ])
-                            ->with([
-                                'user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports',
-                                'expensesReports', 'denominationReports', 'creditReports',
-                                'cakeSalesReports', 'otherProductsReports'
-                            ])
-                            ->get();
-
-        $branchReports[] = [
-            'date'   => $carbonDate->toDateString(),
-            'AM'     => [
-                        'sales_reports'  => $amSalesReports,
-                        'date'           => $carbonDate->toDateString(),
-                        'branch_name'    => $branch->name,
-                    ],
-            'PM'    => [
-                        'sales_reports'  => $pmSalesReports,
-                        'date'           => $carbonDate->toDateString(),
-                        'branch_name'    => $branch->name,
-                    ]
-        ];
-    }
-
-    // Return paginated or full result
-
-    if ($perPage == 0) {
-        return response()->json([
-            'data'           => $branchReports,
-            'total'          => count($branchReports),
-            'per_page'       => count($branchReports),
-            'current_page'   => 1,
-            'last_page'      => 1
-        ]);
-    } else {
-        // Create manual pagination
-        $paginator = new LengthAwarePaginator(
-            $branchReports,
-            count($dates),       // total number of all dates
-            $perPage,
-            $page,
-            ['path'         => url()->current()] // for next_page_url, prev_page_url, etc.
-        );
-    }
-
-
-    return response()->json($paginator);
-}
 
     /**
      * Show the form for creating a new resource.
