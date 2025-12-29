@@ -457,6 +457,9 @@ class BreadSalesReportController extends Controller
 
             $breadProduction = BreadSalesReport::create($validated);
 
+            // IMPORTANT: Load realtionships
+            $breadProduction->load('bread');
+
             return response()->json([
                 'message' => 'Bread Production added successfully',
                 'data'    => $breadProduction

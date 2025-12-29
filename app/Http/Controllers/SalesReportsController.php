@@ -367,14 +367,26 @@ class SalesReportsController extends Controller
         }
 
         // Store Denomination Reports
-        foreach ($request->denominationReports as $denominationReport) {
-            foreach ($denominationReport as $key => $value) {
-                if (is_string($value)) {
-                    $denominationReport[$key] = (int)str_replace(',', '', $value);
-                }
+        // foreach ($request->denominationReports as $denominationReport) {
+        //     foreach ($denominationReport as $key => $value) {
+        //         if (is_string($value)) {
+        //             $denominationReport[$key] = (int)str_replace(',', '', $value);
+        //         }
+        //     }
+        //     $salesReport->denominationReports()->create($denominationReport);
+        // }
+
+        // Store denomination Reports
+        $denominationReport = $request->denominationReports;
+
+        // sanitize values
+        foreach ($denominationReport as $key => $value) {
+            if (is_string($value)) {
+                $denominationReport[$key] = (int)str_replace(',', '', $value);
             }
-            $salesReport->denominationReports()->create($denominationReport);
         }
+
+        $salesReport->denominationReports()->create($denominationReport);
 
             // Loop through each creditReport entry
         foreach ($request->creditReports as $creditReportData) {
