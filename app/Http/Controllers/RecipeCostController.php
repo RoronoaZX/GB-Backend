@@ -47,7 +47,7 @@ class RecipeCostController extends Controller
                 return [
                     'recipe_id'      => $first->recipe_id,
                     'recipe_name'    => $first->recipe?->name,
-                    'total_cost'     => $group->sum('total_cost'),
+                    'recipe_total_cost'  => $group->sum('total_cost'),
                     'user'           => $first->user,
                     'created_at'     => $first->created_at,
                     'kilo'           => $first->initialBakerreport?->kilo ?? null,
