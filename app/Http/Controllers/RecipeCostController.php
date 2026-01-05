@@ -38,44 +38,51 @@ class RecipeCostController extends Controller
         }
 
         // ✅ Step 3: Paginate RAW rows first
-        $paginated = $query->paginate($perPage, ['*'], 'page', $page);
+        // $paginated = $query->paginate($perPage, ['*'], 'page', $page);
+        $allRows = $query->get();
 
         // ✅ Step 4: Group ONLY current page data
-        $grouped = collect($paginated->items())
-            ->groupBy(function ($item) {
-                return $item->recipe_id . '_' . $item->initial_bakerreport_id;
-            })
-            ->map(function ($group) {
-                $first = $group->first();
+        $grouped = collect($allRows)
+        ->groupBy(fn ($item) =>
+            $item->recipe_id . '_' . $item->initial_bakerreport_id
+        )
+        ->map(function ($group) {
+            $first = $group->first();
 
-                return [
-                    'recipe_id'              => $first->recipe_id,
-                    'recipe_name'            => $first->recipe?->name,
-                    'recipe_total_cost'      => $group->sum('total_cost'), // ✅ ALWAYS CORRECT
-                    'user'                   => $first->user,
-                    'created_at'             => $first->created_at,
-                    'kilo'                   => $first->initialBakerreport?->kilo ?? null,
+            return [
+                'recipe_id'         => $first->recipe_id,
+                'recipe_name'       => $first->recipe?->name,
+                'recipe_total_cost' => $group->sum('total_cost'),
+                'user'              => $first->user,
+                'created_at'        => $first->created_at,
+                'kilo'              => $first->initialBakerreport?->kilo,
 
-                    'items' => $group->map(function ($item) {
-                        return [
-                            'raw_material_id'    => $item->raw_material_id,
-                            'raw_material_name'  => $item->rawMaterial?->name,
-                            'quantity_used'      => $item->quantity_used,
-                            'price_per_gram'     => $item->price_per_gram,
-                            'total_cost'         => $item->total_cost,
-                        ];
-                    })->values(),
-                ];
-            })
+                'items' => $group->map(function ($item) {
+                    return [
+                        'raw_material_name' => $item->rawMaterial?->name,
+                        'quantity_used'     => $item->quantity_used,
+                        'price_per_gram'    => $item->price_per_gram,
+                        'total_cost'        => $item->total_cost,
+                    ];
+                })->values(),
+            ];
+        })
+        ->values();
+
+        $total = $grouped->count();
+
+        $pagedData = $grouped
+            ->slice(($page - 1) * $perPage, $perPage)
             ->values();
+
 
         // ✅ Step 5: Return pagination meta from RAW paginator
         return response()->json([
-            'data'           => $grouped,
-            'total'          => $paginated->total(),
-            'per_page'       => $paginated->perPage(),
-            'current_page'   => $paginated->currentPage(),
-            'last_page'      => $paginated->lastPage(),
+            'data'         => $pagedData,
+            'total'        => $total,
+            'per_page'     => $perPage,
+            'current_page' => $page,
+            'last_page'    => ceil($total / $perPage),
         ]);
 
     }
