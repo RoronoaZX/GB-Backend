@@ -67,6 +67,7 @@ class RecipeCostController extends Controller
                 })->values(),
             ];
         })
+        ->sortByDesc('created_at')
         ->values();
 
         $total = $grouped->count();
