@@ -95,7 +95,7 @@ class RecipeCostController extends Controller
                 'data'           => $paginated,
                 'total'          => $total,
                 'per_page'       => $perPage,
-                'current_page'   => $perPage,
+                'current_page'   => $page,
                 'last_page'      => $lastPage,
                 'links'          => $links,
             ]);
