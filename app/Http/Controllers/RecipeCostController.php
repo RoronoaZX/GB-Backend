@@ -105,7 +105,7 @@ class RecipeCostController extends Controller
     public function fetchRecipeCosts(Request $request, $branchId)
     {
         $page    = (int) $request->get('page', 1);
-        $perPage = (int) $request->get('per_page', 1);
+        $perPage = (int) $request->get('per_page', 5);
         $search  = $request->query('search', '');
 
         // ✅ Step 1: Base query
