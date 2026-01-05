@@ -38,7 +38,9 @@ class RecipeCostController extends Controller
 
         // ✅ Step 3: Get data and group by recipe_id
         $grouped = $query->get()
-            ->groupBy('recipe_id')
+            ->groupBy(function ($item) {
+                return $item->recipe_id . '_' . $item->initial_bakerreport_id;
+            })
             ->map(function ($group) {
                 $first = $group->first();
 
