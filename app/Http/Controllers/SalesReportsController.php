@@ -171,14 +171,15 @@ class SalesReportsController extends Controller
             $salesReport->expensesReports()->create($withOutReceiptExpensesReport);
         }
 
-        foreach ($request->denominationReports as $denominationReport) {
-            foreach ($denominationReport as $key => $value) {
-                if (is_string($value)) {
-                    $denominationReport[$key] = (int)str_replace(',', '', $value);
-                }
+        $denominationReport = $request->denominationReports;
+
+        foreach ($denominationReport as $key => $value) {
+            if (is_string($value)) {
+                $denominationReport[$key] = (int) str_replace(',', '', $value);
             }
-            $salesReport->denominationReports()->create($denominationReport);
         }
+
+        $salesReport->denominationReports()->create($denominationReport);
 
         foreach ($request->creditReports ?? [] as $creditReportData) {
             $creditReports = $salesReport->creditReports()->create([
