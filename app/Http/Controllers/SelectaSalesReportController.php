@@ -459,6 +459,9 @@ class SelectaSalesReportController extends Controller
 
         $selecta = SelectaSalesReport::create($validated);
 
+        // IMPORTANT: Load relationships
+        $selecta->load('selecta');
+
         return response()->json([
             'message' => 'Selecta Production added successfully',
             'data'    => $selecta

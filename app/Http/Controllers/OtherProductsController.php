@@ -630,6 +630,8 @@ class OtherProductsController extends Controller
 
         $otherProduct = OtherProducts::create($validated);
 
+        $otherProduct->load('otherProducts');
+
         return response()->json([
             'message' => 'Other Production added successfully',
             'data'    => $otherProduct

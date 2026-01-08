@@ -462,6 +462,8 @@ class SoftdrinksSalesReportController extends Controller
 
         $softdrinks = SoftdrinksSalesReport::create($validated);
 
+        $softdrinks->load('softdrinks');
+
         return response()->json([
             'message' => 'Softdrinks Production added successfully',
             'data'    => $softdrinks
