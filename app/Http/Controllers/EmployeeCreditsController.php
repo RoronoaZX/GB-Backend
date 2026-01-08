@@ -30,14 +30,24 @@ class EmployeeCreditsController extends Controller
             $toDate      = Carbon::parse($to)->endOfDay();
 
             // Get employee credits with related products and product info
+            // $credits = EmployeeCredits::with(['creditProducts.product', 'creditUserId'])
+            //                 ->where('credit_user_id', $employee_id)
+            //                 ->where(function ($query) {
+            //                     $query->where('status', '!=', 'paid')
+            //                         ->orWhereNull('status');
+            //                 })
+            //                 ->get();
+            //                 // ->whereBetween('created_at', [$fromDate, $toDate])
+
             $credits = EmployeeCredits::with(['creditProducts.product', 'creditUserId'])
-                            ->where('credit_user_id', $employee_id)
-                            ->where(function ($query) {
-                                $query->where('status', '!=', 'paid')
-                                    ->orWhereNull('status');
-                            })
-                            ->whereBetween('created_at', [$fromDate, $toDate])
-                            ->get();
+                ->where('credit_user_id', $employee_id)
+                ->whereBetween('created_at', [$fromDate, $toDate])
+                ->where(function ($query) {
+                    $query->where('status', '!=', 'paid')
+                        ->orWhereNull('status');
+                })
+                ->get();
+
 
             // Build response
             $response = [
