@@ -36,8 +36,8 @@ class EmployeeCreditsController extends Controller
                                 $query->where('status', '!=', 'paid')
                                     ->orWhereNull('status');
                             })
+                            ->whereBetween('created_at', [$fromDate, $toDate])
                             ->get();
-                            // ->whereBetween('created_at', [$fromDate, $toDate])
 
             // Build response
             $response = [
