@@ -271,9 +271,10 @@ class BranchReportController extends Controller
                                     $carbonDate->copy()->setTime(22, 0, 0)->toDateTimeString(),
                                 ])
                                 ->with([
-                                    'user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports',
-                                    'expensesReports', 'denominationReports', 'creditReports',
-                                    'cakeSalesReports', 'otherProductsReports'
+                                    'user', 'branch', 'breadReports', 'selectaReports',
+                                    'softdrinksReports', 'expensesReports', 'denominationReports',
+                                    'creditReports', 'cakeSalesReports', 'otherProductsReports',
+                                    'employeeSaleschargesReports.employee'
                                 ])
                                 ->get();
 
@@ -284,9 +285,10 @@ class BranchReportController extends Controller
                                     $carbonDate->copy()->addDay()->setTime(5, 59, 59)->toDateTimeString(),
                                 ])
                                 ->with([
-                                    'user', 'branch', 'breadReports', 'selectaReports', 'softdrinksReports',
-                                    'expensesReports', 'denominationReports', 'creditReports',
-                                    'cakeSalesReports', 'otherProductsReports'
+                                    'user', 'branch', 'breadReports', 'selectaReports',
+                                    'softdrinksReports', 'expensesReports', 'denominationReports',
+                                    'creditReports', 'cakeSalesReports', 'otherProductsReports',
+                                    'employeeSaleschargesReports.employee'
                                 ])
                                 ->get();
 
