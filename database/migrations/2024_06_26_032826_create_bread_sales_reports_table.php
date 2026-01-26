@@ -28,6 +28,10 @@ return new class extends Migration
             $table->integer('total');
             $table->integer('bread_over');
             $table->integer('sales');
+            $table->string('status')->nullable();
+            $table->foreignId('handled_by')->references('id')->on('employee');
+            $table->string('reason')->nullable();
+            $table->dateTime('handled_at')->nullable();
             $table->timestamps();
         });
     }

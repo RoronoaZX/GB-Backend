@@ -26,6 +26,10 @@ return new class extends Migration
             $table->integer('out');
             $table->integer('sales');
             $table->integer('added_stocks');
+            $table->string('status')->nullable();
+            $table->foreignId('handled_by')->references('id')->on('employee');
+            $table->string('reason')->nullable();
+            $table->dateTime('handled_at')->nullable();
             $table->timestamps();
         });
     }

@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Branch;
 use App\Models\BranchReport;
+use App\Models\BreadSalesReport;
 use App\Models\InitialBakerreports;
+use App\Models\OtherProducts;
 use App\Models\SalesReports;
+use App\Models\SelectaSalesReport;
+use App\Models\SoftdrinksSalesReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -81,6 +85,84 @@ class BranchReportController extends Controller
     //------------------------//
     // this is the final codes//
     //------------------------//
+    public function fetchBranchPendingSalesReport($branchId)
+    {
+        $bread = BreadSalesReport::where('branch_id', $branchId)
+            ->where('status', 'pending')
+            ->with('bread')
+            ->get()
+            ->map(function ($item) {
+                $item->product_type = 'bread';
+                return $item;
+            });
+
+        $selecta = SelectaSalesReport::where('branch_id', $branchId)
+            ->where('status', 'pending')
+            ->with('selecta')
+            ->get()
+            ->map(function ($item) {
+                $item->product_type = 'selecta';
+
+                return $item;
+            });
+
+        $softdrinks = SoftdrinksSalesReport::where('branch_id', $branchId)
+            ->where('status', 'pending')
+            ->with('softdrinks')
+            ->get()
+            ->map(function ($item) {
+                $item->product_type = 'softdrinks';
+
+                return $item;
+            });
+        $others = OtherProducts::where('branch_id', $branchId)
+            ->where('status', 'pending')
+            ->with('otherProducts')
+            ->get()
+            ->map(function ($item) {
+                $item->product_type = 'others';
+
+                return $item;
+            });
+
+        $merged = collect()
+            ->merge($bread)
+            ->merge($selecta)
+            ->merge($softdrinks)
+            ->merge($others);
+
+        // get sales_report_ids
+        $salesReportIds = $merged->pluck('sales_report_id')->unique();
+
+        // fetch parent sales reports
+
+        $salesReports = SalesReports::whereIn('id', $salesReportIds)
+            ->get()
+            ->keyBy('id');
+
+        // group and build final response
+        $result = $merged
+            ->groupBy('sales_report_id')
+            ->map(function ($items, $salesReportId) use ($branchId, $salesReports) {
+                return [
+                    'sales_report_id'    => $salesReportId,
+                    'branch_id'          => $branchId,
+                    'sales_report'       => $salesReports->get($salesReportId),
+
+                    'bread'              => $items->whereInstanceOf(BreadSalesReport::class)->values(),
+                    'selecta'            => $items->whereInstanceOf(SelectaSalesReport::class)->values(),
+                    'softdrinks'         => $items->whereInstanceOf(SoftdrinksSalesReport::class)->values(),
+                    'others'             => $items->whereInstanceOf(OtherProducts::class)->values(),
+                ];
+            })
+            ->sortByDesc(function ($item) {
+                return optional($item['sales_report'])->created_at;
+            })
+            ->values();
+
+        return response()->json($result);
+    }
+
     public function fetchBranchReport($branchId)
     {
         $branch = Branch::find($branchId);
@@ -332,69 +414,125 @@ class BranchReportController extends Controller
         return response()->json($paginator);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function confirmProductSalesReport(Request $request)
     {
-        //
+        $request->validate([
+            'id'             => 'required|integer',
+            'employee_id'    => 'required|integer',
+            'type'           => 'required|string|in:bread,selecta,softdrinks,other',
+            'status'         => 'required|string|in:confirmed,declined',
+        ]);
+
+        $type = $request->type;
+        $id = $request->id;
+
+        $modelMap = [
+            'bread'          => BreadSalesReport::class,
+            'selecta'        => SelectaSalesReport::class,
+            'softdrinks'     => SoftdrinksSalesReport::class,
+            'other'          => OtherProducts::class,
+        ];
+
+        $model = $modelMap[$type];
+
+        DB::beginTransaction();
+
+        try {
+            $report = $model::where('id', $id)
+                ->where('status', 'pending')
+                ->first();
+
+            if (!$report) {
+                return response()->json([
+                    'message' => 'Sales report not found',
+                ], 404);
+            }
+
+            $report->update([
+                'status'         => $request->status,
+                'handled_by'     => $request->employee_id,
+                'handled_at'     => now(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message'            => ucfirst($type) . 'sales report confirmed successfully.',
+                'sales_report_id'    => $report->sales_report_id,
+                'type'               => $type,
+                'product_id'         => $report->id,
+                'status'             => $report->status
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'message'    => 'Report not found',
+                'error'      => $e->getMessage(),
+            ], 500);
+        }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    public function declineProductSalesReport(Request $request)
     {
-        //
-    }
+        $request->validate([
+            'id'             => 'required|integer',
+            'employee_id'    => 'required|integer',
+            'type'           => 'required|string|in:bread,selecta,softdrinks,other',
+            'reason'         => 'required|string',
+            'status'         => 'required|string|in:confirmed,declined',
+        ]);
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\BranchReport  $branchReport
-     * @return \Illuminate\Http\Response
-     */
-    public function show(BranchReport $branchReport)
-    {
-        //
-    }
+        $type = $request->type;
+        $id = $request->id;
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\BranchReport  $branchReport
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(BranchReport $branchReport)
-    {
-        //
-    }
+        $modelMap = [
+            'bread'          => BreadSalesReport::class,
+            'selecta'        => SelectaSalesReport::class,
+            'softdrinks'     => SoftdrinksSalesReport::class,
+            'other'          => OtherProducts::class,
+        ];
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\BranchReport  $branchReport
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, BranchReport $branchReport)
-    {
-        //
-    }
+        $model = $modelMap[$type];
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\BranchReport  $branchReport
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(BranchReport $branchReport)
-    {
-        //
+        DB::beginTransaction();
+
+        try {
+            $report = $model::where('id', $id)
+                ->where('status', 'pending')
+                ->first();
+
+            if (!$report) {
+                return response()->json([
+                    'message' => 'Sales report not found.',
+                ], 404);
+            }
+
+            $report->update([
+                'status'         => $request->status,
+                'handled_by'     => $request->employee_id,
+                'reason'         => $request->reason,
+                'handled_at'     => now(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message'            => ucfirst($type). 'sales report declined successfully.',
+                'sales_report_id'    => $report->sales_report_id,
+                'type'               => $type,
+                'product_id'         => $report->id,
+                'status'             => $report->status
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'message'    => 'Failed to decline sales report.',
+                'error'      => $e->getMessage(),
+            ], 500);
+        }
     }
 }

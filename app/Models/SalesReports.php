@@ -36,24 +36,24 @@ class SalesReports extends Model
     public function breadReports()
     {
         return $this->hasMany(BreadSalesReport::class, 'sales_report_id')
-                    ->with('bread');
+                    ->with('bread', 'handledBy');
     }
 
     public function selectaReports()
     {
         return $this->hasMany(SelectaSalesReport::class, 'sales_report_id')
-                    ->with('selecta');
+                    ->with('selecta', 'handledBy');
     }
 
     public function softdrinksReports()
     {
         return $this->hasMany(SoftdrinksSalesReport::class, 'sales_report_id')
-                    ->with('softdrinks');
+                    ->with('softdrinks', 'handledBy');
     }
     public function otherProductsReports()
     {
         return $this->hasMany(OtherProducts::class, 'sales_report_id')
-                    ->with('otherProducts');
+                    ->with('otherProducts', 'handledBy');
     }
 
     public function cakeSalesReports()

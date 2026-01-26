@@ -21,6 +21,10 @@ class OtherProducts extends Model
         'out',
         'sales',
         'added_stocks',
+        'status',
+        'handled_by',
+        'reason',
+        'handled_at'
     ];
 
     public function salesReports()
@@ -31,5 +35,10 @@ class OtherProducts extends Model
     public function otherProducts()
     {
         return $this->belongsTo(Product::class, 'product_id', 'id');
+    }
+
+    public function handledBy()
+    {
+        return $this->belongsTo(Employee::class, 'handled_by', 'id');
     }
 }

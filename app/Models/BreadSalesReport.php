@@ -23,7 +23,10 @@ class BreadSalesReport extends Model
         'total',
         'bread_over',
         'sales',
-
+        'status',
+        'handled_by',
+        'reason',
+        'handled_at',
     ];
 
     public function salesReports()
@@ -34,5 +37,10 @@ class BreadSalesReport extends Model
     public function bread()
     {
         return $this->belongsTo(Product::class, 'product_id', 'id');
+    }
+
+    public function handledBy()
+    {
+        return $this->belongsTo(Employee::class, 'handled_by', 'id');
     }
 }

@@ -217,6 +217,8 @@ Route::post('receive-premix', [RequestPremixController::class, 'receivePremix'])
 Route::post('saveEmployeeDtr', [DailyTimeRecordController::class, 'saveEmployeeDtr']);
 Route::post('raw-materials-delivery-declined', [RawMaterialsDeliveryController::class, 'declinraw-materials-delivery-pendingeDelivery']);
 Route::post('raw-materials-delivery-confirmed', [RawMaterialsDeliveryController::class, 'confirmDelivery']);
+Route::post('confirm-product-sales-report', [BranchReportController::class, 'confirmProductSalesReport']);
+Route::post('decline-product-sales-report', [BranchReportController::class, 'declineProductSalesReport']);
 
 Route::put('update-employee-charges/{id}', [EmployeeSaleschargesReportController::class, 'updateCharges']);
 // Route::put('employee-charges/{id}', [SalesReportsController::class, 'updateEmployeeCharges']);
@@ -381,6 +383,7 @@ Route::get('branches/{branchId}/products', [BranchProductController::class, 'get
 Route::get('branch-products/search', [BranchProductController::class, 'search']);
 Route::get('branches/{branchId}/production-report', [BranchReportController::class, 'fetchBranchReport']);
 Route::get('branches/{branchId}/branch-sales-report', [BranchReportController::class, 'fetchBranchSalesReport']);
+Route::get('branches/{branchId}/pending-branch-sales-report', [BranchReportController::class, 'fetchBranchPendingSalesReport']);
 Route::get('user/{userId}', [UserController::class, 'fetchUserById']);
 Route::get('search-products', [ProductController::class, 'searchProducts']);
 Route::get('search-rawMaterials', [RawMaterialController::class, 'searchRawMaterials']);

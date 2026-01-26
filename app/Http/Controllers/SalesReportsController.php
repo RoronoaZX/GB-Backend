@@ -209,9 +209,9 @@ class SalesReportsController extends Controller
             // Save record far each employee
             foreach ($employees as $shiftEmployee) {
                 EmployeeSaleschargesReport::create([
-                    'sales_report_id' => $salesReport->id,
-                    'employee_id' => $shiftEmployee['employee_id'],
-                    'charge_amount' => $sharePerEmployee
+                    'sales_report_id'    => $salesReport->id,
+                    'employee_id'        => $shiftEmployee['employee_id'],
+                    'charge_amount'      => $sharePerEmployee
                 ]);
             }
         }
@@ -261,11 +261,13 @@ class SalesReportsController extends Controller
         ]);
 
         foreach ($request->breadReports as $breadReport) {
+            $breadReport['status'] = 'pending';
+
             $salesReport->breadReports()->create($breadReport);
 
             $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
-            ->where('product_id', $breadReport['product_id'])
-            ->first();
+                ->where('product_id', $breadReport['product_id'])
+                ->first();
 
             if ($branchProduct) {
                 $branchProduct->beginnings = $breadReport['remaining'];
@@ -281,6 +283,8 @@ class SalesReportsController extends Controller
 
         // Store Selecta Reports
         foreach ($request->selectaReports as $selectaReport) {
+            $selectaReport['status'] = 'pending';
+
             $salesReport->selectaReports()->create($selectaReport);
 
             $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
@@ -326,6 +330,8 @@ class SalesReportsController extends Controller
 
         // Store Softdrinks Reports
         foreach ($request->softdrinksReports as $softdrinksReport) {
+            $softdrinksReport['status'] = 'pending';
+
             $salesReport->softdrinksReports()->create($softdrinksReport);
 
             $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
@@ -345,6 +351,8 @@ class SalesReportsController extends Controller
 
         // Store  Other Products
         foreach ($request->otherProductsReports as $otherProductsReports) {
+            $otherProductsReports['status'] = 'pending';
+
             $salesReport->otherProductsReports()->create($otherProductsReports);
 
             $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
