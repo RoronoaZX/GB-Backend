@@ -85,7 +85,7 @@ class BranchReportController extends Controller
     //------------------------//
     // this is the final codes//
     //------------------------//
-    public function fetchBranchPendingSalesReport($branchId)
+    public function fetchBranchPendingSalesReport($branchId, $userId)
     {
         $bread = BreadSalesReport::where('branch_id', $branchId)
             ->where('status', 'pending')
@@ -134,14 +134,19 @@ class BranchReportController extends Controller
         // get sales_report_ids
         $salesReportIds = $merged->pluck('sales_report_id')->unique();
 
-        // fetch parent sales reports
-
+        // fetch parent sales reports excluding those created by the current user
         $salesReports = SalesReports::whereIn('id', $salesReportIds)
+            ->where('user_id', '!=', $userId) // Exclude sales reports created bt the current user
             ->get()
             ->keyBy('id');
 
+        // Get only the sales report IDs that are not created by the current user
+        $filteredSalesReportIds = $salesReports->pluck('id')->toArray();
+
+        // Filter the merged collection to include only items with sales_report_id not created by user
+        $filteredMerged = $merged->whereIn('sales_report_id', $filteredSalesReportIds);
         // group and build final response
-        $result = $merged
+        $result = $filteredMerged
             ->groupBy('sales_report_id')
             ->map(function ($items, $salesReportId) use ($branchId, $salesReports) {
                 return [

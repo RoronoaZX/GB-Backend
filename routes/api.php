@@ -383,7 +383,7 @@ Route::get('branches/{branchId}/products', [BranchProductController::class, 'get
 Route::get('branch-products/search', [BranchProductController::class, 'search']);
 Route::get('branches/{branchId}/production-report', [BranchReportController::class, 'fetchBranchReport']);
 Route::get('branches/{branchId}/branch-sales-report', [BranchReportController::class, 'fetchBranchSalesReport']);
-Route::get('branches/{branchId}/pending-branch-sales-report', [BranchReportController::class, 'fetchBranchPendingSalesReport']);
+Route::get('branches/{branchId}/{userId}/pending-branch-sales-report', [BranchReportController::class, 'fetchBranchPendingSalesReport']);
 Route::get('user/{userId}', [UserController::class, 'fetchUserById']);
 Route::get('search-products', [ProductController::class, 'searchProducts']);
 Route::get('search-rawMaterials', [RawMaterialController::class, 'searchRawMaterials']);
