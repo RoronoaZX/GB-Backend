@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
+use App\Models\BranchProduct;
 use App\Models\BranchReport;
 use App\Models\BreadSalesReport;
 use App\Models\InitialBakerreports;
@@ -424,6 +425,8 @@ class BranchReportController extends Controller
         $request->validate([
             'id'             => 'required|integer',
             'employee_id'    => 'required|integer',
+            'branches_id'    => 'required|integer|exists:branches,id',
+            'remaining'      => 'required|integer|min:0',
             'type'           => 'required|string|in:bread,selecta,softdrinks,other',
             'status'         => 'required|string|in:confirmed,declined',
         ]);
@@ -459,6 +462,22 @@ class BranchReportController extends Controller
                 'handled_at'     => now(),
             ]);
 
+            // ✅ ONLY UPDATE INVENTORY WHEN CONFIRMED
+            if ($request->status === 'confirmed') {
+
+                // Update inventory
+                $branchProduct = BranchProduct::where('branches_id', $request->branches_id)
+                    ->where('product_id', $report->product_id)
+                    ->first();
+
+                if ($branchProduct) {
+                    $branchProduct->beginnings = $request->remaining;
+                    $branchProduct->new_production = 0;
+                    $branchProduct->total_quantity = $request->remaining;
+                    $branchProduct->save();
+                }
+            }
+
             DB::commit();
 
             return response()->json([
@@ -484,6 +503,8 @@ class BranchReportController extends Controller
         $request->validate([
             'id'             => 'required|integer',
             'employee_id'    => 'required|integer',
+            'branches_id'    => 'required|integer|exists:branches,id',
+            'remaining'      => 'required|integer|min:0',
             'type'           => 'required|string|in:bread,selecta,softdrinks,other',
             'reason'         => 'required|string',
             'status'         => 'required|string|in:confirmed,declined',
@@ -520,6 +541,22 @@ class BranchReportController extends Controller
                 'reason'         => $request->reason,
                 'handled_at'     => now(),
             ]);
+
+            // ✅ ONLY UPDATE INVENTORY WHEN DECLINED
+            if ($request->status === 'declined') {
+
+                // Update inventory
+                $branchProduct = BranchProduct::where('branches_id', $request->branches_id)
+                    ->where('product_id', $report->product_id)
+                    ->first();
+
+                if ($branchProduct) {
+                    $branchProduct->beginnings = $request->remaining;
+                    $branchProduct->new_production = 0;
+                    $branchProduct->total_quantity = $request->remaining;
+                    $branchProduct->save();
+                }
+            }
 
             DB::commit();
 

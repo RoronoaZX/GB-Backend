@@ -265,19 +265,21 @@ class SalesReportsController extends Controller
 
             $salesReport->breadReports()->create($breadReport);
 
-            $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
-                ->where('product_id', $breadReport['product_id'])
-                ->first();
+            // $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
+            //     ->where('product_id', $breadReport['product_id'])
+            //     ->first();
 
-            if ($branchProduct) {
-                $branchProduct->beginnings = $breadReport['remaining'];
-                //this code is to set 0 the new production record of the branch product
-                //in every submiting of report so that the new production will not be added
-                // to the new production of the branch product
-                $branchProduct->new_production = $breadReport['branch_new_production'];
-                $branchProduct->total_quantity = $breadReport['remaining'];
-                $branchProduct->save();
-            }
+            // if ($branchProduct) {
+            //     $branchProduct->beginnings = $breadReport['remaining'];
+            //     //this code is to set 0 the new production record of the branch product
+            //     //in every submiting of report so that the new production will not be added
+            //     // to the new production of the branch product
+
+            //     // to set the new production to 0
+            //     $branchProduct->new_production = 0;
+            //     $branchProduct->total_quantity = $breadReport['remaining'];
+            //     $branchProduct->save();
+            // }
 
         }
 
@@ -287,19 +289,19 @@ class SalesReportsController extends Controller
 
             $salesReport->selectaReports()->create($selectaReport);
 
-            $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
-            ->where('product_id', $selectaReport['product_id'])
-            ->first();
+            // $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
+            // ->where('product_id', $selectaReport['product_id'])
+            // ->first();
 
-        if ($branchProduct) {
-            $branchProduct->beginnings = $selectaReport['remaining'];
-            //this code is to set 0 the new production record of the branch product
-            //in every submiting of report so that the new production will not be added
-            // to the new production of the branch product
-            $branchProduct->new_production = $selectaReport['new_production'];
-            $branchProduct->total_quantity = $selectaReport['remaining'];
-            $branchProduct->save();
-        }
+            // if ($branchProduct) {
+            //     $branchProduct->beginnings = $selectaReport['remaining'];
+            //     //this code is to set 0 the new production record of the branch product
+            //     //in every submiting of report so that the new production will not be added
+            //     // to the new production of the branch product
+            //     $branchProduct->new_production = $selectaReport['new_production'];
+            //     $branchProduct->total_quantity = $selectaReport['remaining'];
+            //     $branchProduct->save();
+            //     }
         }
 
         // Store Cake Reports
@@ -310,22 +312,22 @@ class SalesReportsController extends Controller
             // Find the Cake entry using its ID and update its sales_status
             $existingCake = CakeReport::find($cakeReport['cake_report_id']); // Assuming Cake is an Eloquent model for the Cake table
 
-            if ($existingCake) {
-                // Update the sales_status
-                $existingCake->sales_status = $cakeReport['sales_status'];
-                $existingCake->save();
+            // if ($existingCake) {
+            //     // Update the sales_status
+            //     $existingCake->sales_status = $cakeReport['sales_status'];
+            //     $existingCake->save();
 
-                // Save data to the Cake Sales Report table
-                $salesReport->cakeSalesReports()->create([
-                    'sales_report_id'    => $salesReport->id, // This is the ID of the newly created SalesReports batch
-                    'cake_report_id'     => $cakeReport['cake_report_id'], // Provided by frontend
-                ]);
-            } else {
-                // Handle case where Cake report ID is not found
-                return response()->json([
-                    'error' => "Cake report with ID {$cakeReport['cake_report_id']} not found."
-                ], 404);
-            }
+            //     // Save data to the Cake Sales Report table
+            //     $salesReport->cakeSalesReports()->create([
+            //         'sales_report_id'    => $salesReport->id, // This is the ID of the newly created SalesReports batch
+            //         'cake_report_id'     => $cakeReport['cake_report_id'], // Provided by frontend
+            //     ]);
+            // } else {
+            //     // Handle case where Cake report ID is not found
+            //     return response()->json([
+            //         'error' => "Cake report with ID {$cakeReport['cake_report_id']} not found."
+            //     ], 404);
+            // }
         }
 
         // Store Softdrinks Reports
@@ -334,19 +336,19 @@ class SalesReportsController extends Controller
 
             $salesReport->softdrinksReports()->create($softdrinksReport);
 
-            $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
-            ->where('product_id', $softdrinksReport['product_id'])
-            ->first();
+            // $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
+            // ->where('product_id', $softdrinksReport['product_id'])
+            // ->first();
 
-        if ($branchProduct) {
-            $branchProduct->beginnings = $softdrinksReport['remaining'];
-            //this code is to set 0 the new production record of the branch product
-            //in every submiting of report so that the new production will not be added
-            // to the new production of the branch product
-            $branchProduct->new_production = $softdrinksReport['new_production'];
-            $branchProduct->total_quantity = $softdrinksReport['remaining'];
-            $branchProduct->save();
-        }
+            // if ($branchProduct) {
+            //     $branchProduct->beginnings = $softdrinksReport['remaining'];
+            //     //this code is to set 0 the new production record of the branch product
+            //     //in every submiting of report so that the new production will not be added
+            //     // to the new production of the branch product
+            //     $branchProduct->new_production = $softdrinksReport['new_production'];
+            //     $branchProduct->total_quantity = $softdrinksReport['remaining'];
+            //     $branchProduct->save();
+            //     }
         }
 
         // Store  Other Products
@@ -355,35 +357,25 @@ class SalesReportsController extends Controller
 
             $salesReport->otherProductsReports()->create($otherProductsReports);
 
-            $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
-                    ->where('product_id', $otherProductsReports['product_id'])
-                    ->first();
+            // $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
+            //         ->where('product_id', $otherProductsReports['product_id'])
+            //         ->first();
 
-            if ($branchProduct) {
-                $branchProduct->beginnings = $otherProductsReports['remaining'];
-                //this code is to set 0 the new production record of the branch product
-                //in every submiting of report so that the new production will not be added
-                // to the new production of the branch product
-                $branchProduct->new_production = $otherProductsReports['new_production'];
-                $branchProduct->total_quantity = $otherProductsReports['remaining'];
-                $branchProduct->save();
-            }
+            // if ($branchProduct) {
+            //     $branchProduct->beginnings = $otherProductsReports['remaining'];
+            //     //this code is to set 0 the new production record of the branch product
+            //     //in every submiting of report so that the new production will not be added
+            //     // to the new production of the branch product
+            //     $branchProduct->new_production = $otherProductsReports['new_production'];
+            //     $branchProduct->total_quantity = $otherProductsReports['remaining'];
+            //     $branchProduct->save();
+            // }
         }
 
         // Store Expenses Reports
         foreach ($request->withOutReceiptExpensesReport as $withOutReceiptExpensesReport) {
             $salesReport->expensesReports()->create($withOutReceiptExpensesReport);
         }
-
-        // Store Denomination Reports
-        // foreach ($request->denominationReports as $denominationReport) {
-        //     foreach ($denominationReport as $key => $value) {
-        //         if (is_string($value)) {
-        //             $denominationReport[$key] = (int)str_replace(',', '', $value);
-        //         }
-        //     }
-        //     $salesReport->denominationReports()->create($denominationReport);
-        // }
 
         // Store denomination Reports
         $denominationReport = $request->denominationReports;
