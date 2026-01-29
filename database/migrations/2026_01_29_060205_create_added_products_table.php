@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('bread_addeds', function (Blueprint $table) {
-            $table->id();
+        Schema::create('added_products', function (Blueprint $table) {
+             $table->id();
             $table->foreignId('employee_id')->references('id')->on('employees');
             $table->foreignId('product_id')->references('id')->on('products');
             $table->foreignId('from_branch_id')->references('id')->on('branches');
             $table->foreignId('to_branch_id')->references('id')->on('branches');
-            $table->decimal('bread_added', 10,2)->nullable();
-            $table->integer('bread_added')->nullable();
+            $table->decimal('price', 10,2)->nullable();
+            $table->integer('added_product')->nullable();
             $table->string('status', 25)->nullable();
             $table->string('remark', 255)->nullable();
             $table->timestamps();
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('bread_addeds');
+        Schema::dropIfExists('added_products');
     }
 };

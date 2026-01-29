@@ -77,7 +77,7 @@ class BranchProductController extends Controller
         ]);
 
 
-    $products = BranchProduct::where('branches_id', $validated['branches_id'])
+        $products = BranchProduct::where('branches_id', $validated['branches_id'])
                     ->when($validated['category'], function ($query, $category) {
                         $query->where('category', $category);
                     })
@@ -165,7 +165,6 @@ class BranchProductController extends Controller
         return response()->json($products);
     }
 
-
     public function store(Request $request)
     {
         $validatedData = $request->validate([
@@ -201,7 +200,6 @@ class BranchProductController extends Controller
             'data'    => $branchProduct
         ], 201);
     }
-
 
     public function updatePrice(Request $request, $id)
     {
@@ -335,24 +333,24 @@ class BranchProductController extends Controller
 
 
     public function searchProducts(Request $request)
-{
-    $branchId    = $request->input('branch_id');
-    $keyword     = $request->input('keyword');
+    {
+        $branchId    = $request->input('branch_id');
+        $keyword     = $request->input('keyword');
 
-    Log::info('Search request received', ['branch_id' => $branchId, 'keyword' => $keyword]);
+        Log::info('Search request received', ['branch_id' => $branchId, 'keyword' => $keyword]);
 
-    // Search for products with a join on branch_products to filter by branch_id and keyword
-    $products = Product::with(['branch_products' => function ($query) use ($branchId) {
-                        $query->where('branches_id', $branchId);
-                    }])
-                    ->where('products.name', 'like', '%' . $keyword . '%')
-                    ->select('products.*', 'branch_products.price')
-                    ->join('branch_products', 'products.id', '=', 'branch_products.product_id')
-                    ->where('branch_products.branches_id', $branchId)
-                    ->get();
+        // Search for products with a join on branch_products to filter by branch_id and keyword
+        $products = Product::with(['branch_products' => function ($query) use ($branchId) {
+                            $query->where('branches_id', $branchId);
+                        }])
+                        ->where('products.name', 'like', '%' . $keyword . '%')
+                        ->select('products.*', 'branch_products.price')
+                        ->join('branch_products', 'products.id', '=', 'branch_products.product_id')
+                        ->where('branch_products.branches_id', $branchId)
+                        ->get();
 
-    Log::info('Search results', ['products' => $products]);
+        Log::info('Search results', ['products' => $products]);
 
-    return response()->json($products);
-}
+        return response()->json($products);
+    }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AddedProductsController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RawMaterialController;
@@ -135,6 +136,9 @@ Route::apiResource('incentive-employee', IncentiveEmployeeReportsController::cla
 Route::apiResource('payslip', PayslipController::class);
 Route::apiResource('raw-materials-delivery', RawMaterialsDeliveryController::class);
 Route::apiResource('sales-charges-report', SalesChargesReportController::class);
+Route::apiResource('added-branch-products', AddedProductsController::class);
+
+Route::patch('update-products', [ProductController::class, 'updateProducts']);
 
 Route::post('/verify-password', [UserController::class, 'verifyAdminPassword']);
 Route::post('/user-password', [UserController::class, 'updatePassword']);
@@ -178,6 +182,7 @@ Route::post('confirm-initial-baker-report/{id}', [InitialBakerreportsController:
 Route::post('decline-initial-baker-report/{id}', [InitialBakerreportsController::class, 'declineReport']);
 Route::post('search-branches-by-id', [BranchProductController::class, 'searchBranchId' ]);
 Route::post('search-branch-products', [BranchProductController::class, 'searchBranchProducts' ]);
+// Route::post('sending-branch-products', [BranchProductController::class, 'sendingBranchProducts' ]);
 Route::post('search-selecta-products', [BranchProductController::class, 'searchBranchProducts' ]);
 Route::post('search-user', [UserController::class, 'searchUser' ]);
 Route::post('search', [UserController::class, 'search' ]);
@@ -219,6 +224,8 @@ Route::post('raw-materials-delivery-declined', [RawMaterialsDeliveryController::
 Route::post('raw-materials-delivery-confirmed', [RawMaterialsDeliveryController::class, 'confirmDelivery']);
 Route::post('confirm-product-sales-report', [BranchReportController::class, 'confirmProductSalesReport']);
 Route::post('decline-product-sales-report', [BranchReportController::class, 'declineProductSalesReport']);
+Route::post('send-branch-products-to-other-branch', [AddedProductsController::class, 'sendProductsToOtherBranch']);
+
 
 Route::put('update-employee-charges/{id}', [EmployeeSaleschargesReportController::class, 'updateCharges']);
 // Route::put('employee-charges/{id}', [SalesReportsController::class, 'updateEmployeeCharges']);

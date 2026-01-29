@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BranchProduct;
 use App\Models\Product;
 use Dotenv\Repository\RepositoryInterface;
 use Illuminate\Http\Request;
@@ -70,6 +71,34 @@ class ProductController extends Controller
         //
     }
 
+
+    public function updateProducts(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required|integer|exists:products,id',
+            'field' => 'required|string|in:name,category',
+            'value' => 'required|string',
+        ]);
+
+        $product = Product::findOrFail($validated['id']);
+
+        // Dynamic update
+        $product->{$validated['field']} = $validated['value'];
+        $product->save();
+
+        // ✅ If category changed, update BranchProduct category too
+        if ($validated['field'] === 'category') {
+            BranchProduct::where('product_id', $product->id)
+                ->update([
+                    'category' => $validated['value']
+                ]);
+        }
+
+        return response()->json([
+            'message' => 'Product updated successfully',
+            'data' => $product
+        ], 200);
+    }
     /**
      * Update the specified resource in storage.
      */
