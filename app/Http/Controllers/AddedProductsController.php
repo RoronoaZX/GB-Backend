@@ -19,13 +19,29 @@ class AddedProductsController extends Controller
         //
     }
 
+    public function fetchSendAddedProducts($branchId, $category)
+    {
+        $addedProducts = AddedProducts::where(function ($q) use ($branchId) {
+            $q->where('from_branch_id', $branchId)
+              ->orWhere('to_branch_id', $branchId);
+            })
+            ->where('category', $category)
+            ->where('status', 'pending')
+            ->with('fromBranch', 'toBranch', 'employee',  'product')
+            ->get();
+
+        return response()->json($addedProducts);
+    }
+
     public function store(Request $request)
     {
         $validatedData = $request->validate([
             'employee_id'            => 'required|exists:employees,id',
             'from_branch_id'         => 'required|exists:branches,id',
             'to_branch_id'           => 'required|exists:branches,id',
+            'category'               => 'required|string',
             'status'                 => 'required|string',
+            'action'                 => 'required|string',
             'remark'                 => 'nullable|string',
             'products'               => 'required|array',
             'products.*.product_id'  => 'required|exists:products,id',
@@ -42,8 +58,10 @@ class AddedProductsController extends Controller
                     'product_id'         => $product['product_id'],
                     'from_branch_id'     => $validatedData['from_branch_id'],
                     'to_branch_id'       => $validatedData['to_branch_id'],
+                    'category'           => $validatedData['category'],
+                    'action'             => $validatedData['action'],
                     'price'              => $product['price'],
-                    'added_products'     => $product['quantity'], // This is total quantity, store it once
+                    'added_product'      => $product['quantity'], // This is total quantity, store it once
                     'status'             => $validatedData['status'],
                     'remark'             => $validatedData['remark'] ?? null
                 ]);
@@ -103,6 +121,8 @@ class AddedProductsController extends Controller
             ], 500);
         }
     }
+
+
 
     /**
      * Display the specified resource.

@@ -18,6 +18,7 @@ class AddedProducts extends Model
         'price',
         'added_product',
         'status',
+        'action',
         'remark'
     ];
 

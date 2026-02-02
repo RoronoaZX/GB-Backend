@@ -403,4 +403,4 @@ Route::get('fetchEmployeeWithEmploymentType', [EmployeeController::class, 'fetch
 Route::get('fetchEmployeeWithEmploymentTypeAndDesignation', [EmployeeController::class, 'fetchEmployeeWithEmploymentTypeAndDesignation']);
 Route::get('fetchCertianEmployeeWithEmploymentTypeAndDesignation/{id}', [EmployeeController::class, 'fetchCertianEmployeeWithEmploymentTypeAndDesignation']);
 Route::get('employee-charges/{from}/{to}/{employee_id}', [SalesReportsController::class, 'fetchEmployeeCharges']);
-
+Route::get('send-added-branch-products/{branchId}/{category}', [AddedProductsController::class, 'fetchSendAddedProducts']);
