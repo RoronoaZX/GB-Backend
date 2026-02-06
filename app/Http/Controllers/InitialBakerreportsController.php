@@ -548,6 +548,7 @@ class InitialBakerreportsController extends Controller
 
                 $branchProduct = BranchProduct::where('branches_id', $initialReport->branch_id)
                                     ->where('product_id', $breadReport->bread_id)
+                                    ->lockForUpdate()
                                     ->first();
 
                 if ($branchProduct) {

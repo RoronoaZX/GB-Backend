@@ -6,7 +6,9 @@ use App\Models\AddedProducts;
 use App\Models\BranchProduct;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use LengthException;
 use PhpParser\Node\Stmt\TryCatch;
 
 class AddedProductsController extends Controller
@@ -19,16 +21,34 @@ class AddedProductsController extends Controller
         //
     }
 
-    public function fetchSendAddedProducts($branchId, $category)
+    public function fetchSendAddedProducts(Request $request,$branchId, $category)
     {
-        $addedProducts = AddedProducts::where(function ($q) use ($branchId) {
-            $q->where('from_branch_id', $branchId)
-              ->orWhere('to_branch_id', $branchId);
+        // validate the category parameter, if provided
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 5);
+        $search = $request->query('search', '');
+
+        $query = AddedProducts::where(function ($q) use ($branchId) {
+                $q->where('from_branch_id', $branchId)
+                ->orWhere('to_branch_id', $branchId);
             })
             ->where('category', $category)
-            ->where('status', 'pending')
-            ->with('fromBranch', 'toBranch', 'employee',  'product')
-            ->get();
+            ->with('fromBranch', 'toBranch', 'employee',  'product');
+
+                // ->where('status', 'pending')
+
+
+        if (!empty($search)) {
+            $query->whereHas('product', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            })->orWhereHas('employee', function ($q) use ($search) {
+                $q->where('firstname', 'like', "%{$search}%")
+                  ->orWhere('lastname', 'like', "%{$search}%");
+            });
+        }
+
+        $addedProducts = $query->orderBy('created_at', 'desc')
+                                ->paginate($perPage);
 
         return response()->json($addedProducts);
     }
@@ -72,23 +92,27 @@ class AddedProductsController extends Controller
                     ->first();
 
                 if (!$branchProduct) {
-                    throw new \Exception('Bread stock not found for branch ID' .$validatedData['from_branch_id'] . ' and product ID' .$product['product_id']);
+                    throw new \Exception('Product stock not found for branch ID' .$validatedData['from_branch_id'] . ' and product ID' .$product['product_id']);
                 }
 
                 // Check iff there's enough stock
-                if ($branchProduct->total_quantity < $product['quantity']) {
-                    throw new \RuntimeException((json_encode([
-                        'type'           => 'insufficient_stock',
-                        'product_id'     => $product['product_id'],
-                        'product_name'   => $branchProduct->product->name,
-                        'available'      => $branchProduct->total_quantity,
-                        'requested'      => $product['quantity']
-                    ])));
+                if (strtolower($validatedData['action']) !== 'add') {
+                    if ($branchProduct->total_quantity < $product['quantity']) {
+                        throw new \RuntimeException((json_encode([
+                            'type'           => 'insufficient_stock',
+                            'product_id'     => $product['product_id'],
+                            'product_name'   => $branchProduct->product->name,
+                            'available'      => $branchProduct->total_quantity,
+                            'requested'      => $product['quantity']
+                        ])));
+                    }
+
+                    // Deduct the product quantity
+                    $branchProduct->total_quantity -= $product['quantity'];
+                    $branchProduct->save();
                 }
 
-                // Deduct the product quantity
-                $branchProduct->total_quantity -= $product['quantity'];
-                $branchProduct->save();
+
             }
 
             DB::commit();
@@ -122,37 +146,58 @@ class AddedProductsController extends Controller
         }
     }
 
-
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(AddedProducts $addedProducts)
+    public function receiveProduct(Request $request)
     {
-        //
-    }
+        try {
+             $validatedData = $request->validate([
+                'id'                     => 'required|exists:added_products,id',
+                'empoyee_id'             => 'required|exists:employees,id',
+                'branch_id'              => 'required|exists:branches,id',
+                'product_id'             => 'required|exists:products,id',
+                'quantity'               => 'required|numeric|min:1',
+                'status'                 => 'required|string',
+                'remark'                 => 'nullable|string',
+            ]);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(AddedProducts $addedProducts)
-    {
-        //
-    }
+            $branchId     = $validatedData['branch_id'];
+            $productId    = $validatedData['product_id'];
+            $productAdded = $validatedData['quantity'];
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, AddedProducts $addedProducts)
-    {
-        //
-    }
+            $branchProduct = BranchProduct::where('branches_id', $branchId)
+                        ->where('product_id', $productId)
+                        ->first();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(AddedProducts $addedProducts)
-    {
-        //
+            if (!$branchProduct) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product not found for this branch.',
+                ], 404);
+            }
+
+            // Add the received product to the total_quantity
+            $branchProduct->new_production += $productAdded;
+            $branchProduct->total_quantity += $productAdded;
+            $branchProduct->save();
+
+            AddedProducts::where('id', $validatedData['id'])
+                ->update([
+                    'received_by' => $validatedData['empoyee_id'],
+                    'status'      => $validatedData['status'],
+                    'remark'      => $validatedData['remark']
+                ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product received and product quantity updated successfully.',
+                'product' => $branchProduct
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to receive product. ' . $e->getMessage(),
+            ], 500);
+        }
+
     }
 }

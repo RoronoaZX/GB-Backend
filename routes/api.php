@@ -152,6 +152,7 @@ Route::post('update-receipt-no-for-bir-report/{id}', [BirReportController::class
 Route::post('update-branch-description-for-bir-report/{id}', [BirReportController::class, 'updateBranchDescriptionForReports']);
 Route::post('saving-bir-report-admin', [BirReportController::class, 'savingBIRReportAdmin'] );
 // Route::post('saving-vat-admin', [BirReportController::class, 'savingVATAdmin'] );
+Route::post('received-branch-product', [AddedProductsController::class, 'receiveProduct']);
 Route::post('received-branch-bread', [BreadAddedController::class, 'receivedBread']);
 Route::post('admin-sales-report', [SalesReportsController::class, 'adminStoreSalesReport']);
 Route::post('search-allowance', [EmployeeAllowanceController::class, 'searchAllowance']);

@@ -188,8 +188,8 @@ class BranchProductController extends Controller
 
         $branchProduct = BranchProduct::create([
             'branches_id'        => $validatedData['branches_id'],
-            'product_id'         =>$validatedData['product_id'],
-            'category'           =>$validatedData['category'],
+            'product_id'         => $validatedData['product_id'],
+            'category'           => $validatedData['category'],
             'price'              => $validatedData['price'],
             'beginnings'         => $validatedData['beginnings'],
             'total_quantity'     => $validatedData['total_quantity']
@@ -330,7 +330,6 @@ class BranchProductController extends Controller
         ]);
 
     }
-
 
     public function searchProducts(Request $request)
     {

@@ -17,6 +17,7 @@ class AddedProducts extends Model
         'category',
         'price',
         'added_product',
+        'received_by',
         'status',
         'action',
         'remark'
