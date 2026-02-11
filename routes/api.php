@@ -36,6 +36,7 @@ use App\Http\Controllers\IncentiveEmployeeReportsController;
 use App\Http\Controllers\IncentivesBasesController;
 use App\Http\Controllers\InitialBakerReportController;
 use App\Http\Controllers\InitialBakerreportsController;
+use App\Http\Controllers\NestleSalesReportController;
 use App\Http\Controllers\OtherAddedStocksController;
 use App\Http\Controllers\OtherProductsController;
 use App\Http\Controllers\OtherStocksReportController;
@@ -208,6 +209,7 @@ Route::post('reports/{id}/decline-softdrinks-reports', [SoftdrinksStocksReportCo
 Route::post('reports/{id}/decline-otherstocks-reports', [OtherStocksReportController::class, 'declineReport']);
 Route::post('branch-add-bread-production-report', [BreadSalesReportController::class, 'addingBreadProduction']);
 Route::post('branch-add-selecta-production-report', [SelectaSalesReportController::class, 'addingSelectaProduction']);
+Route::post('branch-add-nestle-production-report', [NestleSalesReportController::class, 'addingNestleProduction']);
 Route::post('branch-add-softdrinks-production-report', [SoftdrinksSalesReportController::class, 'addingSoftdrinksProduction']);
 Route::post('branch-add-other-production-report', [OtherProductsController::class, 'addingOtherProduction']);
 Route::post('employee-adding-credits', [EmployeeCreditProductsController::class, 'storeEmployeeCredits']);
@@ -276,6 +278,11 @@ Route::put('update-selecta-sales-remaining-report/{id}', [SelectaSalesReportCont
 Route::put('update-selecta-sales-selectaOut-report/{id}', [SelectaSalesReportController::class, 'updatedSelectaOut' ]);
 Route::put('update-selecta-sales-addedstocks-report/{id}', [SelectaSalesReportController::class, 'updatedAddedStocks' ]);
 Route::put('update-selecta-sales-out-report/{id}', [SelectaSalesReportController::class, 'updatedSelectaOut' ]);
+Route::put('update-nestle-sales-price-report/{id}', [NestleSalesReportController::class, 'updatePrice']);
+Route::put('update-nestle-sales-beginnings-report/{id}', [NestleSalesReportController::class, 'updatedBeginnings']);
+Route::put('update-nestle-sales-remaining-report/{id}', [NestleSalesReportController::class, 'updatedRemaining']);
+Route::put('update-nestle-sales-out-report/{id}', [NestleSalesReportController::class, 'updatedNestleOut']);
+Route::put('update-nestle-sales-addedstocks-report/{id}', [NestleSalesReportController::class, 'udpatedAddedStocks']);
 Route::put('update-softdrinks-sales-price-report/{id}', [SoftdrinksSalesReportController::class, 'updatePrice' ]);
 Route::put('update-softdrinks-sales-beginnings-report/{id}', [SoftdrinksSalesReportController::class, 'updatedBeginnings' ]);
 Route::put('update-softdrinks-sales-remaining-report/{id}', [SoftdrinksSalesReportController::class, 'updatedRemaining' ]);

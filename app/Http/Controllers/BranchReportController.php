@@ -7,6 +7,7 @@ use App\Models\BranchProduct;
 use App\Models\BranchReport;
 use App\Models\BreadSalesReport;
 use App\Models\InitialBakerreports;
+use App\Models\NestleSalesReport;
 use App\Models\OtherProducts;
 use App\Models\SalesReports;
 use App\Models\SelectaSalesReport;
@@ -107,6 +108,16 @@ class BranchReportController extends Controller
                 return $item;
             });
 
+        $nestle = NestleSalesReport::where('branch_id', $branchId)
+            ->where('status', 'pending')
+            ->with('nestle')
+            ->get()
+            ->map(function ($item) {
+                $item->product_type = 'nestle';
+
+                return $item;
+            });
+
         $softdrinks = SoftdrinksSalesReport::where('branch_id', $branchId)
             ->where('status', 'pending')
             ->with('softdrinks')
@@ -129,6 +140,7 @@ class BranchReportController extends Controller
         $merged = collect()
             ->merge($bread)
             ->merge($selecta)
+            ->merge($nestle)
             ->merge($softdrinks)
             ->merge($others);
 
@@ -157,6 +169,7 @@ class BranchReportController extends Controller
 
                     'bread'              => $items->whereInstanceOf(BreadSalesReport::class)->values(),
                     'selecta'            => $items->whereInstanceOf(SelectaSalesReport::class)->values(),
+                    'nestle'             => $items->whereInstanceOf(NestleSalesReport::class)->values(),
                     'softdrinks'         => $items->whereInstanceOf(SoftdrinksSalesReport::class)->values(),
                     'others'             => $items->whereInstanceOf(OtherProducts::class)->values(),
                 ];
@@ -214,7 +227,7 @@ class BranchReportController extends Controller
                                     $carbonDate->copy()->setTime(22, 0, 0)->toDateTimeString(),
                                 ])
                                 ->with([
-                                    'user', 'branch', 'breadReports', 'selectaReports',
+                                    'user', 'branch', 'breadReports', 'selectaReports', 'nestleReports',
                                     'softdrinksReports', 'expensesReports', 'denominationReports',
                                     'creditReports', 'cakeSalesReports', 'otherProductsReports',
                                     'employeeSaleschargesReports.employee'
@@ -228,7 +241,7 @@ class BranchReportController extends Controller
                                     $carbonDate->copy()->addDay()->setTime(5, 59, 59)->toDateTimeString(),
                                 ])
                                 ->with([
-                                    'user', 'branch', 'breadReports', 'selectaReports',
+                                    'user', 'branch', 'breadReports', 'selectaReports', 'nestleReports',
                                      'softdrinksReports', 'expensesReports', 'denominationReports',
                                      'creditReports', 'cakeSalesReports', 'otherProductsReports',
                                      'employeeSaleschargesReports.employee'
@@ -359,7 +372,7 @@ class BranchReportController extends Controller
                                     $carbonDate->copy()->setTime(22, 0, 0)->toDateTimeString(),
                                 ])
                                 ->with([
-                                    'user', 'branch', 'breadReports', 'selectaReports',
+                                    'user', 'branch', 'breadReports', 'selectaReports', 'nestleReports',
                                     'softdrinksReports', 'expensesReports', 'denominationReports',
                                     'creditReports', 'cakeSalesReports', 'otherProductsReports',
                                     'employeeSaleschargesReports.employee'
@@ -427,7 +440,7 @@ class BranchReportController extends Controller
             'employee_id'    => 'required|integer',
             'branches_id'    => 'required|integer|exists:branches,id',
             'remaining'      => 'required|integer|min:0',
-            'type'           => 'required|string|in:bread,selecta,softdrinks,other',
+            'type'           => 'required|string|in:bread,selecta,nestle,softdrinks,other',
             'status'         => 'required|string|in:confirmed,declined',
         ]);
 
@@ -437,6 +450,7 @@ class BranchReportController extends Controller
         $modelMap = [
             'bread'          => BreadSalesReport::class,
             'selecta'        => SelectaSalesReport::class,
+            'nestle'         => NestleSalesReport::class,
             'softdrinks'     => SoftdrinksSalesReport::class,
             'other'          => OtherProducts::class,
         ];

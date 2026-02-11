@@ -449,6 +449,7 @@ class SoftdrinksSalesReportController extends Controller
             'branch_id'       => 'required|exists:branches,id',
             'sales_report_id' => 'required|exists:sales_reports,id',
             'product_id'      => 'required|exists:products,id',
+            'handled_by'      => 'required|exists:employees,id',
             'product_name'    => 'required|string',
             'price'           => 'required|numeric',
             'beginnings'      => 'nullable|numeric',
@@ -456,6 +457,8 @@ class SoftdrinksSalesReportController extends Controller
             'added_stocks'    => 'nullable|numeric',
             'out'             => 'nullable|numeric',
             'sold'            => 'nullable|numeric',
+            'reason'          => 'nullable|string',
+            'status'          => 'nullable|string',
             'total'           => 'nullable|numeric',
             'sales'           => 'nullable|numeric',
         ]);

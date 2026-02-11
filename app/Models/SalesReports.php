@@ -45,6 +45,12 @@ class SalesReports extends Model
                     ->with('selecta', 'handledBy');
     }
 
+    public function nestleReports()
+    {
+        return $this->hasMany(NestleSalesReport::class, 'sales_report_id')
+                    ->with('nestle', 'handledBy');
+    }
+
     public function softdrinksReports()
     {
         return $this->hasMany(SoftdrinksSalesReport::class, 'sales_report_id')

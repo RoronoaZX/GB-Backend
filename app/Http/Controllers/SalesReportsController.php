@@ -61,6 +61,7 @@ class SalesReportsController extends Controller
             'credit_total'                   => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
             'breadReports'                   => 'required|array',
             'selectaReports'                 => 'nullable|array',
+            'nestleReports'                  => 'nullable|array',
             'softdrinksReports'              => 'nullable|array',
             'otherProductsReports'           => 'nullable|array',
             'cakeReports'                    => 'nullable|array',
@@ -90,6 +91,8 @@ class SalesReportsController extends Controller
         $salesReport->save();
 
         foreach ($request->breadReports as $breadReport) {
+            $breadReport['status'] = 'confirmed';
+
             $salesReport->breadReports()->create($breadReport);
 
             $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
@@ -105,6 +108,8 @@ class SalesReportsController extends Controller
         }
 
         foreach ($request->selectaReports ?? [] as $selectaReport) {
+            $selectaReport['status'] = 'confirmed';
+
             $salesReport->selectaReports()->create($selectaReport);
 
             $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
@@ -119,7 +124,15 @@ class SalesReportsController extends Controller
             }
         }
 
+        foreach ($request->nestleReports as $nestleReport) {
+            $nestleReport['status'] = 'confirmed';
+
+            $salesReport->nestleReports()->create($nestleReport);
+        }
+
         foreach ($request->cakeReports ?? [] as $cakeReport) {
+
+
             $existingCake = CakeReport::find($cakeReport['cake_report_id']);
 
             if ($existingCake) {
@@ -138,6 +151,8 @@ class SalesReportsController extends Controller
         }
 
         foreach ($request->softdrinksReports ?? [] as $softdrinksReport) {
+            $softdrinksReport['status'] = 'confirmed';
+
             $salesReport->softdrinksReports()->create($softdrinksReport);
 
             $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
@@ -153,6 +168,9 @@ class SalesReportsController extends Controller
         }
 
         foreach ($request->otherProductsReports ?? [] as $otherProductsReport) {
+            $otherProductsReport['status'] = 'confirmed';
+
+
             $salesReport->otherProductsReports()->create($otherProductsReport);
 
             $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
@@ -235,6 +253,7 @@ class SalesReportsController extends Controller
             'credit_total'                   => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
             'breadReports'                   => 'required|array',
             'selectaReports'                 => 'nullable|array',
+            'nestleReports'                  => 'nullable|array',
             'softdrinksReports'              => 'nullable|array',
             'otherProductsReports'           => 'nullable|array',
             'cakeReports'                    => 'nullable|array',
@@ -302,6 +321,12 @@ class SalesReportsController extends Controller
             //     $branchProduct->total_quantity = $selectaReport['remaining'];
             //     $branchProduct->save();
             //     }
+        }
+
+        foreach ($request->nestleReports as $nestleReport) {
+            $nestleReport['status'] = 'pending';
+
+            $salesReport->nestleReports()->create($nestleReport);
         }
 
         // Store Cake Reports
@@ -432,7 +457,7 @@ class SalesReportsController extends Controller
     {
         $reports = SalesReports::where('branch_id', $branchId)
                     ->with([
-                        'branch', 'user', 'breadReports', 'selectaReports',
+                        'branch', 'user', 'breadReports', 'selectaReports', 'nestleReports',
                         'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports'
                         ])
                     ->orderBy('created_at', 'desc')

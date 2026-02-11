@@ -4,39 +4,38 @@ namespace App\Http\Controllers;
 
 use App\Models\EmployeeSaleschargesReport;
 use App\Models\HistoryLog;
+use App\Models\NestleSalesReport;
 use App\Models\SalesReports;
-use App\Models\SelectaSalesReport;
+use GuzzleHttp\Promise\FulfilledPromise;
 use Illuminate\Http\Request;
 
-class SelectaSalesReportController extends Controller
+class NestleSalesReportController extends Controller
 {
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
      */
     public function index()
     {
         //
     }
 
-    private function updateSelectaField(
+    private function updateNestleField(
         Request $request,
         int $id,
         string $field,
         string $successMessage
     ) {
         $validated = $request->validate([
-            $field               => 'required|integer',
-            'sales_report_id'    => 'required|integer',
-            'charges_amount'     => 'required|numeric',
-            'over_amount'        => 'required|numeric',
+            $field => 'required|integer',
+            'sales_report_id' => 'required|integer',
+            'charges_amount' => 'required|numeric',
+            'over_amount' => 'required|numeric',
         ]);
 
-        // Update selecta field
-        $selecta = SelectaSalesReport::findOrFail($id);
-        $selecta->$field = $validated[$field];
-        $selecta->save();
+        // Update nestle field
+        $nestle = NestleSalesReport::findOrFail($id);
+        $nestle->$field = $validated[$field];
+        $nestle->save();
 
         // Update sales report totals
         $this->updateSalesReportAmounts(
@@ -55,21 +54,22 @@ class SelectaSalesReportController extends Controller
         $this->createHistoryLog($request);
 
         return response()->json([
-            'message'    => $successMessage,
-            $field       => $selecta
+            'message' => $successMessage,
+            $field => $validated[$field]
         ]);
     }
 
     /**
-     * ==============================
+     * ================================
      * HELPER METHODS
-     * ==============================
+     * ================================
      */
+
     private function updateSalesReportAmounts($salesReportId, $charges, $over)
     {
         SalesReports::where('id', $salesReportId)->update([
-            'charges_amount'     => $charges,
-            'over_total'         => $over
+            'charges_amount' => $charges,
+            'over_total' => $over
         ]);
     }
 
@@ -108,13 +108,14 @@ class SelectaSalesReportController extends Controller
     }
 
     /**
-     * ==============================
+     * ===============================
      * UPDATE ENDPOINTS
-     * ==============================
+     * ===============================
      */
+
     public function updatePrice(Request $request, $id)
     {
-        return $this->updateSelectaField(
+        return $this->updateNestleField(
             $request,
             $id,
             'price',
@@ -124,7 +125,7 @@ class SelectaSalesReportController extends Controller
 
     public function updatedBeginnings(Request $request, $id)
     {
-        return $this->updateSelectaField(
+        return $this->updateNestleField(
             $request,
             $id,
             'beginnings',
@@ -134,7 +135,7 @@ class SelectaSalesReportController extends Controller
 
     public function updatedRemaining(Request $request, $id)
     {
-        return $this->updateSelectaField(
+        return $this->updateNestleField(
             $request,
             $id,
             'remaining',
@@ -142,9 +143,9 @@ class SelectaSalesReportController extends Controller
         );
     }
 
-    public function updatedSelectaOut(Request $request, $id)
+    public function updatedNestleOut(Request $request, $id)
     {
-        return $this->updateSelectaField(
+        return $this->updateNestleField(
             $request,
             $id,
             'out',
@@ -152,9 +153,9 @@ class SelectaSalesReportController extends Controller
         );
     }
 
-    public function updatedAddedStocks(Request $request, $id)
+    public function udpatedAddedStocks(Request $request, $id)
     {
-        return $this->updateSelectaField(
+        return $this->updateNestleField(
             $request,
             $id,
             'added_stocks',
@@ -163,11 +164,12 @@ class SelectaSalesReportController extends Controller
     }
 
     /**
-     * ==============================
+     * ===============================
      * CREATE PRODUCTION
-     * ==============================
+     * ===============================
      */
-    public function addingSelectaProduction(Request $request)
+
+    public function addingNestleProduction(Request $request)
     {
         $validated = $request->validate([
             'user_id'            => 'required|exists:users,id',
@@ -188,14 +190,14 @@ class SelectaSalesReportController extends Controller
             'sales'              => 'nullable|numeric',
         ]);
 
-        $selecta = SelectaSalesReport::create($validated);
+        $nestle = NestleSalesReport::create($validated);
 
         // IMPORTANT: Load relationships
-        $selecta->load('selecta');
+        $nestle->load('nestle');
 
         return response()->json([
-            'message' => 'Selecta Production added successfully',
-            'data'    => $selecta
+            'message' => 'Nestle Production added successfully',
+            'data'    => $nestle
         ]);
     }
 }
