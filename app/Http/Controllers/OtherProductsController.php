@@ -633,7 +633,7 @@ class OtherProductsController extends Controller
 
         $otherProduct = OtherProducts::create($validated);
 
-        $otherProduct->load('otherProducts');
+        $otherProduct->load('otherProducts', 'handledBy');
 
         return response()->json([
             'message' => 'Other Production added successfully',

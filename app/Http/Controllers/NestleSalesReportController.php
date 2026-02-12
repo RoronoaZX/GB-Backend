@@ -14,10 +14,6 @@ class NestleSalesReportController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        //
-    }
 
     private function updateNestleField(
         Request $request,
@@ -26,10 +22,10 @@ class NestleSalesReportController extends Controller
         string $successMessage
     ) {
         $validated = $request->validate([
-            $field => 'required|integer',
-            'sales_report_id' => 'required|integer',
-            'charges_amount' => 'required|numeric',
-            'over_amount' => 'required|numeric',
+            $field               => 'required|integer',
+            'sales_report_id'    => 'required|integer',
+            'charges_amount'     => 'required|numeric',
+            'over_amount'        => 'required|numeric',
         ]);
 
         // Update nestle field
@@ -193,7 +189,7 @@ class NestleSalesReportController extends Controller
         $nestle = NestleSalesReport::create($validated);
 
         // IMPORTANT: Load relationships
-        $nestle->load('nestle');
+        $nestle->load('nestle', 'handledBy');
 
         return response()->json([
             'message' => 'Nestle Production added successfully',
