@@ -18,9 +18,9 @@ class SupplierRecordController extends Controller
 
     public function getSupplierRecords(Request $request)
     {
-        $page = $request->get('page', 1);
+        $page    = $request->get('page', 1);
         $perPage = $request->get('per_page', 5);
-        $search = $request->query('search', '');
+        $search  = $request->query('search', '');
 
         $query = SupplierRecord::with('supplierIngredients.rawMaterials');
 
@@ -101,53 +101,4 @@ class SupplierRecordController extends Controller
         }
     }
 
-
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(SupplierRecord $supplierRecord)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(SupplierRecord $supplierRecord)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, SupplierRecord $supplierRecord)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(SupplierRecord $supplierRecord)
-    {
-        //
-    }
 }

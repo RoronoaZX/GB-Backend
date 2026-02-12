@@ -476,12 +476,4 @@ class EmployeeController extends Controller
             'error' => 'Invalid designation type provided.'
         ], 400);
     }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Employee $employee)
-    {
-        //
-    }
 }

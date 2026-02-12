@@ -21,10 +21,6 @@ class SalesReportsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        //
-    }
 
     public function fetchEmployeeCharges($from, $to, $employee_id)
     {
@@ -284,22 +280,6 @@ class SalesReportsController extends Controller
 
             $salesReport->breadReports()->create($breadReport);
 
-            // $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
-            //     ->where('product_id', $breadReport['product_id'])
-            //     ->first();
-
-            // if ($branchProduct) {
-            //     $branchProduct->beginnings = $breadReport['remaining'];
-            //     //this code is to set 0 the new production record of the branch product
-            //     //in every submiting of report so that the new production will not be added
-            //     // to the new production of the branch product
-
-            //     // to set the new production to 0
-            //     $branchProduct->new_production = 0;
-            //     $branchProduct->total_quantity = $breadReport['remaining'];
-            //     $branchProduct->save();
-            // }
-
         }
 
         // Store Selecta Reports
@@ -307,20 +287,6 @@ class SalesReportsController extends Controller
             $selectaReport['status'] = 'pending';
 
             $salesReport->selectaReports()->create($selectaReport);
-
-            // $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
-            // ->where('product_id', $selectaReport['product_id'])
-            // ->first();
-
-            // if ($branchProduct) {
-            //     $branchProduct->beginnings = $selectaReport['remaining'];
-            //     //this code is to set 0 the new production record of the branch product
-            //     //in every submiting of report so that the new production will not be added
-            //     // to the new production of the branch product
-            //     $branchProduct->new_production = $selectaReport['new_production'];
-            //     $branchProduct->total_quantity = $selectaReport['remaining'];
-            //     $branchProduct->save();
-            //     }
         }
 
         foreach ($request->nestleReports as $nestleReport) {
@@ -331,28 +297,9 @@ class SalesReportsController extends Controller
 
         // Store Cake Reports
         foreach ($request->cakeReports as $cakeReport) {
-            // Create Cake Report record
-            // $salesReport->cakeSalesReports()->create($cakeReport);
 
             // Find the Cake entry using its ID and update its sales_status
             $existingCake = CakeReport::find($cakeReport['cake_report_id']); // Assuming Cake is an Eloquent model for the Cake table
-
-            // if ($existingCake) {
-            //     // Update the sales_status
-            //     $existingCake->sales_status = $cakeReport['sales_status'];
-            //     $existingCake->save();
-
-            //     // Save data to the Cake Sales Report table
-            //     $salesReport->cakeSalesReports()->create([
-            //         'sales_report_id'    => $salesReport->id, // This is the ID of the newly created SalesReports batch
-            //         'cake_report_id'     => $cakeReport['cake_report_id'], // Provided by frontend
-            //     ]);
-            // } else {
-            //     // Handle case where Cake report ID is not found
-            //     return response()->json([
-            //         'error' => "Cake report with ID {$cakeReport['cake_report_id']} not found."
-            //     ], 404);
-            // }
         }
 
         // Store Softdrinks Reports
@@ -360,20 +307,6 @@ class SalesReportsController extends Controller
             $softdrinksReport['status'] = 'pending';
 
             $salesReport->softdrinksReports()->create($softdrinksReport);
-
-            // $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
-            // ->where('product_id', $softdrinksReport['product_id'])
-            // ->first();
-
-            // if ($branchProduct) {
-            //     $branchProduct->beginnings = $softdrinksReport['remaining'];
-            //     //this code is to set 0 the new production record of the branch product
-            //     //in every submiting of report so that the new production will not be added
-            //     // to the new production of the branch product
-            //     $branchProduct->new_production = $softdrinksReport['new_production'];
-            //     $branchProduct->total_quantity = $softdrinksReport['remaining'];
-            //     $branchProduct->save();
-            //     }
         }
 
         // Store  Other Products
@@ -381,20 +314,6 @@ class SalesReportsController extends Controller
             $otherProductsReports['status'] = 'pending';
 
             $salesReport->otherProductsReports()->create($otherProductsReports);
-
-            // $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
-            //         ->where('product_id', $otherProductsReports['product_id'])
-            //         ->first();
-
-            // if ($branchProduct) {
-            //     $branchProduct->beginnings = $otherProductsReports['remaining'];
-            //     //this code is to set 0 the new production record of the branch product
-            //     //in every submiting of report so that the new production will not be added
-            //     // to the new production of the branch product
-            //     $branchProduct->new_production = $otherProductsReports['new_production'];
-            //     $branchProduct->total_quantity = $otherProductsReports['remaining'];
-            //     $branchProduct->save();
-            // }
         }
 
         // Store Expenses Reports
@@ -466,11 +385,6 @@ class SalesReportsController extends Controller
         return response()->json($reports);
     }
 
-    public function show(SalesReports $salesReports)
-    {
-        //
-    }
-
     public function updateEmployeeCharges(Request $request, $id)
     {
         $salesReports = SalesReports::find($id);
@@ -478,33 +392,5 @@ class SalesReportsController extends Controller
         $salesReports->save();
 
         return response()->json(['message' => 'Employee charges updated successfully.'], 200);
-    }
-
-    public function edit(SalesReports $salesReports)
-    {
-        //this is for spa building
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\SalesReports  $salesReports
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, SalesReports $salesReports)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\SalesReports  $salesReports
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(SalesReports $salesReports)
-    {
-        //
     }
 }

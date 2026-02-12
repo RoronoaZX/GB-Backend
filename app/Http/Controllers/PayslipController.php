@@ -533,36 +533,4 @@ class PayslipController extends Controller
     }
 
 
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Payslip $payslip)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Payslip $payslip)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Payslip $payslip)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Payslip $payslip)
-    {
-        //
-    }
 }

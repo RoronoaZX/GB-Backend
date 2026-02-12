@@ -10,10 +10,6 @@ class SoftdrinksAddedStocksController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        //
-    }
 
     public function fetchPendingReports($branchId)
     {
@@ -58,37 +54,5 @@ class SoftdrinksAddedStocksController extends Controller
             'data'       => $stock,
         ], 201);
 
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(SoftdrinksAddedStocks $softdrinksAddedStocks)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(SoftdrinksAddedStocks $softdrinksAddedStocks)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, SoftdrinksAddedStocks $softdrinksAddedStocks)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(SoftdrinksAddedStocks $softdrinksAddedStocks)
-    {
-        //
     }
 }

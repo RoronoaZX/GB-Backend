@@ -15,10 +15,6 @@ class SelectaSalesReportController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        //
-    }
 
     private function updateSelectaField(
         Request $request,

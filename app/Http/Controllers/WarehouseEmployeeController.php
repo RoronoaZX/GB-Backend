@@ -38,49 +38,4 @@ class WarehouseEmployeeController extends Controller
             'warehouseEmployee'  => $warehouseEmployee
         ], 201);
     }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\WarehouseEmployee  $warehouseEmployee
-     * @return \Illuminate\Http\Response
-     */
-    public function show(WarehouseEmployee $warehouseEmployee)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\WarehouseEmployee  $warehouseEmployee
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(WarehouseEmployee $warehouseEmployee)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\WarehouseEmployee  $warehouseEmployee
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, WarehouseEmployee $warehouseEmployee)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\WarehouseEmployee  $warehouseEmployee
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(WarehouseEmployee $warehouseEmployee)
-    {
-        //
-    }
 }

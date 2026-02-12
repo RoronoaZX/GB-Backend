@@ -12,13 +12,7 @@ use Illuminate\Support\Facades\Log;
 class IncentiveEmployeeReportsController extends Controller
 {
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
+
 
     public function getIncentiveEmployeeReportsPerDtrCutOff($from, $to, $employee_id)
     {

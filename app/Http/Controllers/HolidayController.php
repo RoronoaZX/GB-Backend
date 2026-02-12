@@ -8,16 +8,6 @@ use Illuminate\Http\Request;
 
 class HolidayController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    // public function index()
-    // {
-    //     $holiday = Holiday::latest()->get();
-
-    //     return response()->json($holiday);
-    // }
-
     public function index(Request $request) // <-- Inject the Request object
     {
         // 1. Validate the incoming request to ensure year and month are provided
@@ -68,22 +58,6 @@ class HolidayController extends Controller
     private function checkIfHolidayExists($date)
     {
         return Holiday::where('date', $date)->exists();
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Holiday $holiday)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Holiday $holiday)
-    {
-        //
     }
 
     /**

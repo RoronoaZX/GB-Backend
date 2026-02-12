@@ -63,8 +63,8 @@ class NestleSalesReportController extends Controller
     private function updateSalesReportAmounts($salesReportId, $charges, $over)
     {
         SalesReports::where('id', $salesReportId)->update([
-            'charges_amount' => $charges,
-            'over_total' => $over
+            'charges_amount'     => $charges,
+            'over_total'         => $over
         ]);
     }
 

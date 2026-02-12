@@ -19,18 +19,6 @@ class RequestPremixController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
      public function getBranchEmployeePremix(Request $request, $branchId, $employeeId)
     {
@@ -815,35 +803,5 @@ class RequestPremixController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(RequestPremix $requestPremix)
-    {
-        //
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(RequestPremix $requestPremix)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, RequestPremix $requestPremix)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(RequestPremix $requestPremix)
-    {
-        //
-    }
 }

@@ -116,9 +116,6 @@ class BreadAddedController extends Controller
         }
     }
 
-
-
-
     public function getSentBreadBranchProduct(Request $request, $branchId)
     {
 
@@ -222,37 +219,5 @@ class BreadAddedController extends Controller
                 'error'      => $e->getMessage(),
             ], 500);
         }
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(BreadAdded $breadAdded)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(BreadAdded $breadAdded)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, BreadAdded $breadAdded)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(BreadAdded $breadAdded)
-    {
-        //
     }
 }

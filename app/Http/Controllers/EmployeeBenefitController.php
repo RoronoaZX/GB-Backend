@@ -58,11 +58,6 @@ class EmployeeBenefitController extends Controller
     }
 
 
-    /**
-     * Search a resource in storage.
-     */
-
-
     public function searchBenefit(Request $request)
     {
         $keyword = $request->input('keyword');
@@ -188,39 +183,5 @@ class EmployeeBenefitController extends Controller
         $benefit->update($validateData);
 
         return response()->json($benefit, 200);
-    }
-
-
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(EmployeeBenefit $employeeBenefit)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(EmployeeBenefit $employeeBenefit)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, EmployeeBenefit $employeeBenefit)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(EmployeeBenefit $employeeBenefit)
-    {
-        //
     }
 }

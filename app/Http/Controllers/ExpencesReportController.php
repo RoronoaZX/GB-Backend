@@ -7,15 +7,7 @@ use Illuminate\Http\Request;
 
 class ExpencesReportController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
+
 
     public function updateName(Request $request, $id)
     {
@@ -29,8 +21,8 @@ class ExpencesReportController extends Controller
         $expensesReport->save();
 
         return response()->json([
-            'message' => 'name updated successfully',
-            'name' => $expensesReport
+            'message'    => 'name updated successfully',
+            'name'       => $expensesReport
         ]);
     }
     public function updateDescription(Request $request, $id)
@@ -45,8 +37,8 @@ class ExpencesReportController extends Controller
         $expensesReport->save();
 
         return response()->json([
-            'message' => 'description updated successfully',
-            'description' => $expensesReport
+            'message'        => 'description updated successfully',
+            'description'    => $expensesReport
         ]);
     }
     public function updateAmount(Request $request, $id)
@@ -60,8 +52,8 @@ class ExpencesReportController extends Controller
         $expensesReport->save();
 
         return response()->json([
-            'message' => 'amount updated successfully',
-            'amount' => $expensesReport
+            'message'    => 'amount updated successfully',
+            'amount'     => $expensesReport
         ]);
     }
     public function updateExpensesReport(Request $request)
@@ -103,69 +95,4 @@ class ExpencesReportController extends Controller
 
 
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\ExpencesReport  $expencesReport
-     * @return \Illuminate\Http\Response
-     */
-    public function show(ExpencesReport $expencesReport)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\ExpencesReport  $expencesReport
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(ExpencesReport $expencesReport)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\ExpencesReport  $expencesReport
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, ExpencesReport $expencesReport)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\ExpencesReport  $expencesReport
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(ExpencesReport $expencesReport)
-    {
-        //
-    }
 }

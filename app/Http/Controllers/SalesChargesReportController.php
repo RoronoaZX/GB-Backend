@@ -25,8 +25,8 @@ class SalesChargesReportController extends Controller
         $employee_charges = SalesChargesReport::find($validated['employee_id']);
 
         return response()->json([
-            'success' => true,
-            'employee_charges' => $employee_charges
+            'success'            => true,
+            'employee_charges'   => $employee_charges
         ]);
     }
 
@@ -43,70 +43,15 @@ class SalesChargesReportController extends Controller
                                     ->whereBetween('created_at', [$fromDate, $toDate])
                                     ->get();
             return response()->json([
-                'message' => 'Employee sales charges report fetlch successfully.',
-                'sales_charge' => $employeeSalesCharges
+                'message'        => 'Employee sales charges report fetlch successfully.',
+                'sales_charge'   => $employeeSalesCharges
             ], 201);
         }catch (\Exception $e) {
             return  response()->json([
-                'error' => 'Failed to fetch employee charges',
-                'message' => $e->getMessage()
+                'error'      => 'Failed to fetch employee charges',
+                'message'    => $e->getMessage()
             ], 500);
         }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\SalesChargesReport  $salesChargesReport
-     * @return \Illuminate\Http\Response
-     */
-    public function show(SalesChargesReport $salesChargesReport)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\SalesChargesReport  $salesChargesReport
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(SalesChargesReport $salesChargesReport)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\SalesChargesReport  $salesChargesReport
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, SalesChargesReport $salesChargesReport)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\SalesChargesReport  $salesChargesReport
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(SalesChargesReport $salesChargesReport)
-    {
-        //
-    }
 }

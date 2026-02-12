@@ -113,37 +113,4 @@ class EmployeeAllowanceController extends Controller
 
         return response()->json($employeeAllowance, 200);
     }
-
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(EmployeeAllowance $employeeAllowance)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(EmployeeAllowance $employeeAllowance)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, EmployeeAllowance $employeeAllowance)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(EmployeeAllowance $employeeAllowance)
-    {
-        //
-    }
 }

@@ -311,8 +311,8 @@ class DailyTimeRecordController extends Controller
             'status'     => 'success',
             // Send back in Manila time for UI
             'data'       => [
-                            'id' => $dtr->id,
-                            'time_out' => $dtr->time_out->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                            'id'         => $dtr->id,
+                            'time_out'   => $dtr->time_out->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
                         ]
             ]);
     }
@@ -342,8 +342,8 @@ class DailyTimeRecordController extends Controller
             'status'     => 'success',
             // Send back in Manila time for UI
             'data'       => [
-                        'id' => $dtr->id,
-                        'time_in' => $dtr->time_out->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                        'id'         => $dtr->id,
+                        'time_in'    => $dtr->time_out->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
                     ]
         ]);
     }
@@ -373,8 +373,8 @@ class DailyTimeRecordController extends Controller
             'status'         => 'success',
             // Send back in Manila time for UI
             'data'           => [
-                                'id' => $dtr->id,
-                                'lunch_break_start' => $dtr->lunch_break_start->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                                'id'                 => $dtr->id,
+                                'lunch_break_start'  => $dtr->lunch_break_start->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
                             ]
             ]);
     }
@@ -404,8 +404,8 @@ class DailyTimeRecordController extends Controller
             'status'             => 'success',
             // Send back in Manila time for UI
             'data'               => [
-                                    'id' => $dtr->id,
-                                    'lunch_break_end' => $dtr->lunch_break_end->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                                    'id'                 => $dtr->id,
+                                    'lunch_break_end'    => $dtr->lunch_break_end->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
                                 ]
             ]);
     }
@@ -435,8 +435,8 @@ class DailyTimeRecordController extends Controller
             'status'             => 'success',
             // Send back in Manila time for UI
             'data'               => [
-                                    'id' => $dtr->id,
-                                    'break_start' => $dtr->break_start->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                                    'id'             => $dtr->id,
+                                    'break_start'    => $dtr->break_start->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
                                 ]
             ]);
 
@@ -467,8 +467,8 @@ class DailyTimeRecordController extends Controller
             'status'             => 'success',
             // Send back in Manila time for UI
             'data'               => [
-                                    'id' => $dtr->id,
-                                    'break_end' => $dtr->break_end->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                                    'id'         => $dtr->id,
+                                    'break_end'  => $dtr->break_end->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
                                 ]
             ]);
     }
@@ -498,8 +498,8 @@ class DailyTimeRecordController extends Controller
             'status'                 => 'success',
             // Send back in Manila time for UI
             'data'                   => [
-                                        'id' => $dtr->id,
-                                        'overtime_start' => $dtr->overtime_start->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                                        'id'                 => $dtr->id,
+                                        'overtime_start'     => $dtr->overtime_start->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
                                     ]
             ]);
     }
@@ -529,8 +529,8 @@ class DailyTimeRecordController extends Controller
             'status'         => 'success',
             // Send back in Manila time for UI
             'data'           => [
-                                'id' => $dtr->id,
-                                'overtime_end' => $dtr->overtime_end->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                                'id'             => $dtr->id,
+                                'overtime_end'   => $dtr->overtime_end->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
                             ]
             ]);
     }
@@ -550,8 +550,8 @@ class DailyTimeRecordController extends Controller
             'status'                 => 'success',
             // Send back in Manila time for UI
             'data'                   => [
-                                        'id' => $dtr->id,
-                                        'overtime_reason' => $dtr->overtime_reason
+                                        'id'                 => $dtr->id,
+                                        'overtime_reason'    => $dtr->overtime_reason
                                     ]
             ]);
     }
@@ -571,8 +571,8 @@ class DailyTimeRecordController extends Controller
             'status'                     => 'success',
             // Send back in Manila time for UI
             'data'                       => [
-                                            'id' => $dtr->id,
-                                            'declined_reason' => $dtr->declined_reason
+                                            'id'                 => $dtr->id,
+                                            'declined_reason'    => $dtr->declined_reason
                                         ]
             ]);
     }
@@ -592,8 +592,8 @@ class DailyTimeRecordController extends Controller
             'status'         => 'success',
             // Send back in Manila time for UI
             'data'           => [
-                                'id' => $dtr->id,
-                                'ot_status' => $dtr->ot_status
+                                'id'         => $dtr->id,
+                                'ot_status'  => $dtr->ot_status
                             ]
             ]);
     }
@@ -613,8 +613,8 @@ class DailyTimeRecordController extends Controller
             'status'             => 'success',
             // Send back in Manila time for UI
             'data'               => [
-                                    'id' => $dtr->id,
-                                    'approved_by' => $dtr->approved_by
+                                    'id'             => $dtr->id,
+                                    'approved_by'    => $dtr->approved_by
                                 ]
             ]);
     }
@@ -1004,8 +1004,8 @@ class DailyTimeRecordController extends Controller
         $dtr->save();
 
         return response()->json([
-            'message' => 'Time Out marked successfully!',
-            'data' => $dtr
+            'message'    => 'Time Out marked successfully!',
+            'data'       => $dtr
         ]);
     }
 

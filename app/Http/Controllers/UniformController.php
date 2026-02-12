@@ -16,7 +16,7 @@ class UniformController extends Controller
     {
         $page        = $request->get('page', 1);
         $perPage     = $request->get('per_page', 7);
-        $search = $request->query('search', '');
+        $search      = $request->query('search', '');
 
         $query = Uniform::orderBy('created_at', 'desc')->with(['employee','tShirt','pants']);
 
@@ -124,7 +124,7 @@ class UniformController extends Controller
            'total'           => 1,
            'per_page'        => 1,
            'current_page'    => 1,
-           'last_page'       =>1
+           'last_page'       => 1
         ], 201);
     }
 
@@ -208,35 +208,4 @@ class UniformController extends Controller
          ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Uniform $uniform)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Uniform $uniform)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Uniform $uniform)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Uniform $uniform)
-    {
-        //
-    }
 }

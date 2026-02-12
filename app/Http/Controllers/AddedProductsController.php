@@ -4,12 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\AddedProducts;
 use App\Models\BranchProduct;
-use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use LengthException;
-use PhpParser\Node\Stmt\TryCatch;
+
 
 class AddedProductsController extends Controller
 {

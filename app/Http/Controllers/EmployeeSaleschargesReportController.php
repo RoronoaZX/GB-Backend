@@ -9,14 +9,6 @@ use Illuminate\Http\Request;
 
 class EmployeeSaleschargesReportController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
 
     public function fetchEmployeeChargesPerCutOff($from, $to, $employee_id)
     {
@@ -32,13 +24,13 @@ class EmployeeSaleschargesReportController extends Controller
                 ->get();
 
             return response()->json([
-                'message' => 'Employee sales charges report fetch successfully.',
-                'sales_charge' => $employeeSalesCharges
+                'message'        => 'Employee sales charges report fetch successfully.',
+                'sales_charge'   => $employeeSalesCharges
             ], 201);
         }catch (\Exception $e) {
             return response()->json([
-                'error' => 'Failed to fetch employee charges',
-                'message' => $e-> getMessage()
+                'error'      => 'Failed to fetch employee charges',
+                'message'    => $e-> getMessage()
             ], 500);
         }
     }
@@ -51,43 +43,5 @@ class EmployeeSaleschargesReportController extends Controller
 
         return response()->json(['message' => 'Employee charges updated successfully.'], 200 );
     }
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(EmployeeSaleschargesReport $employeeSaleschargesReport)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(EmployeeSaleschargesReport $employeeSaleschargesReport)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, EmployeeSaleschargesReport $employeeSaleschargesReport)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(EmployeeSaleschargesReport $employeeSaleschargesReport)
-    {
-        //
-    }
 }

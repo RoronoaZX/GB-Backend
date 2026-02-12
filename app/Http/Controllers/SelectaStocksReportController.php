@@ -194,8 +194,8 @@ class SelectaStocksReportController extends Controller
         } catch (\Exception $e) {
             // Catch any errors and return a detailed response
             return response()->json([
-                'message' => 'An error occurred while confirming the report.',
-                'error' => $e->getMessage()
+                'message'    => 'An error occurred while confirming the report.',
+                'error'      => $e->getMessage()
             ], 500);
         }
     }
@@ -262,37 +262,5 @@ class SelectaStocksReportController extends Controller
                 'added_stocks'               => $product['added_stocks'],
             ]);
         }
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(SelectaStocksReport $selectaStocksReport)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(SelectaStocksReport $selectaStocksReport)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, SelectaStocksReport $selectaStocksReport)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(SelectaStocksReport $selectaStocksReport)
-    {
-        //
     }
 }

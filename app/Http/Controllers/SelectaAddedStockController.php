@@ -10,10 +10,6 @@ class SelectaAddedStockController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        //
-    }
     public function fetchPendingReports($branchId)
     {
 
@@ -60,35 +56,4 @@ class SelectaAddedStockController extends Controller
 
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(SelectaAddedStock $selectaAddedStock)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(SelectaAddedStock $selectaAddedStock)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, SelectaAddedStock $selectaAddedStock)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(SelectaAddedStock $selectaAddedStock)
-    {
-        //
-    }
 }

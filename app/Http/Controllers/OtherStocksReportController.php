@@ -14,10 +14,6 @@ class OtherStocksReportController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        //
-    }
 
     public function getBranchOtherReports(Request $request, $branchId)
     {
@@ -253,37 +249,5 @@ class OtherStocksReportController extends Controller
                 'added_stocks'               => $product['added_stocks'],
             ]);
         }
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(OtherStocksReport $otherStocksReport)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(OtherStocksReport $otherStocksReport)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, OtherStocksReport $otherStocksReport)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(OtherStocksReport $otherStocksReport)
-    {
-        //
     }
 }

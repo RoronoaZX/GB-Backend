@@ -12,14 +12,6 @@ use PhpParser\Node\Stmt\TryCatch;
 class EmployeeCreditsController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
      * Fetch credits data per cut off.
      */
     public function fetchCreditsPerCutOff($from, $to, $employee_id)
@@ -28,16 +20,6 @@ class EmployeeCreditsController extends Controller
             // Parse incoming date strings like "May 26, 2025"
             $fromDate    = Carbon::parse($from)->startOfDay();
             $toDate      = Carbon::parse($to)->endOfDay();
-
-            // Get employee credits with related products and product info
-            // $credits = EmployeeCredits::with(['creditProducts.product', 'creditUserId'])
-            //                 ->where('credit_user_id', $employee_id)
-            //                 ->where(function ($query) {
-            //                     $query->where('status', '!=', 'paid')
-            //                         ->orWhereNull('status');
-            //                 })
-            //                 ->get();
-            //                 // ->whereBetween('created_at', [$fromDate, $toDate])
 
             $credits = EmployeeCredits::with(['creditProducts.product', 'creditUserId'])
                 ->where('credit_user_id', $employee_id)
@@ -141,45 +123,5 @@ class EmployeeCreditsController extends Controller
             ], 500);
         }
 
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(EmployeeCredits $employeeCredits)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(EmployeeCredits $employeeCredits)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, EmployeeCredits $employeeCredits)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(EmployeeCredits $employeeCredits)
-    {
-        //
     }
 }

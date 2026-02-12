@@ -206,8 +206,8 @@ class InitialBakerreportsController extends Controller
                 if (isset($validatedData['breads'])) {
                     $fillingData = array_map(function($bread) {
                         return [
-                            'bread_id' => $bread['bread_id'],
-                            'filling_production' => $bread['bread_production']
+                            'bread_id'               => $bread['bread_id'],
+                            'filling_production'     => $bread['bread_production']
                         ];
                     }, $validatedData['breads']);
 

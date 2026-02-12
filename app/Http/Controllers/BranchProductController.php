@@ -14,10 +14,6 @@ use Illuminate\Support\Facades\Log;
 
 class BranchProductController extends Controller
 {
-    public function index()
-    {
-        //
-    }
 
     public function samplePaginationFretchingBranchProducts(Request $request)
     {

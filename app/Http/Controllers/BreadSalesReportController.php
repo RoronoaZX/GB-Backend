@@ -17,10 +17,6 @@ class BreadSalesReportController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        //
-    }
 
     private function updateBreadField(
         Request $request,
