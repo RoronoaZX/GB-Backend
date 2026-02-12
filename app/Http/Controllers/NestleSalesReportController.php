@@ -6,7 +6,6 @@ use App\Models\EmployeeSaleschargesReport;
 use App\Models\HistoryLog;
 use App\Models\NestleSalesReport;
 use App\Models\SalesReports;
-use GuzzleHttp\Promise\FulfilledPromise;
 use Illuminate\Http\Request;
 
 class NestleSalesReportController extends Controller
