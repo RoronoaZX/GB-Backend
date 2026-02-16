@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AddedProducts;
 use App\Models\BranchProduct;
+use Illuminate\Http\Client\ResponseSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -15,7 +16,34 @@ class AddedProductsController extends Controller
      */
     public function index()
     {
-        //
+       //
+    }
+
+    public function fetchAllSendAddedProducts(Request $request, $branchId)
+    {
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 5);
+        $search = $request->query('search', '');
+
+        $query = AddedProducts::where(function ($q) use ($branchId) {
+            $q->where('from_branch_id', $branchId)
+            ->orWhere('to_branch_id', $branchId);
+        })
+        ->with('fromBranch', 'toBranch', 'employee', 'product');
+
+        if (!empty($search)) {
+            $query->whereHas('product', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            })->orWhereHas('employee', function ($q) use ($search) {
+                $q->where('firstname', 'like', "%{$search}%")
+                ->orWhere('lastname', 'ilke', "%{$search}%");
+            });
+        }
+
+        $addedProducts = $query->orderBy('created_at', 'desc')
+                            ->paginate($perPage);
+
+        return response()->json($addedProducts);
     }
 
     public function fetchSendAddedProducts(Request $request,$branchId, $category)
@@ -105,8 +133,8 @@ class AddedProductsController extends Controller
                     }
 
                     // Deduct the product quantity
-                    $branchProduct->total_quantity -= $product['quantity'];
-                    $branchProduct->save();
+                    // $branchProduct->total_quantity -= $product['quantity'];
+                    // $branchProduct->save();
                 }
 
 
@@ -148,7 +176,7 @@ class AddedProductsController extends Controller
         try {
              $validatedData = $request->validate([
                 'id'                     => 'required|exists:added_products,id',
-                'empoyee_id'             => 'required|exists:employees,id',
+                'employee_id'             => 'required|exists:employees,id',
                 'branch_id'              => 'required|exists:branches,id',
                 'product_id'             => 'required|exists:products,id',
                 'quantity'               => 'required|numeric|min:1',
@@ -178,7 +206,7 @@ class AddedProductsController extends Controller
 
             AddedProducts::where('id', $validatedData['id'])
                 ->update([
-                    'received_by' => $validatedData['empoyee_id'],
+                    'received_by' => $validatedData['employee_id'],
                     'status'      => $validatedData['status'],
                     'remark'      => $validatedData['remark']
                 ]);
