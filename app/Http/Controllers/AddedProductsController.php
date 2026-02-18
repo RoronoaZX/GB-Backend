@@ -176,7 +176,7 @@ class AddedProductsController extends Controller
         try {
              $validatedData = $request->validate([
                 'id'                     => 'required|exists:added_products,id',
-                'employee_id'             => 'required|exists:employees,id',
+                'employee_id'            => 'required|exists:employees,id',
                 'branch_id'              => 'required|exists:branches,id',
                 'product_id'             => 'required|exists:products,id',
                 'quantity'               => 'required|numeric|min:1',
@@ -184,6 +184,21 @@ class AddedProductsController extends Controller
                 'remark'                 => 'nullable|string',
             ]);
 
+            // ✅ If status is declined then skip calculation
+            if ($validatedData['status'] === 'declined') {
+                AddedProducts::where('id', $validatedData['id'])
+                    ->update([
+                        'received_by' => $validatedData['employee_id'],
+                        'status' => $validatedData['status'],
+                        'remark' => $validatedData['remark']
+                    ]);
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Product was declined, No quantity was updated.'
+                ]);
+            }
+
+            // ✅ Continue only if NOT declined
             $branchId     = $validatedData['branch_id'];
             $productId    = $validatedData['product_id'];
             $productAdded = $validatedData['quantity'];
