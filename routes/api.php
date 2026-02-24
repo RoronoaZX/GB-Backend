@@ -228,6 +228,7 @@ Route::post('raw-materials-delivery-confirmed', [RawMaterialsDeliveryController:
 Route::post('confirm-product-sales-report', [BranchReportController::class, 'confirmProductSalesReport']);
 Route::post('decline-product-sales-report', [BranchReportController::class, 'declineProductSalesReport']);
 Route::post('send-branch-products-to-other-branch', [AddedProductsController::class, 'sendProductsToOtherBranch']);
+Route::post('update-product-branch', [BranchProductController::class, 'updateProduct']);
 
 
 Route::put('update-employee-charges/{id}', [EmployeeSaleschargesReportController::class, 'updateCharges']);

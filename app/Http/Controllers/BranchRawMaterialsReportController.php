@@ -231,9 +231,10 @@ class BranchRawMaterialsReportController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Stocks updated successfully',
-            'total_quantity' => $branchRawMaterials
-        ]);
+            'status' => 'success',
+            'message' => 'Raw Materials stocks updated successfully.',
+            'data' => $branchRawMaterials
+        ], 200);
     }
 
     public function destroy($id)
