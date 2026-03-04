@@ -18,6 +18,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Client\ResponseSequence;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use PHPUnit\Framework\MockObject\ReturnValueNotConfiguredException;
 
 class BranchReportController extends Controller
 {
@@ -189,6 +190,8 @@ class BranchReportController extends Controller
             return response()->json(['message' => 'Branch not found'], 404);
         }
 
+        $search = request()->get('search');
+
         // Fetch unique dates from all reports
         $dates = DB::table('sales_reports')
                     ->select(DB::raw('DATE(CONVERT_TZ(created_at, "+00:00", "+08:00")) as date'))
@@ -208,12 +211,33 @@ class BranchReportController extends Controller
                     ->orderBy('date', 'desc')
                     ->pluck('date');
 
+        // Searhc filter
+        if ($search) {
+            $dates = collect($dates)->filter(function ($date) use ($search) {
+
+                $carbon = Carbon::parse($date);
+
+                $formattedDate   = $carbon->format('Y-m-d');
+                $monthName       = $carbon->format('F');
+                $monthShort      = $carbon->format('M');
+                $year            = $carbon->format('Y');
+
+                $searchLower = strtolower($search);
+
+                return str_contains(strtolower($formattedDate), $searchLower) ||
+                       str_contains(strtolower($monthName), $searchLower) ||
+                       str_contains(strtolower($monthShort), $searchLower) ||
+                       str_contains(strtolower($year), $searchLower);
+            })->values();
+        }
+
         // Setup pagination
         $page            = request()->get('page', 1); // Default to page 1 if no page param
         $perPage         = request()->get('per_page', 5); // Default 5 items per page
 
         $allDates        = $dates;  // already ordered DESC from your query
-        $paginatedDates  = ($perPage == 0) ? $allDates :  (new Collection($dates))->forPage($page, $perPage);
+        // $paginatedDates  = ($perPage == 0) ? $allDates :  (new Collection($dates))->forPage($page, $perPage);
+        $paginatedDates = ($perPage == 0) ? $allDates : collect($dates)->forPage($page, $perPage);
 
         $branchReports   = [];
 

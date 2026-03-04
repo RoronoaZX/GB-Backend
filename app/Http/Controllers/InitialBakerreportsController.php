@@ -617,7 +617,7 @@ class InitialBakerreportsController extends Controller
 
         $validator = Validator::make($request->all(), [
             'initial_bakerreports_id'                        => 'required|integer',
-            'sales_report_id'                                => 'required|integer',
+            'sales_report_id'                                => 'nullable|integer',
             'category'                                       => 'required|string|in:Dough,Filling',
             'status'                                         => 'sometimes|string|max:255',
             'kilo'                                           => 'required|numeric',
