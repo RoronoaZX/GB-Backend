@@ -40,6 +40,15 @@ class EmployeeController extends Controller
         return response()->json($employeeUserID);
     }
 
+    public function fetchBranchEmployee($branch_id)
+    {
+        $branchEmployee = BranchEmployee::with('branch', 'employee')
+                                        ->where('branch_id', $branch_id)
+                                        ->get();
+
+        return response()->json($branchEmployee);
+    }
+
     public function fetchEmployeeWithEmploymentType(Request $request)
     {
         $page        = $request->get('page', 1);

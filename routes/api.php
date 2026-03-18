@@ -409,6 +409,7 @@ Route::get('fetchEmployeeUserID/{employee_id}', [EmployeeController::class, 'fet
 Route::get('fetchAllEmployee', [EmployeeController::class, 'fetchAllEmployee']);
 Route::get('fetchSupervisorUnderBranch/{employee_id}', [SupervisorController::class, 'fetchSupervisorUnderBranch']);
 Route::get('fetchEmployeeWithEmploymentType', [EmployeeController::class, 'fetchEmployeeWithEmploymentType']);
+Route::get('fetchBranchEmployee/{branch_id}', [EmployeeController::class, 'fetchBranchEmployee']);
 Route::get('fetchEmployeeWithEmploymentTypeAndDesignation', [EmployeeController::class, 'fetchEmployeeWithEmploymentTypeAndDesignation']);
 Route::get('fetchCertianEmployeeWithEmploymentTypeAndDesignation/{id}', [EmployeeController::class, 'fetchCertianEmployeeWithEmploymentTypeAndDesignation']);
 Route::get('employee-charges/{from}/{to}/{employee_id}', [SalesReportsController::class, 'fetchEmployeeCharges']);
