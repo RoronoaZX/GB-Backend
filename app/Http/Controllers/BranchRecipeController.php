@@ -66,19 +66,20 @@ class BranchRecipeController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'branch_id'          => 'required|integer',
-            'recipe_id'          => 'required|integer',
-            'target'             => 'required|numeric',
-            'status'             => 'required|string|max:30',
-            'breads'             => 'required|array',
-            'breads.*.bread_id'  => 'required|integer|exists:products,id',
-            'ingredients'        => 'required|array',
+            'branch_id'                      => 'required|integer',
+            'recipe_id'                      => 'required|integer',
+            'target'                         => 'required|numeric',
+            'status'                         => 'required|string|max:30',
+            'breads'                         => 'required|array',
+            'breads.*.bread_id'              => 'required|integer|exists:products,id',
+            'ingredients'                    => 'required|array',
             'ingredients.*.ingredient_id'    => 'required|integer|exists:raw_materials,id',
             'ingredients.*.quantity'         => 'required',
         ]);
 
         $existingBranchRecipe = BranchRecipe::where('branch_id', $validatedData['branch_id'])
                                     ->where('recipe_id', $validatedData['recipe_id'])
+                                    ->where('status', 'active')
                                     ->first();
 
         if ($existingBranchRecipe) {
