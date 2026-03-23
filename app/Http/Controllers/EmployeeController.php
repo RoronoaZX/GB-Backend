@@ -42,7 +42,14 @@ class EmployeeController extends Controller
 
     public function fetchBranchEmployee($branch_id)
     {
-        $branchEmployee = BranchEmployee::with('branch', 'employee')
+        $branchEmployee = BranchEmployee::with(
+                                            ['branch',
+                                            'employee',
+                                            'employee.userDesignation',
+                                            'employee.employmentType',
+                                            'employee.branchEmployee.branch',
+                                            'employee.warehouseEmployee.warehouse'
+                                            ])
                                         ->where('branch_id', $branch_id)
                                         ->get();
 
@@ -349,6 +356,16 @@ class EmployeeController extends Controller
             'employee'   => $employee
         ], 200);
     }
+
+    public function updateEmployeeSex(Request $request, $id)
+    {
+        $validateEmployee = $request->validate([
+            'sex' => 'required|string',
+        ]);
+        $employee            = Employee::findOrFail($id);
+        $employee->sex       = $validateEmployee['sex'];
+    }
+
     public function updateEmployeePhone(Request $request, $id)
     {
         $validateEmployee = $request->validate([
