@@ -375,6 +375,41 @@ class EmployeeController extends Controller
         ]);
     }
 
+    public function updateEmployeeBranch(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'id' => 'required|integer',
+            'branch_id' => 'required|integer',
+        ]);
+
+        $employee                = BranchEmployee::findOrFail($id);
+        $employee->branch_id     = $validatedData['branch_id'];
+        $employee->save();
+
+        return response()->json([
+            'message' => 'Employee branch updated successfully',
+            'employee' => $employee
+        ]);
+    }
+
+    public function updateEmployeeStatus(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'status' => 'required|string',
+        ]);
+
+        $employee                = Employee::findOrFail($id);
+        $employee->status        = $validatedData['status'];
+        $employee->save();
+
+        $employee->load('employmentType');
+
+        return response()->json([
+            'message' => 'Employee status updated successfully',
+            'employee' => $employee
+        ]);
+    }
+
     public function updateEmployeePhone(Request $request, $id)
     {
         $validateEmployee = $request->validate([

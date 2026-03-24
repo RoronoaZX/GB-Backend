@@ -257,6 +257,8 @@ Route::put('update-employee-time-in/{id}', [EmployeeController::class, 'updateEm
 Route::put('update-employee-time-out/{id}', [EmployeeController::class, 'updateEmployeeTimeOut']);
 Route::put('update-employee-phone/{id}', [EmployeeController::class, 'updateEmployeePhone']);
 Route::put('update-employee-sex/{id}', [EmployeeController::class, 'updateEmployeeSex']);
+Route::put('update-employee-branch/{id}', [EmployeeController::class, 'updateEmployeeBranch']);
+Route::put('update-employee-status/{id}', [EmployeeController::class, 'updateEmployeeStatus']);
 Route::put('update-employee-position/{id}', [EmployeeController::class, 'updateEmployeePosition']);
 Route::put('update-employee-address/{id}', [EmployeeController::class, 'updateEmployeeAddress']);
 Route::put('update-employee-employmentType/{id}', [EmployeeController::class, 'updateEmployeeEmploymentType']);
