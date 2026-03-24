@@ -295,7 +295,7 @@ class EmployeeController extends Controller
 
 
         return response()->json([
-            'message'    => 'Employee fullname updated successfully',
+            'message'    => 'Employee employment type updated successfully',
             'employee'   => $employee
         ], 200);
     }
@@ -333,7 +333,7 @@ class EmployeeController extends Controller
 
 
         return response()->json([
-            'message'    => 'Employee fullname updated successfully',
+            'message'    => 'Employee address updated successfully',
             'employee'   => $employee
         ], 200);
     }
@@ -352,7 +352,7 @@ class EmployeeController extends Controller
 
 
         return response()->json([
-            'message'    => 'Employee fullname updated successfully',
+            'message'    => 'Employee birthdate updated successfully',
             'employee'   => $employee
         ], 200);
     }
@@ -364,6 +364,15 @@ class EmployeeController extends Controller
         ]);
         $employee            = Employee::findOrFail($id);
         $employee->sex       = $validateEmployee['sex'];
+
+        $employee->save();
+
+        $employee->load('employmentType');
+
+        return response()->json([
+            'message' => 'Employee gender updated successfully',
+            'employee' => $employee
+        ]);
     }
 
     public function updateEmployeePhone(Request $request, $id)
@@ -381,7 +390,7 @@ class EmployeeController extends Controller
 
 
         return response()->json([
-            'message'    => 'Employee fullname updated successfully',
+            'message'    => 'Employee phone updated successfully',
             'employee'   => $employee
         ], 200);
     }
