@@ -27,6 +27,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeCreditProductsController;
 use App\Http\Controllers\EmployeeCreditsController;
 use App\Http\Controllers\EmployeeDeductionController;
+use App\Http\Controllers\EmployeeOnLeaveController;
 use App\Http\Controllers\EmployeeSaleschargesReportController;
 use App\Http\Controllers\EmploymentTypeController;
 use App\Http\Controllers\ExpencesReportController;
@@ -138,6 +139,7 @@ Route::apiResource('payslip', PayslipController::class);
 Route::apiResource('raw-materials-delivery', RawMaterialsDeliveryController::class);
 Route::apiResource('sales-charges-report', SalesChargesReportController::class);
 Route::apiResource('added-branch-products', AddedProductsController::class);
+Route::apiResource('employeeOnLeave', EmployeeOnLeaveController::class);
 
 Route::patch('update-products', [ProductController::class, 'updateProducts']);
 
