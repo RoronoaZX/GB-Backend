@@ -19,7 +19,10 @@ class Employee extends Model
         'address',
         'sex',
         'position',
-        'status'
+        'status',
+        'vl_balance',
+        'sl_balance',
+        'el_balance'
     ];
 
    /**

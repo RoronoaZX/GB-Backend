@@ -139,7 +139,8 @@ Route::apiResource('payslip', PayslipController::class);
 Route::apiResource('raw-materials-delivery', RawMaterialsDeliveryController::class);
 Route::apiResource('sales-charges-report', SalesChargesReportController::class);
 Route::apiResource('added-branch-products', AddedProductsController::class);
-Route::apiResource('employeeOnLeave', EmployeeOnLeaveController::class);
+Route::get('employee-leaves/current-year', [EmployeeOnLeaveController::class, 'getCurrentYearRequest']);
+Route::apiResource('employee-leaves', EmployeeOnLeaveController::class);
 
 Route::patch('update-products', [ProductController::class, 'updateProducts']);
 

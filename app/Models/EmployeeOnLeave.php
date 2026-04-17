@@ -19,7 +19,9 @@ class EmployeeOnLeave extends Model
         'leave_type',
         'handled_by',
         'status',
-        'reason'
+        'reason',
+        'remarks',
+        'attachment_path'
     ];
 
     public function employee()
