@@ -21,6 +21,24 @@ class SalesReportsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function index(Request $request)
+    {
+        // Safe-Guard: If dashboard flag is present, use Ultra-Optimized Fetch
+        if ($request->has('dashboard')) {
+            $query = SalesReports::select('id', 'branch_id', 'products_total_sales', 'expenses_total', 'created_at');
+
+            if ($request->has('branch_id') && $request->branch_id) {
+                $query->where('branch_id', $request->branch_id);
+            }
+
+            return response()->json($query->orderBy('created_at', 'desc')->get());
+        }
+
+        // Backward Compatibility for other system modules
+        $reports = SalesReports::orderBy('created_at', 'desc')->get();
+            
+        return response()->json($reports);
+    }
 
     public function fetchEmployeeCharges($from, $to, $employee_id)
     {

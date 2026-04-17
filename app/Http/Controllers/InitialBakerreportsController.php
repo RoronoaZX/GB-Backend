@@ -25,20 +25,31 @@ class InitialBakerreportsController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $reports = InitialBakerreports::orderBy('created_at', 'desc')->get();
+        // Safe-Guard: If dashboard flag is present, use Ultra-Optimized Fetch
+        if ($request->has('dashboard')) {
+            $query = InitialBakerreports::select('id', 'recipe_category', 'branch_id', 'status', 'created_at');
 
-        // Loop through each report to load relationships conditionally
-        foreach ($reports as $report) {
-            if (strtolower($report->recipe_category) === 'dough') {
-                $report->load(['branch','user','branchRecipe','ingredientBakersReports', 'breadBakersReports']);
-            } elseif (strtolower($report->recipe_category) === 'filling') {
-                $report->load(['branch','user','recipe','ingredientBakersReports', 'fillingBakersReports']);
-            }
+            if ($request->has('branch_id') && $request->branch_id) {
+                $query->where('branch_id', $request->branch_id);
             }
 
-        // Return the response as JSON
+            return response()->json($query->orderBy('created_at', 'desc')->get());
+        }
+
+        // Backward Compatibility with existing heavy logic (WARNING: Severe N+1 Risk)
+        $reports = InitialBakerreports::with([
+            'branch', 
+            'user', 
+            'branchRecipe', 
+            'ingredientBakersReports', 
+            'breadBakersReports', 
+            'fillingBakersReports'
+        ])
+        ->orderBy('created_at', 'desc')
+        ->get();
+
         return response()->json($reports);
     }
 
