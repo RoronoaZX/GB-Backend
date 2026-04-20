@@ -7,6 +7,7 @@ use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\WarehouseController;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\BirReportController;
+use App\Http\Controllers\DashboardInventoryController;
 use App\Http\Controllers\BranchEmployeeController;
 use App\Http\Controllers\BranchPremixController;
 use App\Http\Controllers\RecipeController;
@@ -409,6 +410,7 @@ Route::get('branches/{branchId}/{userId}/pending-branch-sales-report', [BranchRe
 Route::get('user/{userId}', [UserController::class, 'fetchUserById']);
 Route::get('search-products', [ProductController::class, 'searchProducts']);
 Route::get('search-rawMaterials', [RawMaterialController::class, 'searchRawMaterials']);
+Route::get('dashboard/inventory-metrics', [DashboardInventoryController::class, 'getInventoryMetrics']);
 Route::get('fetchBranchWithEmployee', [BranchController::class, 'fetchBranchWithEmployee']);
 Route::get('fetchWarehouseWithEmployee', [WarehouseController::class, 'fetchWarehouseWithEmployee']);
 Route::get('fetchEmployeeUserID/{employee_id}', [EmployeeController::class, 'fetchEmployeeUserID']);

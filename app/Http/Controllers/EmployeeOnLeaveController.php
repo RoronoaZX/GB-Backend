@@ -37,15 +37,15 @@ class EmployeeOnLeaveController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'leave_type' => 'required|string',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'reason' => 'nullable|string',
-            'status' => 'sometimes|string|in:pending,approved,rejected,confirmed',
-            'duration_type' => 'required|string',
-            'duration_value' => 'required|integer',
-            'handled_by' => 'nullable|integer'
+            'employee_id'        => 'required|exists:employees,id',
+            'leave_type'         => 'required|string',
+            'start_date'         => 'required|date',
+            'end_date'           => 'required|date|after_or_equal:start_date',
+            'reason'             => 'nullable|string',
+            'status'             => 'sometimes|string|in:pending,approved,rejected,confirmed',
+            'duration_type'      => 'required|string',
+            'duration_value'     => 'required|integer',
+            'handled_by'         => 'nullable|integer'
         ]);
 
         $leave = EmployeeOnLeave::create($validated);
@@ -58,7 +58,7 @@ class EmployeeOnLeaveController extends Controller
     public function show($id)
     {
         $leave = EmployeeOnLeave::with('employee')->findOrFail($id);
-        
+
         return response()->json($leave);
     }
 
@@ -68,8 +68,8 @@ class EmployeeOnLeaveController extends Controller
         $leave = EmployeeOnLeave::findOrFail($id);
 
         $validated = $request->validate([
-            'status' => 'required|in:pending,approved,rejected',
-            'remarks' => 'nullable|string'
+            'status'     => 'required|in:pending,approved,rejected',
+            'remarks'    => 'nullable|string'
         ]);
 
         $previousStatus = $leave->status;
@@ -78,17 +78,17 @@ class EmployeeOnLeaveController extends Controller
         $handledBy = $request->user() ? $request->user()->employee_id : null;
 
         $leave->update([
-            'status' => $newStatus,
-            'remarks' => $request->remarks ?? $leave->remarks,
+            'status'     => $newStatus,
+            'remarks'    => $request->remarks ?? $leave->remarks,
             'start_date' => $request->start_date ?? $leave->start_date,
-            'end_date' => $request->end_date ?? $leave->end_date,
+            'end_date'   => $request->end_date ?? $leave->end_date,
             'handled_by' => $handledBy ?? $leave->handled_by
         ]);
 
         $employee = $leave->employee;
         if ($employee && $leave->duration_type === 'days') {
             $duration = (int) $leave->duration_value;
-            
+
             // Deduct upon approval
             if ($previousStatus !== 'approved' && $newStatus === 'approved') {
                 if ($leave->leave_type === 'vacation_leave') {
@@ -99,7 +99,7 @@ class EmployeeOnLeaveController extends Controller
                     $employee->decrement('el_balance', $duration);
                 }
             }
-            
+
             // Refund balance if revoked
             if ($previousStatus === 'approved' && $newStatus !== 'approved') {
                 if ($leave->leave_type === 'vacation_leave') {
