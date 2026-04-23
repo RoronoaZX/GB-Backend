@@ -56,6 +56,7 @@ class RecipeCostController extends Controller
                 'items' => $group->map(function ($item) {
                     return [
                         'raw_material_name' => $item->rawMaterial?->name,
+                        'unit'              => $item->rawMaterial?->unit,
                         'quantity_used'     => $item->quantity_used,
                         'price_per_gram'    => $item->price_per_gram,
                         'total_cost'        => $item->total_cost,
@@ -107,6 +108,7 @@ class RecipeCostController extends Controller
                     'items'             => $group->map(function ($item) {
                         return [
                             'raw_material_name' => $item->rawMaterial?->name,
+                            'unit'              => $item->rawMaterial?->unit,
                             'quantity_used'     => $item->quantity_used,
                             'price_per_gram'    => $item->price_per_gram,
                             'total_cost'        => $item->total_cost,
