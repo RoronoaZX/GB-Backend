@@ -336,6 +336,7 @@ Route::get('fetch-employee-charges-per-cut-off/{from}/{to}/{employee_id}', [Empl
 Route::get('fetchrawMaterialsBranchWarehouse/{id}', [RawMaterialController::class, 'fetchrawMaterialsBranchWarehouse']);
 Route::get('fetch-supplier-records', [SupplierRecordController::class, 'getSupplierRecords']);
 Route::get('fetch-recipe-costs/{branchId}', [RecipeCostController::class, 'fetchRecipeCosts']);
+Route::get('fetch-global-recipe-costs/{recipeId}', [RecipeCostController::class, 'fetchGlobalRecipeCosts']);
 Route::get('raw-materials-delivery-branch/{id}', [RawMaterialsDeliveryController::class, 'fetchDeliveryStocksBranch']);
 Route::get('raw-materials-delivery-pending/{id}', [RawMaterialsDeliveryController::class, 'fetchPendingDelivery']);
 Route::get('raw-materials-delivery-confirmed/{id}', [RawMaterialsDeliveryController::class, 'fetchConfirmedDelivery']);

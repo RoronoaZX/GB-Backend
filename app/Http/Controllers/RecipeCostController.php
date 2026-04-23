@@ -84,4 +84,49 @@ class RecipeCostController extends Controller
 
     }
 
+    public function fetchGlobalRecipeCosts(Request $request, $recipeId)
+    {
+        $page = $request->query('page', 1);
+        $perPage = $request->query('per_page', 10);
+
+        $query = RecipeCost::where('recipe_id', $recipeId)
+            ->with(['recipe', 'branch', 'user.employee', 'rawMaterial'])
+            ->orderBy('created_at', 'desc');
+
+        $allRows = $query->get();
+        $grouped = collect($allRows)
+            ->groupBy('initial_bakerreport_id')
+            ->map(function ($group) {
+                $first = $group->first();
+                return [
+                    'branch_name'       => $first->branch?->name,
+                    'baker_name'        => $first->user?->employee ? ($first->user->employee->firstname . ' ' . $first->user->employee->lastname) : 'N/A',
+                    'created_at'        => $first->created_at,
+                    'kilo'              => $first->kilo,
+                    'recipe_total_cost' => $group->sum('total_cost'),
+                    'items'             => $group->map(function ($item) {
+                        return [
+                            'raw_material_name' => $item->rawMaterial?->name,
+                            'quantity_used'     => $item->quantity_used,
+                            'price_per_gram'    => $item->price_per_gram,
+                            'total_cost'        => $item->total_cost,
+                        ];
+                    })->values(),
+                ];
+            })
+            ->values()
+            ->sortByDesc('created_at')
+            ->values();
+
+        $total = $grouped->count();
+        $pagedData = $grouped->slice(($page - 1) * $perPage, $perPage)->values();
+
+        return response()->json([
+            'data'         => $pagedData,
+            'total'        => $total,
+            'per_page'     => $perPage,
+            'current_page' => (int)$page,
+            'last_page'    => (int)ceil($total / $perPage),
+        ]);
+    }
 }
