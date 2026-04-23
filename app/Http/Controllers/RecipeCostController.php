@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\RecipeCost;
+use App\Models\RecipeCostChangeLog;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use ReturnTypeWillChange;
@@ -55,11 +56,13 @@ class RecipeCostController extends Controller
 
                 'items' => $group->map(function ($item) {
                     return [
+                        'id'                => $item->id,
                         'raw_material_name' => $item->rawMaterial?->name,
                         'unit'              => $item->rawMaterial?->unit,
                         'quantity_used'     => $item->quantity_used,
                         'price_per_gram'    => $item->price_per_gram,
                         'total_cost'        => $item->total_cost,
+                        'status'            => $item->status,
                     ];
                 })->values(),
             ];
@@ -107,11 +110,13 @@ class RecipeCostController extends Controller
                     'recipe_total_cost' => $group->sum('total_cost'),
                     'items'             => $group->map(function ($item) {
                         return [
+                            'id'                => $item->id,
                             'raw_material_name' => $item->rawMaterial?->name,
                             'unit'              => $item->rawMaterial?->unit,
                             'quantity_used'     => $item->quantity_used,
                             'price_per_gram'    => $item->price_per_gram,
                             'total_cost'        => $item->total_cost,
+                            'status'            => $item->status,
                         ];
                     })->values(),
                 ];
@@ -130,5 +135,88 @@ class RecipeCostController extends Controller
             'current_page' => (int)$page,
             'last_page'    => (int)ceil($total / $perPage),
         ]);
+    }
+
+    /**
+     * Update a recipe cost field and write an audit log entry.
+     */
+    public function logChange(Request $request)
+    {
+        try {
+            $recipeCost = RecipeCost::findOrFail($request->recipe_cost_id);
+
+            $changedField = $request->changed_field; // 'price_per_gram' or 'quantity_used'
+            $newValue     = (float) $request->new_value;
+            $oldValue     = (float) $recipeCost->$changedField;
+
+            // Update the recipe_costs record
+            $recipeCost->$changedField = $newValue;
+            // Recalculate total cost
+            $recipeCost->total_cost = $recipeCost->quantity_used * $recipeCost->price_per_gram;
+            $recipeCost->save();
+
+            // Write audit log
+            RecipeCostChangeLog::create([
+                'recipe_cost_id' => $recipeCost->id,
+                'branch_id'      => $recipeCost->branch_id,
+                'user_id'        => $request->user_id ?? 0,
+                'changed_field'  => $changedField,
+                'old_value'      => $oldValue,
+                'new_value'      => $newValue,
+                'reason'         => $request->reason ?? null,
+            ]);
+
+            return response()->json([
+                'success'        => true,
+                'message'        => 'Cost updated and change logged.',
+                'new_total_cost' => round($recipeCost->total_cost, 2),
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to log change.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Return the change history for a specific recipe_cost row.
+     */
+    public function getChangeLogs($recipeCostId)
+    {
+        try {
+            $logs = RecipeCostChangeLog::where('recipe_cost_id', $recipeCostId)
+                ->with('user.employee')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($log) {
+                    $emp = $log->user?->employee;
+                    return [
+                        'id'            => $log->id,
+                        'changed_field' => $log->changed_field,
+                        'old_value'     => $log->old_value,
+                        'new_value'     => $log->new_value,
+                        'reason'        => $log->reason,
+                        'changed_by'    => $emp
+                            ? trim($emp->firstname . ' ' . $emp->lastname)
+                            : 'Administrator',
+                        'changed_at'    => $log->created_at,
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data'    => $logs,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch change logs.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
     }
 }
