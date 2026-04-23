@@ -40,11 +40,11 @@ class InitialBakerreportsController extends Controller
 
         // Backward Compatibility with existing heavy logic (WARNING: Severe N+1 Risk)
         $reports = InitialBakerreports::with([
-            'branch', 
-            'user', 
-            'branchRecipe', 
-            'ingredientBakersReports', 
-            'breadBakersReports', 
+            'branch',
+            'user',
+            'branchRecipe',
+            'ingredientBakersReports',
+            'breadBakersReports',
             'fillingBakersReports'
         ])
         ->orderBy('created_at', 'desc')
@@ -151,8 +151,8 @@ class InitialBakerreportsController extends Controller
         } catch (\Exception $e) {
 
             return response()->json([
-                'message' => 'Failed to fetch reports',
-                'error' => $e->getMessage()
+                'message'    => 'Failed to fetch reports',
+                'error'      => $e->getMessage()
             ], 500);
         }
     }

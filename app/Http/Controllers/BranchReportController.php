@@ -237,7 +237,7 @@ class BranchReportController extends Controller
 
         $allDates        = $dates;  // already ordered DESC from your query
         // $paginatedDates  = ($perPage == 0) ? $allDates :  (new Collection($dates))->forPage($page, $perPage);
-        $paginatedDates = ($perPage == 0) ? $allDates : collect($dates)->forPage($page, $perPage);
+        $paginatedDates  = ($perPage == 0) ? $allDates : collect($dates)->forPage($page, $perPage);
 
         $branchReports   = [];
 
@@ -424,7 +424,7 @@ class BranchReportController extends Controller
                             'date'           => $carbonDate->toDateString(),
                             'branch_name'    => $branch->name,
                         ],
-                'PM'    => [
+                'PM'     => [
                             'sales_reports'  => $pmSalesReports,
                             'date'           => $carbonDate->toDateString(),
                             'branch_name'    => $branch->name,

@@ -126,37 +126,4 @@ class BranchPremixController extends Controller
             'recipe' => $recipe
         ]);
     }
-
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(BranchPremix $branchPremix)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(BranchPremix $branchPremix)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, BranchPremix $branchPremix)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(BranchPremix $branchPremix)
-    {
-        //
-    }
 }

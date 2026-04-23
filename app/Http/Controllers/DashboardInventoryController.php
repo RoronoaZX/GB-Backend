@@ -16,45 +16,56 @@ class DashboardInventoryController extends Controller
     public function getInventoryMetrics(Request $request)
     {
         try {
-            $branchId = $request->query('branch_id', 'global');
+            $branchId = $request->query('branch_id');
+            $warehouseId = $request->query('warehouse_id');
+            $mode = 'global';
+            if ($branchId) $mode = 'branch';
+            if ($warehouseId) $mode = 'warehouse';
 
             // 1. Current Balances (The Stock Ledger)
-            $rawMaterials = RawMaterial::all();
+            $rawMaterials    = RawMaterial::all();
             $currentBalances = [];
 
             // Pre-fetch reports for speed
-            $branchReportsQuery = BranchRawMaterialsReport::query();
-            if ($branchId !== 'global') {
-                $branchReportsQuery->where('branch_id', $branchId);
+            $branchReports = collect();
+            if ($mode === 'global' || $mode === 'branch') {
+                $branchReportsQuery = BranchRawMaterialsReport::query();
+                if ($mode === 'branch') {
+                    $branchReportsQuery->where('branch_id', $branchId);
+                }
+                $branchReports = $branchReportsQuery->get()->groupBy('ingredients_id');
             }
-            $branchReports = $branchReportsQuery->get()->groupBy('ingredients_id');
 
             $warehouseReports = collect();
-            if ($branchId === 'global') {
-                $warehouseReports = WarehouseRawMaterialsReport::all()->groupBy('raw_material_id');
+            if ($mode === 'global' || $mode === 'warehouse') {
+                $warehouseReportsQuery = WarehouseRawMaterialsReport::query();
+                if ($mode === 'warehouse') {
+                    $warehouseReportsQuery->where('warehouse_id', $warehouseId);
+                }
+                $warehouseReports = $warehouseReportsQuery->get()->groupBy('raw_material_id');
             }
 
             foreach ($rawMaterials as $rm) {
                 $totalQty = 0;
-                
+
                 // Sum from branch
                 if (isset($branchReports[$rm->id])) {
                     $totalQty += $branchReports[$rm->id]->sum('total_quantity');
                 }
 
-                // Sum from warehouse if global
-                if ($branchId === 'global' && isset($warehouseReports[$rm->id])) {
+                // Sum from warehouse
+                if (isset($warehouseReports[$rm->id])) {
                     $totalQty += $warehouseReports[$rm->id]->sum('total_quantity');
                 }
 
                 if ($totalQty > 0) {
                     $currentBalances[] = [
-                        'raw_material_id' => $rm->id,
-                        'name' => $rm->name,
-                        'code' => $rm->code,
-                        'category' => $rm->category,
-                        'unit' => $rm->unit,
-                        'total_quantity' => round($totalQty, 2)
+                        'raw_material_id'   => $rm->id,
+                        'name'              => $rm->name,
+                        'code'              => $rm->code,
+                        'category'          => $rm->category,
+                        'unit'              => $rm->unit,
+                        'total_quantity'    => round($totalQty, 2)
                     ];
                 }
             }
@@ -68,9 +79,12 @@ class DashboardInventoryController extends Controller
                 ->where('raw_materials_deliveries.status', 'confirmed')
                 ->where('raw_materials_deliveries.created_at', '>=', now()->subDays(365));
 
-            if ($branchId !== 'global') {
+            if ($mode === 'branch') {
                 $deliveriesQuery->where('raw_materials_deliveries.to_id', $branchId)
                                 ->where('raw_materials_deliveries.to_designation', 'Branch');
+            } elseif ($mode === 'warehouse') {
+                $deliveriesQuery->where('raw_materials_deliveries.to_id', $warehouseId)
+                                ->where('raw_materials_deliveries.to_designation', 'Warehouse');
             }
 
             $inMovementsRaw = $deliveriesQuery->select(
@@ -80,33 +94,53 @@ class DashboardInventoryController extends Controller
                 ->groupBy(DB::raw('DATE(raw_materials_deliveries.updated_at)'))
                 ->get();
 
-            // 3. OUT Movements (Recipe Cost / Usage)
-            $usageQuery = RecipeCost::whereIn('status', ['confirmed', 'missing_stock'])
-                ->where('created_at', '>=', now()->subDays(365));
-                
-            if ($branchId !== 'global') {
-                $usageQuery->where('branch_id', $branchId);
+            // 3. OUT Movements (Recipe Cost / Usage / Deliveries OUT)
+            // For branches, OUT is usage. For warehouses, OUT is delivery to branches.
+            $outMovementsRaw = collect();
+
+            if ($mode === 'branch' || $mode === 'global') {
+                $usageQuery = RecipeCost::whereIn('status', ['confirmed', 'missing_stock'])
+                    ->where('created_at', '>=', now()->subDays(365));
+
+                if ($mode === 'branch') {
+                    $usageQuery->where('branch_id', $branchId);
+                }
+
+                $outMovementsRaw = $usageQuery->select(
+                        DB::raw('DATE(created_at) as date'),
+                        DB::raw('SUM(quantity_used) as total_qty')
+                    )
+                    ->groupBy(DB::raw('DATE(created_at)'))
+                    ->get();
             }
 
-            $outMovementsRaw = $usageQuery->select(
-                    DB::raw('DATE(created_at) as date'),
-                    DB::raw('SUM(quantity_used) as total_qty')
-                )
-                ->groupBy(DB::raw('DATE(created_at)'))
-                ->get();
-                
+            if ($mode === 'warehouse') {
+                // For warehouse, OUT movements are deliveries to branches
+                $outMovementsRaw = DeliveryStocksUnit::join('raw_materials_deliveries', 'delivery_stocks_units.rm_delivery_id', '=', 'raw_materials_deliveries.id')
+                    ->where('raw_materials_deliveries.status', 'confirmed')
+                    ->where('raw_materials_deliveries.created_at', '>=', now()->subDays(365))
+                    ->where('raw_materials_deliveries.from_id', $warehouseId)
+                    ->where('raw_materials_deliveries.from_designation', 'Warehouse')
+                    ->select(
+                        DB::raw('DATE(raw_materials_deliveries.updated_at) as date'),
+                        DB::raw('SUM(delivery_stocks_units.quantity) as total_qty')
+                    )
+                    ->groupBy(DB::raw('DATE(raw_materials_deliveries.updated_at)'))
+                    ->get();
+            }
+
             return response()->json([
-                'success' => true,
-                'currentBalances' => $currentBalances,
-                'inMovements' => $inMovementsRaw,
-                'outMovements' => $outMovementsRaw
+                'success'            => true,
+                'currentBalances'    => $currentBalances,
+                'inMovements'        => $inMovementsRaw,
+                'outMovements'       => $outMovementsRaw
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Failed to load inventory metrics',
-                'error' => $e->getMessage() // Good for debugging
+                'success'    => false,
+                'message'    => 'Failed to load inventory metrics',
+                'error'      => $e->getMessage() // Good for debugging
             ], 500);
         }
     }

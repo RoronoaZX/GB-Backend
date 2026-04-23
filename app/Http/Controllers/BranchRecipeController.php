@@ -208,29 +208,6 @@ class BranchRecipeController extends Controller
         return response()->json($formattedRecipes);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(BranchRecipe $branchRecipe)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(BranchRecipe $branchRecipe)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, BranchRecipe $branchRecipe)
-    {
-        //
-    }
 
     /**
      * Remove the specified resource from storage.

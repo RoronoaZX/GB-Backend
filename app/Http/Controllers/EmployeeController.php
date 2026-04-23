@@ -370,8 +370,8 @@ class EmployeeController extends Controller
         $employee->load('employmentType');
 
         return response()->json([
-            'message' => 'Employee gender updated successfully',
-            'employee' => $employee
+            'message'    => 'Employee gender updated successfully',
+            'employee'   => $employee
         ]);
     }
 
@@ -387,8 +387,8 @@ class EmployeeController extends Controller
         $employee->save();
 
         return response()->json([
-            'message' => 'Employee branch updated successfully',
-            'employee' => $employee
+            'message'    => 'Employee branch updated successfully',
+            'employee'   => $employee
         ]);
     }
 
@@ -405,8 +405,8 @@ class EmployeeController extends Controller
         $employee->load('employmentType');
 
         return response()->json([
-            'message' => 'Employee status updated successfully',
-            'employee' => $employee
+            'message'    => 'Employee status updated successfully',
+            'employee'   => $employee
         ]);
     }
 
@@ -437,8 +437,8 @@ class EmployeeController extends Controller
             'designation_type'   => 'required',
         ]);
 
-        $employeeType = $validatedData['designation_type'];
-        $designationId = $validatedData['designation_id'];
+        $employeeType    = $validatedData['designation_type'];
+        $designationId   = $validatedData['designation_id'];
         try{
             if ($employeeType === 'branch') {
                 $employee                = BranchEmployee::findOrFail($id);

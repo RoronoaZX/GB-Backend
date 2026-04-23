@@ -73,49 +73,4 @@ class BranchEmployeeController extends Controller
             'branchEmployee'    => $branchEmployee
          ], 201);
     }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\BranchEmployee  $branchEmployee
-     * @return \Illuminate\Http\Response
-     */
-    public function show(BranchEmployee $branchEmployee)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\BranchEmployee  $branchEmployee
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(BranchEmployee $branchEmployee)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\BranchEmployee  $branchEmployee
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, BranchEmployee $branchEmployee)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\BranchEmployee  $branchEmployee
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(BranchEmployee $branchEmployee)
-    {
-        //
-    }
 }

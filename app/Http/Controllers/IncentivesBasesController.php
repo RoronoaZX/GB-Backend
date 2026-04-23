@@ -178,35 +178,4 @@ class IncentivesBasesController extends Controller
             'data'       => $incentiveBases
         ], 200);
     }
-    /**
-     * Display the specified resource.
-     */
-    public function show(IncentivesBases $incentivesBases)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(IncentivesBases $incentivesBases)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, IncentivesBases $incentivesBases)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(IncentivesBases $incentivesBases)
-    {
-        //
-    }
 }

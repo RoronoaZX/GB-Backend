@@ -137,36 +137,4 @@ class CakeReportController extends Controller
             'report'     => $report,
         ], 201);
     }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(CakeReport $cakeReport)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(CakeReport $cakeReport)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, CakeReport $cakeReport)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(CakeReport $cakeReport)
-    {
-        //
-    }
 }

@@ -200,34 +200,34 @@ class BranchProductController extends Controller
     public function updateProduct(Request $request)
     {
         $validatedData = $request->validate([
-            'id' => 'required|integer',
-            'updated_data' => 'required|numeric',
-            'updated_field' => 'required|string',
+            'id'             => 'required|integer',
+            'updated_data'   => 'required|numeric',
+            'updated_field'  => 'required|string',
         ]);
 
         $branchProduct = BranchProduct::find($validatedData['id']);
 
         if (!$branchProduct) {
             return response()->json([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'Product not found.'
             ], 404);
         }
 
         // 🔐 Allowed fields with readable labels
         $allowedFields = [
-            'price' => 'Price',
-            'beginnings' => 'Beginning Stock',
-            'new_production' => 'New Production',
-            'total_quantity' => 'Total Quantity'
+            'price'              => 'Price',
+            'beginnings'         => 'Beginning Stock',
+            'new_production'     => 'New Production',
+            'total_quantity'     => 'Total Quantity'
         ];
 
         $field = $validatedData['updated_field'];
 
         if (!array_key_exists($field, $allowedFields)) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Field not allowed to update.'
+                'status'     => 'error',
+                'message'    => 'Field not allowed to update.'
             ], 403);
         }
 
@@ -237,10 +237,10 @@ class BranchProductController extends Controller
         // 🔄 If unchanged
         if ($oldValue == $value) {
             return response()->json([
-                'status' => 'warning',
-                'message' => $allowedFields[$field] . ' unchanged.',
-                'updated_field' => $field,
-                'data' => $branchProduct
+                'status'         => 'warning',
+                'message'        => $allowedFields[$field] . ' unchanged.',
+                'updated_field'  => $field,
+                'data'           => $branchProduct
             ], 200);
         }
 
@@ -249,12 +249,12 @@ class BranchProductController extends Controller
         $branchProduct->save();
 
         return response()->json([
-            'status' => 'success',
-            'message' => $allowedFields[$field] . ' updated successfully.',
-            'updated_field' => $field,
-            'old_value' => $oldValue,
-            'new_value' => $value,
-            'data' => $branchProduct
+            'status'         => 'success',
+            'message'        => $allowedFields[$field] . ' updated successfully.',
+            'updated_field'  => $field,
+            'old_value'      => $oldValue,
+            'new_value'      => $value,
+            'data'           => $branchProduct
         ], 200);
     }
 
@@ -372,8 +372,8 @@ class BranchProductController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Total Quantity updated successfully',
-            'total quantity' => $branchProduct
+            'message'            => 'Total Quantity updated successfully',
+            'total quantity'     => $branchProduct
         ]);
     }
 

@@ -14,8 +14,8 @@ class EmployeeSaleschargesReportController extends Controller
     {
         try {
             // parse incoming date strings like "May 26, 2025"
-            $fromDate = Carbon::parse($from)->startOfDay();
-            $toDate = Carbon::parse($to)->endOfDay();
+            $fromDate  = Carbon::parse($from)->startOfDay();
+            $toDate    = Carbon::parse($to)->endOfDay();
 
             // Get employee charges with related products and product info
             $employeeSalesCharges = EmployeeSaleschargesReport::with(['employee', 'salesReport.branch'])
@@ -37,7 +37,7 @@ class EmployeeSaleschargesReportController extends Controller
 
     public function updateCharges(Request $request, $id)
     {
-        $salesReports = EmployeeSaleschargesReport::find($id);
+        $salesReports                = EmployeeSaleschargesReport::find($id);
         $salesReports->charge_amount = $request->charge_amount;
         $salesReports->save();
 

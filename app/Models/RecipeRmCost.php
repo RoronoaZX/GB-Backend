@@ -9,12 +9,11 @@ class RecipeRmCost extends Model
 {
     use HasFactory;
 
-    protected $table = [
+    protected $fillable = [
         'recipe_cost_id',
         'raw_materials_cost_id',
         'price_per_unit',
         'unit',
         'quantity',
-
     ];
 }

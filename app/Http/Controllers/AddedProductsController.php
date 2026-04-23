@@ -21,9 +21,9 @@ class AddedProductsController extends Controller
 
     public function fetchAllSendAddedProducts(Request $request, $branchId)
     {
-        $page = $request->get('page', 1);
+        $page    = $request->get('page', 1);
         $perPage = $request->get('per_page', 5);
-        $search = $request->query('search', '');
+        $search  = $request->query('search', '');
 
         $query = AddedProducts::where(function ($q) use ($branchId) {
             $q->where('from_branch_id', $branchId)
@@ -49,9 +49,9 @@ class AddedProductsController extends Controller
     public function fetchSendAddedProducts(Request $request,$branchId, $category)
     {
         // validate the category parameter, if provided
-        $page = $request->get('page', 1);
+        $page    = $request->get('page', 1);
         $perPage = $request->get('per_page', 5);
-        $search = $request->query('search', '');
+        $search  = $request->query('search', '');
 
         $query = AddedProducts::where(function ($q) use ($branchId) {
                 $q->where('from_branch_id', $branchId)
@@ -153,20 +153,20 @@ class AddedProductsController extends Controller
 
             if (json_last_error() === JSON_ERROR_NONE && isset($decoded['type'])) {
                 return response()->json([
-                    'message' => 'Failed to transfer products.',
-                    'errors' => [
-                        'stock' =>
-                            "Insufficient stock for {$decoded['product_name']} " .
-                            "(Available: {$decoded['available']}, " .
-                            "Requested: {$decoded['requested']})"
+                    'message'    => 'Failed to transfer products.',
+                    'errors'     => [
+                                'stock' =>
+                                    "Insufficient stock for {$decoded['product_name']} " .
+                                    "(Available: {$decoded['available']}, " .
+                                    "Requested: {$decoded['requested']})"
                     ]
                 ], 422);
             }
 
             // Fallback for unexpected errors
             return response()->json([
-                'message' => 'Failed to transfer products.',
-                'errors' => $e->getMessage()
+                'message'    => 'Failed to transfer products.',
+                'errors'     => $e->getMessage()
             ], 500);
         }
     }

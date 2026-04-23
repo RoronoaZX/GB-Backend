@@ -33,7 +33,7 @@ class HistoryLogController extends Controller
         }
 
         $perPage = $request->query('per_page', 15);
-        
+
         // Execute Paginated API Fetch strictly
         $historyLogs = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
@@ -47,55 +47,5 @@ class HistoryLogController extends Controller
         });
 
         return response()->json($historyLogs);
-    }
-
-
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(HistoryLog $historyLog)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(HistoryLog $historyLog)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, HistoryLog $historyLog)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(HistoryLog $historyLog)
-    {
-        //
     }
 }

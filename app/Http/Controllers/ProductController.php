@@ -75,9 +75,9 @@ class ProductController extends Controller
     public function updateProducts(Request $request)
     {
         $validated = $request->validate([
-            'id' => 'required|integer|exists:products,id',
-            'field' => 'required|string|in:name,category',
-            'value' => 'required|string',
+            'id'     => 'required|integer|exists:products,id',
+            'field'  => 'required|string|in:name,category',
+            'value'  => 'required|string',
         ]);
 
         $product = Product::findOrFail($validated['id']);
@@ -95,8 +95,8 @@ class ProductController extends Controller
         }
 
         return response()->json([
-            'message' => 'Product updated successfully',
-            'data' => $product
+            'message'    => 'Product updated successfully',
+            'data'       => $product
         ], 200);
     }
     /**
