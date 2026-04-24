@@ -8,6 +8,7 @@ use App\Http\Controllers\WarehouseController;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\BirReportController;
 use App\Http\Controllers\DashboardInventoryController;
+use App\Http\Controllers\ProfitMarginController;
 use App\Http\Controllers\BranchEmployeeController;
 use App\Http\Controllers\BranchPremixController;
 use App\Http\Controllers\RecipeController;
@@ -414,7 +415,9 @@ Route::get('search-rawMaterials', [RawMaterialController::class, 'searchRawMater
 Route::get('dashboard/inventory-metrics', [DashboardInventoryController::class, 'getInventoryMetrics']);
 Route::get('dashboard/predictive-stocking', [DashboardInventoryController::class, 'getPredictiveStocking']);
 Route::get('dashboard/recipe-cost-metrics', [DashboardInventoryController::class, 'getRecipeCostMetrics']);
+Route::get('dashboard/profit-margins', [ProfitMarginController::class, 'getProductMargins']);
 Route::post('recipe-cost-change-log', [RecipeCostController::class, 'logChange']);
+Route::post('bulk-update-recipe-costs', [RecipeCostController::class, 'bulkUpdate']);
 Route::get('recipe-cost-change-log/{recipeCostId}', [RecipeCostController::class, 'getChangeLogs']);
 Route::get('fetchBranchWithEmployee', [BranchController::class, 'fetchBranchWithEmployee']);
 Route::get('fetchWarehouseWithEmployee', [WarehouseController::class, 'fetchWarehouseWithEmployee']);

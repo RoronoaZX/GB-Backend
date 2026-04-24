@@ -14,6 +14,7 @@ class RawMaterial extends Model
         'code',
         'category',
         'unit',
+        'supplier_lead_time',
     ];
 
     protected static function boot()

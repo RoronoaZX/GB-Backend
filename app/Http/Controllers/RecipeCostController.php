@@ -219,4 +219,55 @@ class RecipeCostController extends Controller
             ], 500);
         }
     }
+
+    public function bulkUpdate(Request $request)
+    {
+        try {
+            $ids = $request->ids;
+            $changedField = $request->changed_field;
+            $newValue = (float) $request->new_value;
+            $userId = $request->user_id ?? 0;
+
+            if (!is_array($ids) || empty($ids)) {
+                return response()->json(['success' => false, 'message' => 'No IDs provided'], 400);
+            }
+
+            $recipeCosts = RecipeCost::whereIn('id', $ids)->get();
+            
+            \Illuminate\Support\Facades\DB::beginTransaction();
+
+            foreach ($recipeCosts as $recipeCost) {
+                $oldValue = (float) $recipeCost->$changedField;
+                
+                $recipeCost->$changedField = $newValue;
+                $recipeCost->total_cost = $recipeCost->quantity_used * $recipeCost->price_per_gram;
+                $recipeCost->save();
+
+                RecipeCostChangeLog::create([
+                    'recipe_cost_id' => $recipeCost->id,
+                    'branch_id'      => $recipeCost->branch_id,
+                    'user_id'        => $userId,
+                    'changed_field'  => $changedField,
+                    'old_value'      => $oldValue,
+                    'new_value'      => $newValue,
+                    'reason'         => 'Bulk update: ' . ($request->reason ?? 'No reason provided'),
+                ]);
+            }
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => count($recipeCosts) . ' records updated successfully.'
+            ]);
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to perform bulk update.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
