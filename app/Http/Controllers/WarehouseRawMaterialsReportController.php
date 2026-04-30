@@ -25,6 +25,19 @@ class WarehouseRawMaterialsReportController extends Controller
                                     ->with(['rawMaterials'])
                                     ->get();
 
+        // Include FIFO price for each material
+        $warehouseRawMaterials->each(function ($report) use ($warehouseId) {
+            // Find the oldest batch that still has quantity
+            $fifoStock = \App\Models\WarehouseRmStocks::where('warehouse_id', $warehouseId)
+                ->where('raw_material_id', $report->raw_material_id)
+                ->where('total_grams', '>', 0)
+                ->orderBy('created_at', 'asc')
+                ->first();
+
+            // Store the price_per_gram from the oldest batch
+            $report->fifo_price_per_gram = $fifoStock ? (float)$fifoStock->price_per_gram : 0;
+        });
+
         return response()->json($warehouseRawMaterials, 200);
     }
 

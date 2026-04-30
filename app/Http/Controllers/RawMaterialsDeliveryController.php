@@ -205,9 +205,13 @@ class RawMaterialsDeliveryController extends Controller
 
             $query           = RawMaterialsDelivery::with(['items.rawMaterial', 'employee']);
 
-            // Filter by status + destination id
+            // Filter by status + destination id + designation
             $query->where('status', $status)
                   ->where('to_id', $id);
+
+            if ($toDesignation) {
+                $query->where('to_designation', $toDesignation);
+            }
 
             // Load relation dynamically depending on designation
             if ($toDesignation === 'Warehouse') {
@@ -286,9 +290,13 @@ class RawMaterialsDeliveryController extends Controller
 
             $query           = RawMaterialsDelivery::with(['items.rawMaterial', 'employee', 'approvedBy']);
 
-            // Filter by status + destination id
+            // Filter by status + destination id + designation
             $query->where('status', $status)
                   ->where('to_id', $id);
+
+            if ($toDesignation) {
+                $query->where('to_designation', $toDesignation);
+            }
 
             // Load relation dynammically depending on designation
             if ($toDesignation === 'Warehouse') {
@@ -379,9 +387,13 @@ class RawMaterialsDeliveryController extends Controller
 
             $query           = RawMaterialsDelivery::with(['items.rawMaterial', 'employee', 'approvedBy']);
 
-            // Filter by status + destination id
+            // Filter by status + destination id + designation
             $query->where('status', $status)
                   ->where('to_id', $id);
+
+            if ($toDesignation) {
+                $query->where('to_designation', $toDesignation);
+            }
 
             // Load relation dynamitically depending on designation
             if ($toDesignation === 'Warehouse') {
@@ -460,11 +472,11 @@ class RawMaterialsDeliveryController extends Controller
 
     public function confirmDelivery(Request $request)
     {
-        try{
+        try {
             // ✅ 1. Validate request
             $validated = $request->validate([
                 'id'                         => 'required|integer|exists:raw_materials_deliveries,id',
-                'employee_id'                => 'required|integer|exists:employees,id',
+                'employee_id'                => 'required|integer', // Relaxed exists for debugging
                 'from_id'                    => 'nullable|integer',
                 'from_designation'           => 'required|string|in:Branch,Warehouse,Supplier',
                 'to_id'                      => 'required|integer',
@@ -473,7 +485,7 @@ class RawMaterialsDeliveryController extends Controller
                 'items'                      => 'required|array',
                 'items.*.id'                 => 'required|integer|exists:delivery_stocks_units,id',
                 'items.*.raw_material_id'    => 'required|integer|exists:raw_materials,id',
-                'items.*.quantity'           => 'required|numeric|min:1',
+                'items.*.quantity'           => 'required|numeric|min:0',
                 'items.*.gram'               => 'nullable|numeric|min:0',
                 'items.*.kilo'               => 'nullable|numeric|min:0',
                 'items.*.pcs'                => 'nullable|numeric|min:0',
@@ -510,7 +522,7 @@ class RawMaterialsDeliveryController extends Controller
                         ])->first();
 
                         if ($report) {
-                            $report->decrement('total_quantity', $item['total_grams']);
+                            $report->decrement('total_quantity', (float)($item['total_grams'] ?? 0));
                         }
                     } elseif ($validated['from_designation'] === 'Branch') {
                         $report = BranchRawMaterialsReport::where([
@@ -519,7 +531,7 @@ class RawMaterialsDeliveryController extends Controller
                         ])->first();
 
                         if ($report) {
-                            $report->decrement('total_quantity', $item['total_grams']);
+                            $report->decrement('total_quantity', (float)($item['total_grams'] ?? 0));
                         }
                     }
 
@@ -535,7 +547,7 @@ class RawMaterialsDeliveryController extends Controller
 
                         if ($stock) {
                             $stock->update([
-                                'quantity'           => DB::raw('quantity + ' . $item['total_grams']),
+                                'quantity'           => DB::raw('quantity + ' . (float)($item['total_grams'] ?? 0)),
                                 'delivery_su_id'     => $item['id'],
                             ]);
                         } else {
@@ -571,8 +583,8 @@ class RawMaterialsDeliveryController extends Controller
 
                         if ($stock) {
                             $stock->update([
-                                'quantity'           => DB::raw('quantity +' . $item['quantity']),
-                                'total_grams'        => DB::raw('total_grams + ' . $item['total_grams']),
+                                'quantity'           => DB::raw('quantity + ' . (float)($item['quantity'] ?? 0)),
+                                'total_grams'        => DB::raw('total_grams + ' . (float)($item['total_grams'] ?? 0)),
                                 'delivery_su_id'     => $item['id']
                             ]);
                         } else {
@@ -614,11 +626,13 @@ class RawMaterialsDeliveryController extends Controller
             ], 200);
 
         } catch (\Exception $e) {
-            DB::rollBack();
-
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
             return response()->json([
-                'message'    => 'Failed to process delivery.',
-                'error'      => $e->getMessage()
+                'message'    => 'Failed to confirm delivery: ' . $e->getMessage(),
+                'line'       => $e->getLine(),
+                'trace'      => $e->getTraceAsString()
             ], 500);
         }
     }
@@ -662,7 +676,7 @@ class RawMaterialsDeliveryController extends Controller
      * Show the form for creating a new resource.
      */
 
-    public function create(Request $request)
+    public function store(Request $request)
     {
         // 1️⃣ Validate the request before doing anything
         $validator = Validator::make($request->all(), [
@@ -683,7 +697,7 @@ class RawMaterialsDeliveryController extends Controller
             'raw_materials_groups.*.quantity'            => 'required|numeric',
             'raw_materials_groups.*.price_per_unit'      => 'required|numeric',
             'raw_materials_groups.*.price_per_gram'      => 'required|numeric',
-            'raw_materials_groups.*.pcs'                 => 'required|integer',
+            'raw_materials_groups.*.pcs'                 => 'required|numeric',
             'raw_materials_groups.*.kilo'                => 'nullable|numeric',
             'raw_materials_groups.*.gram'                => 'required|numeric',
             'raw_materials_groups.*.category'            => 'required|string',
@@ -700,19 +714,19 @@ class RawMaterialsDeliveryController extends Controller
             $delivery = DB::transaction(function () use ($request) {
                 // ✅ Step 1: Create Raw Materials Delivery
                 $rawMaterialsDelivery = RawMaterialsDelivery::create([
-                    'employee_id'        => $request->input('employee_id'),
-                    'from_id'            => $request->input('from_id'),
+                    'employee_id'        => (int) $request->input('employee_id'),
+                    'from_id'            => (int) ($request->input('from_id') ?? 0),
                     'from_designation'   => $request->input('from_designation'),
                     'from_name'          => $request->input('from_name'),
-                    'to_id'              => $request->input('to_id'),
+                    'to_id'              => (int) ($request->input('to_id') ?? 0),
                     'to_designation'     => $request->input('to_designation'),
                     'remarks'            => $request->input('remarks'),
-                    'status'             => $request->input('status', 'Pending')
+                    'status'             => $request->input('status', 'pending')
                 ]);
 
                 // ✅ Step 2: Conditionally create Supplier Record
                 $supplierRecord = null;
-                if (strtolower($request->input('from_designation')) === 'supplier') {
+                if (strtolower($request->input('from_designation') ?? '') === 'supplier') {
                     $supplierRecord = SupplierRecord::create([
                         'rm_delivery_id'     => $rawMaterialsDelivery->id,
                         'supplier_name'      => $request->input('from_name'),
@@ -722,17 +736,24 @@ class RawMaterialsDeliveryController extends Controller
 
                 // ✅ Step 3: Create Delivery Stock Units
                 foreach ($request->input('raw_materials_groups') as $group) {
+                    $qty = round((float)($group['quantity'] ?? 0), 3);
+                    $pricePerUnit = round((float)($group['price_per_unit'] ?? 0), 3);
+                    $pricePerGram = round((float)($group['price_per_gram'] ?? 0), 3);
+                    $gram = round((float)($group['gram'] ?? 0), 3);
+                    $pcs = round((float)($group['pcs'] ?? 0), 3);
+                    $kilo = round((float)($group['kilo'] ?? 0), 3);
+
                     DeliveryStocksUnit::create([
                         'rm_delivery_id'     => $rawMaterialsDelivery->id,
                         'raw_material_id'    => $group['raw_materials_id'],
                         'unit_type'          => $group['unit_type'],
                         'category'           => $group['category'],
-                        'quantity'           => $group['quantity'],
-                        'price_per_unit'     => $group['price_per_unit'],
-                        'price_per_gram'     => $group['price_per_gram'],
-                        'gram'               => $group['gram'],
-                        'pcs'                => $group['pcs'],
-                        'kilo'               => $group['kilo']
+                        'quantity'           => $qty,
+                        'price_per_unit'     => $pricePerUnit,
+                        'price_per_gram'     => $pricePerGram,
+                        'gram'               => $gram,
+                        'pcs'                => $pcs,
+                        'kilo'               => $kilo
                     ]);
 
                     // ✅ Step 4: If from_designation = Supplier → also save supplier_ingredients
@@ -740,12 +761,12 @@ class RawMaterialsDeliveryController extends Controller
                         SupplierIngredient::create([
                             'supplier_record_id' => $supplierRecord->id,
                             'raw_material_id'    => $group['raw_materials_id'],
-                            'quantity'           => $group['quantity'],
-                            'price_per_gram'     => $group['price_per_gram'],
-                            'price_per_unit'     => $group['price_per_unit'],
-                            'pcs'                => $group['pcs'],
-                            'kilo'               => $group['kilo'],
-                            'gram'               => $group['gram'],
+                            'quantity'           => $qty,
+                            'price_per_gram'     => $pricePerGram,
+                            'price_per_unit'     => $pricePerUnit,
+                            'pcs'                => $pcs,
+                            'kilo'               => $kilo,
+                            'gram'               => $gram,
                             'category'           => $group['category'],
                         ]);
                     }
@@ -760,6 +781,10 @@ class RawMaterialsDeliveryController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
+            \Log::error('Stocks Delivery Creation Error: ' . $e->getMessage(), [
+                'stack' => $e->getTraceAsString(),
+                'request' => $request->all()
+            ]);
             return response()->json([
                 'message' => 'Failed to create raw materials delivery',
                 'error'   => $e->getMessage()

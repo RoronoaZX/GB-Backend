@@ -14,6 +14,9 @@ class RawMaterial extends Model
         'code',
         'category',
         'unit',
+        'delivery_unit',
+        'unit_weight',
+        'unit_pcs',
         'supplier_lead_time',
     ];
 

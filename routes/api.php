@@ -66,11 +66,10 @@ use App\Http\Controllers\WarehouseStockReportsController;
 use App\Models\EmployeeSaleschargesReport;
 use App\Models\SupplierRecord;
 use App\Models\User;
+use App\Http\Controllers\BreadOutController;
+use App\Http\Controllers\RepurposeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-// Route::get('/user', function (Request $request) {
-//     return $request->user();
 // })->middleware('auth:sanctum');
 
 Route::post('register',[ApiController::class, 'register']);
@@ -148,7 +147,6 @@ Route::patch('update-products', [ProductController::class, 'updateProducts']);
 
 Route::post('/verify-password', [UserController::class, 'verifyAdminPassword']);
 Route::post('/user-password', [UserController::class, 'updatePassword']);
-Route::post('raw-materials-delivery', [RawMaterialsDeliveryController::class, 'create']);
 Route::post('branch/raw-materials/bulk-create', [BranchRawMaterialsReportController::class, 'bulkStore']);
 Route::post('update-branch-date-for-bir-report/{id}', [BirReportController::class, 'updateDateForReports']);
 Route::post('update-branch-amount-for-bir-report/{id}', [BirReportController::class, 'updateAmountForReports']);
@@ -228,7 +226,7 @@ Route::post('to-deliver-premix', [RequestPremixController::class, 'toDeliverPrem
 Route::post('to-receive-premix', [RequestPremixController::class, 'toReceivePremix']);
 Route::post('receive-premix', [RequestPremixController::class, 'receivePremix']);
 Route::post('saveEmployeeDtr', [DailyTimeRecordController::class, 'saveEmployeeDtr']);
-Route::post('raw-materials-delivery-declined', [RawMaterialsDeliveryController::class, 'declinraw-materials-delivery-pendingeDelivery']);
+Route::post('raw-materials-delivery-declined', [RawMaterialsDeliveryController::class, 'declineDelivery']);
 Route::post('raw-materials-delivery-confirmed', [RawMaterialsDeliveryController::class, 'confirmDelivery']);
 Route::post('confirm-product-sales-report', [BranchReportController::class, 'confirmProductSalesReport']);
 Route::post('decline-product-sales-report', [BranchReportController::class, 'declineProductSalesReport']);
@@ -431,3 +429,10 @@ Route::get('fetchCertianEmployeeWithEmploymentTypeAndDesignation/{id}', [Employe
 Route::get('employee-charges/{from}/{to}/{employee_id}', [SalesReportsController::class, 'fetchEmployeeCharges']);
 Route::get('send-added-branch-products/{branchId}/{category}', [AddedProductsController::class, 'fetchSendAddedProducts']);
 Route::get('send-added-branch-products/{branchId}', [AddedProductsController::class, 'fetchAllSendAddedProducts']);
+
+// Bread Out & Repurposing Routes
+Route::get('bread-outs', [BreadOutController::class, 'index']);
+Route::post('bread-outs', [BreadOutController::class, 'store']);
+Route::put('bread-outs/{id}/status', [BreadOutController::class, 'updateStatus']);
+Route::post('repurpose/conversion', [RepurposeController::class, 'processConversion']);
+Route::post('repurpose/spoilage', [RepurposeController::class, 'processSpoilage']);

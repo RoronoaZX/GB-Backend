@@ -194,13 +194,14 @@ class DashboardInventoryController extends Controller
                 $usageQuery = RecipeCost::whereIn('status', ['confirmed', 'missing_stock']);
             }
 
-            $usageLogs = $usageQuery->where('created_at', '>=', now()->subDays($daysToAnalyze))
+            $tablePrefix = $warehouseId ? 'raw_materials_deliveries.' : '';
+            $usageLogs = $usageQuery->where($tablePrefix . 'created_at', '>=', now()->subDays($daysToAnalyze))
                 ->select(
-                    'raw_material_id',
-                    DB::raw('DATE(created_at) as date'),
+                    $warehouseId ? 'delivery_stocks_units.raw_material_id as raw_material_id' : 'raw_material_id',
+                    DB::raw('DATE(' . $tablePrefix . 'created_at) as date'),
                     DB::raw('SUM(' . ($warehouseId ? 'quantity' : 'quantity_used') . ') as daily_usage')
                 )
-                ->groupBy('raw_material_id', DB::raw('DATE(created_at)'))
+                ->groupBy($warehouseId ? 'delivery_stocks_units.raw_material_id' : 'raw_material_id', DB::raw('DATE(' . $tablePrefix . 'created_at)'))
                 ->orderBy('date', 'asc')
                 ->get()
                 ->groupBy('raw_material_id');
@@ -342,17 +343,19 @@ class DashboardInventoryController extends Controller
                     ->get();
 
                 // 3. Recent Cost Changes (The Audit Log)
-                $recentChanges = RecipeCostChangeLog::with(['user.employee', 'recipeCost.recipe'])
+                $recentChanges = RecipeCostChangeLog::with(['user.employee', 'recipeCost.recipe', 'recipeCost.rawMaterial'])
                     ->orderBy('created_at', 'desc')
                     ->limit(10)
                     ->get()
                     ->map(function ($log) {
                         $emp = $log->user?->employee;
                         $recipeName = $log->recipeCost?->recipe?->name ?? 'Unknown Recipe';
+                        $unit = $log->recipeCost?->rawMaterial?->unit ?? 'Gram';
                         
                         return [
                             'id'            => $log->id,
                             'recipe_name'   => $recipeName,
+                            'unit'          => $unit,
                             'changed_field' => $log->changed_field,
                             'old_value'     => $log->old_value,
                             'new_value'     => $log->new_value,

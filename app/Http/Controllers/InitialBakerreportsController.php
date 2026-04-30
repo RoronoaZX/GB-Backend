@@ -510,8 +510,8 @@ class InitialBakerreportsController extends Controller
                     $remainingQtyToDeduct    -= $deductQty;
                 }
 
-                 // ⚠️ If no stock found at all — create default record
-                 if (!$stockFound) {
+                 // ⚠️ If there is still quantity to deduct after checking all batches
+                 if ($remainingQtyToDeduct > 0) {
                     RecipeCost::create([
                         'branch_rm_stock_id'         => null,
                         'user_id'                    => $initialReport->user_id,
@@ -521,7 +521,7 @@ class InitialBakerreportsController extends Controller
                         'raw_material_id'            => $ingredientReport->ingredients_id,
                         'initial_bakerreport_id'     => $initialReport->id,
                         'branch_recipe_id'           => $initialReport->branch_recipe_id,
-                        'quantity_used'              => $ingredientReport->quantity,
+                        'quantity_used'              => $remainingQtyToDeduct,
                         'price_per_gram'             => 0,
                         'total_cost'                 => 0,
                         'status'                     => 'missing_stock',
