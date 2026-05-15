@@ -6,6 +6,9 @@ use App\Models\BreadOut;
 use App\Models\BranchProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Services\HistoryLogService;
+
 
 class BreadOutController extends Controller
 {
@@ -21,7 +24,7 @@ class BreadOutController extends Controller
             $query->where('status', $request->status);
         }
 
-        return response()->json($query->orderBy('created_at', 'desc')->get());
+        return response()->json($query->orderBy('created_at', 'desc')->paginate(50));
     }
 
     public function store(Request $request)
@@ -50,6 +53,22 @@ class BreadOutController extends Controller
                 'status'         => 'pending',
             ]);
 
+            // LOG-08 — Bread Out: Create
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $breadOut->id,
+                'type_of_report'   => 'Bread Out',
+                'name'             => "Bread Out recorded",
+                'action'           => 'created',
+                'updated_data'     => [
+                    'product_id' => $request->product_id,
+                    'quantity'   => $request->quantity,
+                    'status'     => 'pending'
+                ],
+                'designation'      => $request->branch_id,
+                'designation_type' => 'branch',
+            ]);
+
             DB::commit();
 
             return response()->json([
@@ -74,6 +93,18 @@ class BreadOutController extends Controller
         $breadOut = BreadOut::findOrFail($id);
         $breadOut->status = $request->status;
         $breadOut->save();
+
+        // LOG — Bread Out Status Update
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $breadOut->id,
+            'type_of_report'   => 'Bread Out',
+            'name'             => "Bread Out status changed",
+            'action'           => $request->status,
+            'updated_data'     => "Status updated to " . $request->status,
+            'designation'      => $breadOut->branch_id,
+            'designation_type' => 'branch',
+        ]);
 
         return response()->json([
             'message'   => 'Status updated successfully',

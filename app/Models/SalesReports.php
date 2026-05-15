@@ -36,7 +36,7 @@ class SalesReports extends Model
     public function breadReports()
     {
         return $this->hasMany(BreadSalesReport::class, 'sales_report_id')
-                    ->with('bread', 'handledBy');
+                    ->with('bread', 'handledBy', 'breadOutRelation');
     }
 
     public function selectaReports()

@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Branch;
 use App\Models\BranchProduct;
 use App\Models\BreadAdded;
-use App\Models\HistoryLog;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\Auth;
 
 
 
@@ -205,57 +206,73 @@ class BranchProductController extends Controller
             'updated_field'  => 'required|string',
         ]);
 
-        $branchProduct = BranchProduct::find($validatedData['id']);
+        return DB::transaction(function () use ($validatedData, $request) {
+            $branchProduct = BranchProduct::find($validatedData['id']);
 
-        if (!$branchProduct) {
+            if (!$branchProduct) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Product not found.'
+                ], 404);
+            }
+
+            // 🔐 Allowed fields with readable labels
+            $allowedFields = [
+                'price'              => 'Price',
+                'beginnings'         => 'Beginning Stock',
+                'new_production'     => 'New Production',
+                'total_quantity'     => 'Total Quantity'
+            ];
+
+            $field = $validatedData['updated_field'];
+
+            if (!array_key_exists($field, $allowedFields)) {
+                return response()->json([
+                    'status'     => 'error',
+                    'message'    => 'Field not allowed to update.'
+                ], 403);
+            }
+
+            $value = $validatedData['updated_data'];
+            $oldValue = $branchProduct->$field;
+
+            // 🔄 If unchanged
+            if ($oldValue == $value) {
+                return response()->json([
+                    'status'         => 'warning',
+                    'message'        => $allowedFields[$field] . ' unchanged.',
+                    'updated_field'  => $field,
+                    'data'           => $branchProduct
+                ], 200);
+            }
+
+            // ✅ Update field
+            $branchProduct->$field = $value;
+            $branchProduct->save();
+
+            // 📋 Log the change for full transparency
+            HistoryLogService::log([
+                'report_id'        => $branchProduct->id,
+                'user_id'          => Auth::id() ?? $request->input('user_id') ?? 0, 
+                'name'             => $request->input('name') ?? 'System',
+                'type_of_report'   => 'Inventory Adjustment',
+                'updated_field'    => $allowedFields[$field],
+                'designation'      => $branchProduct->branches_id,
+                'designation_type' => 'branch',
+                'action'           => 'Manual Edit',
+                'original_data'    => $oldValue,
+                'updated_data'     => $value,
+            ]);
+
             return response()->json([
-                'status'  => 'error',
-                'message' => 'Product not found.'
-            ], 404);
-        }
-
-        // 🔐 Allowed fields with readable labels
-        $allowedFields = [
-            'price'              => 'Price',
-            'beginnings'         => 'Beginning Stock',
-            'new_production'     => 'New Production',
-            'total_quantity'     => 'Total Quantity'
-        ];
-
-        $field = $validatedData['updated_field'];
-
-        if (!array_key_exists($field, $allowedFields)) {
-            return response()->json([
-                'status'     => 'error',
-                'message'    => 'Field not allowed to update.'
-            ], 403);
-        }
-
-        $value = $validatedData['updated_data'];
-        $oldValue = $branchProduct->$field;
-
-        // 🔄 If unchanged
-        if ($oldValue == $value) {
-            return response()->json([
-                'status'         => 'warning',
-                'message'        => $allowedFields[$field] . ' unchanged.',
+                'status'         => 'success',
+                'message'        => $allowedFields[$field] . ' updated successfully.',
                 'updated_field'  => $field,
+                'old_value'      => $oldValue,
+                'new_value'      => $value,
                 'data'           => $branchProduct
             ], 200);
-        }
-
-        // ✅ Update field
-        $branchProduct->$field = $value;
-        $branchProduct->save();
-
-        return response()->json([
-            'status'         => 'success',
-            'message'        => $allowedFields[$field] . ' updated successfully.',
-            'updated_field'  => $field,
-            'old_value'      => $oldValue,
-            'new_value'      => $value,
-            'data'           => $branchProduct
-        ], 200);
+        });
     }
 
     // public function updateProduct(Request $request)
@@ -326,27 +343,29 @@ class BranchProductController extends Controller
         $validatedData = $request->validate([
             'price' => 'required|integer',
         ]);
-
-        $branchProduct          = BranchProduct::findorFail($id);
-        $branchProduct->price   = $validatedData['price'];
-        $branchProduct->save();
-
-        //Save to history log
-
-        HistoryLog::create([
-            'report_id'          => $request->input('report_id'),
-            'name'               => $request->input('name'),
-            'original_data'      => $request->input('original_data'),
-            'updated_data'       => $request->input('updated_data'),
-            'updated_field'      => $request->input('updated_field'),
-            'designation'        => $request->input('designation'),
-            'designation_type'   => $request->input('designation_type'),
-            'action'             => $request->input('action'),
-            'type_of_report'     => $request->input('type_of_report'),
-            'user_id'            => $request->input('user_id'),
-        ]);
-
-        return response()->json(['message' => 'Price updated successfully', 'price' => $branchProduct]);
+    
+        return DB::transaction(function () use ($validatedData, $id) {
+            $branchProduct          = BranchProduct::findOrFail($id);
+            $oldPrice               = $branchProduct->price;
+            $branchProduct->price   = $validatedData['price'];
+            $branchProduct->save();
+        
+            // 📋 Log the change
+            HistoryLogService::log([
+                'report_id'        => $branchProduct->id,
+                'user_id'          => Auth::id(),
+                'name'             => $branchProduct->product->name ?? 'Product',
+                'type_of_report'   => 'Inventory Adjustment',
+                'updated_field'    => 'Price',
+                'designation'      => $branchProduct->branches_id,
+                'designation_type' => 'branch',
+                'action'           => 'Manual Edit',
+                'original_data'    => $oldPrice,
+                'updated_data'     => $validatedData['price'],
+            ]);
+        
+            return response()->json(['message' => 'Price updated successfully', 'price' => $branchProduct]);
+        });
     }
 
     public function updateTotatQuatity(Request $request, $id)
@@ -354,27 +373,31 @@ class BranchProductController extends Controller
         $validatedData = $request->validate([
             'total_quantity' => 'required|integer'
         ]);
-        $branchProduct                   = BranchProduct::findOrFail($id);
-        $branchProduct->total_quantity   = $validatedData['total_quantity'];
-        $branchProduct->save();
 
-        HistoryLog::create([
-            'report_id'          => $request->input('report_id'),
-            'name'               => $request->input('name'),
-            'original_data'      => $request->input('original_data'),
-            'updated_data'       => $request->input('updated_data'),
-            'updated_field'      => $request->input('updated_field'),
-            'designation'        => $request->input('designation'),
-            'designation_type'   => $request->input('designation_type'),
-            'action'             => $request->input('action'),
-            'type_of_report'     => $request->input('type_of_report'),
-            'user_id'            => $request->input('user_id'),
-        ]);
+        return DB::transaction(function () use ($validatedData, $id) {
+            $branchProduct                   = BranchProduct::findOrFail($id);
+            $oldQty                          = $branchProduct->total_quantity;
+            $branchProduct->total_quantity   = $validatedData['total_quantity'];
+            $branchProduct->save();
 
-        return response()->json([
-            'message'            => 'Total Quantity updated successfully',
-            'total quantity'     => $branchProduct
-        ]);
+            HistoryLogService::log([
+                'report_id'        => $branchProduct->id,
+                'user_id'          => Auth::id(),
+                'name'             => $branchProduct->product->name ?? 'Product',
+                'type_of_report'   => 'Inventory Adjustment',
+                'updated_field'    => 'Total Quantity',
+                'designation'      => $branchProduct->branches_id,
+                'designation_type' => 'branch',
+                'action'           => 'Manual Edit',
+                'original_data'    => $oldQty,
+                'updated_data'     => $validatedData['total_quantity'],
+            ]);
+
+            return response()->json([
+                'message'            => 'Total Quantity updated successfully',
+                'total quantity'     => $branchProduct
+            ]);
+        });
     }
 
     public function updateNewProduction(Request $request, $id)
@@ -383,27 +406,30 @@ class BranchProductController extends Controller
             'new_production' => 'required|integer'
         ]);
 
-        $branchProduct                   = BranchProduct::findOrFail($id);
-        $branchProduct->new_production   = $validatedData['new_production'];
-        $branchProduct->save();
+        return DB::transaction(function () use ($validatedData, $id) {
+            $branchProduct                   = BranchProduct::findOrFail($id);
+            $oldProduction                   = $branchProduct->new_production;
+            $branchProduct->new_production   = $validatedData['new_production'];
+            $branchProduct->save();
 
-        HistoryLog::create([
-            'report_id'          => $request->input('report_id'),
-            'name'               => $request->input('name'),
-            'original_data'      => $request->input('original_data'),
-            'updated_data'       => $request->input('updated_data'),
-            'updated_field'      => $request->input('updated_field'),
-            'designation'        => $request->input('designation'),
-            'designation_type'   => $request->input('designation_type'),
-            'action'             => $request->input('action'),
-            'type_of_report'     => $request->input('type_of_report'),
-            'user_id'            => $request->input('user_id'),
-        ]);
+            HistoryLogService::log([
+                'report_id'        => $branchProduct->id,
+                'user_id'          => Auth::id(),
+                'name'             => $branchProduct->product->name ?? 'Product',
+                'type_of_report'   => 'Inventory Adjustment',
+                'updated_field'    => 'New Production',
+                'designation'      => $branchProduct->branches_id,
+                'designation_type' => 'branch',
+                'action'           => 'Manual Edit',
+                'original_data'    => $oldProduction,
+                'updated_data'     => $validatedData['new_production'],
+            ]);
 
-        return response()->json([
-            'message' => 'New Production updated successfully',
-            'new production' => $branchProduct
-        ]);
+            return response()->json([
+                'message' => 'New Production updated successfully',
+                'new production' => $branchProduct
+            ]);
+        });
     }
 
     public function updateBeginnings(Request $request, $id)
@@ -411,27 +437,31 @@ class BranchProductController extends Controller
         $validatedData = $request->validate([
             'beginnings' => 'required|integer'
         ]);
-        $branchProduct               = BranchProduct::findOrFail($id);
-        $branchProduct->beginnings   = $validatedData['beginnings'];
-        $branchProduct->save();
 
-        HistoryLog::create([
-            'report_id'          => $request->input('report_id'),
-            'name'               => $request->input('name'),
-            'original_data'      => $request->input('original_data'),
-            'updated_data'       => $request->input('updated_data'),
-            'updated_field'      => $request->input('updated_field'),
-            'designation'        => $request->input('designation'),
-            'designation_type'   => $request->input('designation_type'),
-            'action'             => $request->input('action'),
-            'type_of_report'     => $request->input('type_of_report'),
-            'user_id'            => $request->input('user_id'),
-        ]);
+        return DB::transaction(function () use ($validatedData, $id) {
+            $branchProduct               = BranchProduct::findOrFail($id);
+            $oldBeginnings               = $branchProduct->beginnings;
+            $branchProduct->beginnings   = $validatedData['beginnings'];
+            $branchProduct->save();
 
-        return response()->json([
-            'message' => 'Total Quantity updated successfully',
-            'total quantity' => $branchProduct
-        ]);
+            HistoryLogService::log([
+                'report_id'        => $branchProduct->id,
+                'user_id'          => Auth::id(),
+                'name'             => $branchProduct->product->name ?? 'Product',
+                'type_of_report'   => 'Inventory Adjustment',
+                'updated_field'    => 'Beginnings',
+                'designation'      => $branchProduct->branches_id,
+                'designation_type' => 'branch',
+                'action'           => 'Manual Edit',
+                'original_data'    => $oldBeginnings,
+                'updated_data'     => $validatedData['beginnings'],
+            ]);
+
+            return response()->json([
+                'message' => 'Total Quantity updated successfully',
+                'total quantity' => $branchProduct
+            ]);
+        });
     }
 
     public function destroy($id)

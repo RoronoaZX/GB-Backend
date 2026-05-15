@@ -12,6 +12,7 @@ class BreadOut extends Model
     protected $fillable = [
         'branch_id',
         'product_id',
+        'bread_sales_report_id',
         'quantity',
         'status',
     ];
@@ -24,6 +25,11 @@ class BreadOut extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function breadSalesReport()
+    {
+        return $this->belongsTo(BreadSalesReport::class);
     }
 
     public function repurposeLogs()

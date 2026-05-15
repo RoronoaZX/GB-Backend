@@ -7,6 +7,9 @@ use App\Models\EmployeeAllowance;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Redis;
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeAllowanceController extends Controller
 {
@@ -84,15 +87,33 @@ class EmployeeAllowanceController extends Controller
             return response()->json(['error' => 'Allowance for this employee already exists.'], 409);
         }
 
-        $employeeAllowance = EmployeeAllowance::create($validateData)->load('employee');
+        DB::beginTransaction();
+        try {
+            $employeeAllowance = EmployeeAllowance::create($validateData)->load('employee');
 
-        return response()->json([
-            'data'           => [$employeeAllowance],
-            'total'          => 1,
-            'per_page'       => 1,
-            'current_page'   => 1,
-            'last_page'      => 1,
-        ], 201);
+            // LOG-26 — Allowance: Created
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $employeeAllowance->id,
+                'type_of_report'   => 'Allowance',
+                'name'             => "Allowance created for: " . ($employeeAllowance->employee->firstname ?? 'Employee'),
+                'action'           => 'created',
+                'updated_data'     => $employeeAllowance->toArray(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'data'           => [$employeeAllowance],
+                'total'          => 1,
+                'per_page'       => 1,
+                'current_page'   => 1,
+                'last_page'      => 1,
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to create allowance', 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function updateEmployeeAllowance(Request $request, $id)
@@ -107,10 +128,31 @@ class EmployeeAllowanceController extends Controller
             return response()->json(['error' => 'Employee allowance not found.'], 404);
         }
 
-        $employeeAllowance->update([
-            'amount' => $validateData['amount']
-        ]);
+        DB::beginTransaction();
+        try {
+            $oldAmount = $employeeAllowance->amount;
+            $employeeAllowance->update([
+                'amount' => $validateData['amount']
+            ]);
 
-        return response()->json($employeeAllowance, 200);
+            // LOG-26 — Allowance: Updated
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $employeeAllowance->id,
+                'type_of_report'   => 'Allowance',
+                'name'             => "Allowance updated for: " . ($employeeAllowance->employee->firstname ?? 'Employee'),
+                'action'           => 'updated',
+                'updated_field'    => 'amount',
+                'original_data'    => $oldAmount,
+                'updated_data'     => $employeeAllowance->amount,
+            ]);
+
+            DB::commit();
+
+            return response()->json($employeeAllowance, 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to update allowance', 'error' => $e->getMessage()], 500);
+        }
     }
 }

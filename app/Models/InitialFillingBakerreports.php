@@ -17,7 +17,7 @@ class InitialFillingBakerreports extends Model
 
     public function initialBakerReports()
     {
-        return $this->belongsTo(InitialBakerreports::class);
+        return $this->belongsTo(InitialBakerreports::class, 'initial_bakerreports_id');
     }
 
     public function bread()

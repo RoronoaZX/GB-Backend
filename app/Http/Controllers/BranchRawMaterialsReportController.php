@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BranchRawMaterialsReport;
 use App\Models\HistoryLog;
 use App\Models\RawMaterial;
+use App\Services\HistoryLogService;
 use Illuminate\Http\Client\ResponseSequence;
 use Illuminate\Http\Request;
 
@@ -34,8 +35,9 @@ class BranchRawMaterialsReportController extends Controller
                                         $query->where('branch_id', $branchId)
                                                 ->where('quantity', '>', 0) // ✅ strictly greater then 0
                                                 ->orderBy('created_at', 'asc') // ✅ oldest first
+                                                ->with('deliveryUnit')
                                                 ->select(
-                                                    'id', 'raw_material_id', 'branch_id',
+                                                    'id', 'raw_material_id', 'branch_id', 'delivery_su_id',
                                                     'price_per_gram', 'quantity', 'created_at','updated_at'
                                                     )
                                                 ->limit(1);
@@ -217,7 +219,7 @@ class BranchRawMaterialsReportController extends Controller
         $branchRawMaterials->total_quantity  = $validateData['total_quantity'];
         $branchRawMaterials->save();
 
-        HistoryLog::create([
+        HistoryLogService::log([
             'report_id'          => $request->input('report_id'),
             'name'               => $request->input('name'),
             'original_data'      => $request->input('original_data'),

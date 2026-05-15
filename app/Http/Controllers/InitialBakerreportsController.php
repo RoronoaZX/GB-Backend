@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 use Illuminate\Support\Facades\Validator;
+use App\Services\HistoryLogService;
+
 
 class InitialBakerreportsController extends Controller
 {
@@ -48,7 +50,7 @@ class InitialBakerreportsController extends Controller
             'fillingBakersReports'
         ])
         ->orderBy('created_at', 'desc')
-        ->get();
+        ->paginate(50);
 
         return response()->json($reports);
     }
@@ -57,7 +59,7 @@ class InitialBakerreportsController extends Controller
     {
         $reports = InitialBakerreports::with(['branch', 'user', 'branchRecipe', 'breadBakersReports'])
                                     ->orderBy('created_at', 'desc')
-                                    ->get();
+                                    ->paginate(50);
 
         return response()->json($reports);
     }
@@ -172,7 +174,9 @@ class InitialBakerreportsController extends Controller
             ], 422);
         }
 
-        foreach ($request->reports as $report) {
+        DB::beginTransaction();
+        try {
+            foreach ($request->reports as $report) {
             $reportValidator = Validator::make($report, [
                 'branch_id'                          => 'required|integer|exists:branches,id',
                 'user_id'                            => 'required|integer|exists:users,id',
@@ -231,6 +235,7 @@ class InitialBakerreportsController extends Controller
             foreach ($validatedData['ingredients'] as $ingredientReport) {
                 $ingredientInventory = BranchRawMaterialsReport::where('ingredients_id', $ingredientReport['ingredients_id'])
                     ->where('branch_id', $validatedData['branch_id'])
+                    ->lockForUpdate()
                     ->first();
 
                 if ($ingredientInventory) {
@@ -238,12 +243,38 @@ class InitialBakerreportsController extends Controller
                     $ingredientInventory->save();
                 }
             }
+
+            $branchRecipe = BranchRecipe::with('recipe')->find($bakerReport->branch_recipe_id);
+            // LOG-03 — Baker Report: Submit (Admin)
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $bakerReport->id,
+                'type_of_report'   => 'Baker Report',
+                'name'             => ($bakerReport->recipe_category ?? 'Baker') . " Report - " . ($branchRecipe->recipe->name ?? 'Unknown Recipe'),
+                'action'           => 'created (admin)',
+                'updated_data'     => [
+                    'kilo' => $bakerReport->kilo,
+                    'breads' => $validatedData['breads'] ?? [],
+                    'ingredients' => $validatedData['ingredients'] ?? []
+                ],
+                'designation'      => $bakerReport->branch_id,
+                'designation_type' => 'branch',
+            ]);
         }
 
+        DB::commit();
         return response()->json([
             'status'     => 'success',
             'message'    => 'Reports stored successfully',
         ], 201);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'status'     => 'error',
+            'message'    => 'Failed to create report',
+            'error'      => $e->getMessage()
+        ], 500);
+    }
     }
 
     public function store(Request $request)
@@ -263,7 +294,9 @@ class InitialBakerreportsController extends Controller
             ], 422);
         }
 
-        foreach ($request->reports as $report) {
+        DB::beginTransaction();
+        try {
+            foreach ($request->reports as $report) {
             $reportValidator = Validator::make($report, [
                 'branch_id'                      => 'required|integer|exists:branches,id',
                 'user_id'                        => 'required|integer|exists:users,id',
@@ -392,6 +425,7 @@ class InitialBakerreportsController extends Controller
                     // 🧾 Update ingredient inventory total
                     $ingredientInventory = BranchRawMaterialsReport::where('ingredients_id', $ingredientReport['ingredients_id'])
                         ->where('branch_id', $validatedData['branch_id'])
+                        ->lockForUpdate()
                         ->first();
 
                     if ($ingredientInventory) {
@@ -400,6 +434,22 @@ class InitialBakerreportsController extends Controller
                     }
                 }
             }
+
+            // LOG-03 — Baker Report: Submit
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $initialReport->id,
+                'type_of_report'   => 'Baker Report',
+                'name'             => ($initialReport->recipe_category ?? 'Baker') . " Report - " . ($branchRecipe->recipe->name ?? 'Unknown Recipe'),
+                'action'           => 'submitted',
+                'updated_data'     => [
+                    'kilo' => $initialReport->kilo,
+                    'breads' => $validatedData['breads'] ?? [],
+                    'ingredients' => $validatedData['ingredients'] ?? []
+                ],
+                'designation'      => $initialReport->branch_id,
+                'designation_type' => 'branch',
+            ]);
         }
 
         // Get branch_id form the first report (assuming all reports have the same branch_id)
@@ -415,10 +465,19 @@ class InitialBakerreportsController extends Controller
             ]);
         }
 
+        DB::commit();
         return response()->json([
             'status'  => 'success',
             'message' => 'Reports stored successfully',
         ], 201);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'status'     => 'error',
+            'message'    => 'Failed to store report',
+            'error'      => $e->getMessage()
+        ], 500);
+    }
     }
 
 
@@ -532,6 +591,7 @@ class InitialBakerreportsController extends Controller
                  // Update branch inventory if exist
                  $ingredientInventory = BranchRawMaterialsReport::where('ingredients_id', $ingredientReport->ingredients_id)
                                         ->where('branch_id', $initialReport->branch_id)
+                                        ->lockForUpdate()
                                         ->first();
 
                 if ($ingredientInventory) {
@@ -573,6 +633,18 @@ class InitialBakerreportsController extends Controller
             $initialReport->status = 'confirmed';
             $initialReport->save();
 
+            // LOG-04 — Baker Report: Confirm
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $initialReport->id,
+                'type_of_report'   => 'Baker Report',
+                'name'             => ($initialReport->recipe_category ?? 'Baker') . " Report",
+                'action'           => 'confirmed',
+                'updated_data'     => "Confirmed production for report #{$initialReport->id}",
+                'designation'      => $initialReport->branch_id,
+                'designation_type' => 'branch',
+            ]);
+
             return response()->json([
                 'message'            => 'Report confirmed successfully. Stocks deducted and costs recorded.',
                 'ingredient_costs'   => $totalCostResponse,
@@ -587,17 +659,30 @@ class InitialBakerreportsController extends Controller
             'remark' => 'required|string|max:255'
         ]);
 
-        $initialReport = InitialBakerreports::findOrFail($id);
+        return DB::transaction(function () use ($request, $id) {
+            $initialReport = InitialBakerreports::findOrFail($id);
 
-        if ($initialReport->status === 'pending') {
-            $initialReport->status = 'declined';
-            $initialReport->remark = $request->remark;
-            $initialReport->save();
+            if ($initialReport->status === 'pending') {
+                $initialReport->status = 'declined';
+                $initialReport->remark = $request->remark;
+                $initialReport->save();
 
+                // LOG-05 — Baker Report: Decline
+                HistoryLogService::log([
+                    'user_id'          => Auth::id(),
+                    'report_id'        => $initialReport->id,
+                    'type_of_report'   => 'Baker Report',
+                    'name'             => ($initialReport->recipe_category ?? 'Baker') . " Report",
+                    'action'           => 'declined',
+                    'updated_data'     => "Reason: " . $request->remark,
+                    'designation'      => $initialReport->branch_id,
+                    'designation_type' => 'branch',
+                ]);
 
-            return response()->json(['message' => 'Report declined successfully']);
-        }
-        return response()->json(['message' => "Invalid report or status"], 400);
+                return response()->json(['message' => 'Report declined successfully']);
+            }
+            return response()->json(['message' => "Invalid report or status"], 400);
+        });
     }
     /**
      * Display the specified resource.

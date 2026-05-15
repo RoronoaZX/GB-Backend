@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\EmployeeSaleschargesReport;
-use App\Models\HistoryLog;
+use App\Models\BranchProduct;
 use App\Models\SalesReports;
 use App\Models\SelectaSalesReport;
 use Illuminate\Http\Request;
+use App\Services\HistoryLogService;
 
 class SelectaSalesReportController extends Controller
 {
@@ -89,17 +90,10 @@ class SelectaSalesReportController extends Controller
 
     private function createHistoryLog(Request $request)
     {
-        HistoryLog::create($request->only([
-            'report_id',
-            'name',
-            'original_data',
-            'updated_data',
-            'updated_field',
-            'designation',
-            'designation_type',
-            'action',
-            'type_of_report',
-            'user_id',
+        HistoryLogService::log($request->only([
+            'report_id', 'name', 'original_data', 'updated_data',
+            'updated_field', 'designation', 'designation_type',
+            'action', 'type_of_report', 'user_id'
         ]));
     }
 

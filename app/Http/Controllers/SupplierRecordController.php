@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\SupplierRecord;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class SupplierRecordController extends Controller
 {
@@ -87,6 +90,19 @@ class SupplierRecordController extends Controller
             // 🟢 Return one record's actual database value ofter save
             $latestRecord        = $supplierRecords->first();
             $latestCreatedAt     = $latestRecord->fresh()->created_at;
+
+            // LOG-35 — Supplier Record: Updated Datetime
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $deliveryId,
+                'type_of_report'   => 'Warehouse',
+                'name'             => "Supplier records datetime updated for Delivery #" . $deliveryId,
+                'action'           => 'updated',
+                'updated_field'    => 'created_at',
+                'updated_data'     => $latestCreatedAt->toDateTimeString(),
+                'designation'      => 0, // Warehouse
+                'designation_type' => 'warehouse',
+            ]);
 
             return response()->json([
                 'message'            => 'Supplier records datetimes successfully updated.',

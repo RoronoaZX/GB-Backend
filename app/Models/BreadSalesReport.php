@@ -39,6 +39,11 @@ class BreadSalesReport extends Model
         return $this->belongsTo(Product::class, 'product_id', 'id');
     }
 
+    public function breadOutRelation()
+    {
+        return $this->hasOne(BreadOut::class, 'bread_sales_report_id');
+    }
+
     public function handledBy()
     {
         return $this->belongsTo(Employee::class, 'handled_by', 'id');

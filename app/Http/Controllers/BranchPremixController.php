@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BranchPremix;
 use App\Models\HistoryLog;
+use App\Services\HistoryLogService;
 use Illuminate\Http\Request;
 
 class BranchPremixController extends Controller

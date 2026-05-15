@@ -6,6 +6,9 @@ use App\Models\WarehouseScalingMaterial;
 use App\Models\WarehouseScalingReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class WarehouseScalingReportController extends Controller
 {
@@ -22,53 +25,69 @@ class WarehouseScalingReportController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-{
-    // Validate the main reports array
-    $validator = Validator::make($request->all(), [
-        'reports'                                    => 'required|array',
-        'reports.*.branch_id'                        => 'required|integer|exists:branches,id',
-        'reports.*.warehouse_id'                     => 'required|integer|exists:warehouses,id',
-        'reports.*.employee_id'                      => 'required|integer|exists:employees,id',
-        'reports.*.recipe_id'                        => 'required|integer|exists:recipes,id',
-        'reports.*.status'                           => 'required|string',
-        'reports.*.ingredients'                      => 'required|array',
-        'reports.*.ingredients.*.raw_materials_id'   => 'required|integer|exists:raw_materials,id',
-        'reports.*.ingredients.*.quantity'           => 'required|numeric',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'status'     => 'error',
-            'message'    => 'Validation failed for reports',
-            'errors'     => $validator->errors(),
-        ], 422);
-    }
-
-    // Process and save each report
-    foreach ($request->reports as $report) {
-        $warehouseScalingReport = WarehouseScalingReport::create([
-            'branch_id'      => $report['branch_id'],
-            'warehouse_id'   => $report['warehouse_id'],
-            'employee_id'    => $report['employee_id'],
-            'recipe_id'      => $report['recipe_id'],
-            'status'         => $report['status'],
+    {
+        // Validate the main reports array
+        $validator = Validator::make($request->all(), [
+            'reports'                                    => 'required|array',
+            'reports.*.branch_id'                        => 'required|integer|exists:branches,id',
+            'reports.*.warehouse_id'                     => 'required|integer|exists:warehouses,id',
+            'reports.*.employee_id'                      => 'required|integer|exists:employees,id',
+            'reports.*.recipe_id'                        => 'required|integer|exists:recipes,id',
+            'reports.*.status'                           => 'required|string',
+            'reports.*.ingredients'                      => 'required|array',
+            'reports.*.ingredients.*.raw_materials_id'   => 'required|integer|exists:raw_materials,id',
+            'reports.*.ingredients.*.quantity'           => 'required|numeric',
         ]);
 
-        // Save ingredients associated with the WarehouseScalingReport
-        foreach ($report['ingredients'] as $ingredient) {
-            WarehouseScalingMaterial::create([
-                'warehouse_scaling_report_id'    => $warehouseScalingReport->id,
-                'raw_material_id'                => $ingredient['raw_materials_id'],
-                'quantity'                       => $ingredient['quantity'],
-            ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status'     => 'error',
+                'message'    => 'Validation failed for reports',
+                'errors'     => $validator->errors(),
+            ], 422);
         }
-    }
 
-    return response()->json([
-        'status'     => 'success',
-        'message'    => 'Reports and ingredients saved successfully',
-    ], 201);
-}
+        return DB::transaction(function () use ($request) {
+            // Process and save each report
+            foreach ($request->reports as $report) {
+                $warehouseScalingReport = WarehouseScalingReport::create([
+                    'branch_id'      => $report['branch_id'],
+                    'warehouse_id'   => $report['warehouse_id'],
+                    'employee_id'    => $report['employee_id'],
+                    'recipe_id'      => $report['recipe_id'],
+                    'status'         => $report['status'],
+                ]);
+
+                // Save ingredients associated with the WarehouseScalingReport
+                foreach ($report['ingredients'] as $ingredient) {
+                    WarehouseScalingMaterial::create([
+                        'warehouse_scaling_report_id'    => $warehouseScalingReport->id,
+                        'raw_material_id'                => $ingredient['raw_materials_id'],
+                        'quantity'                       => $ingredient['quantity'],
+                    ]);
+                }
+
+                $warehouseScalingReport->load('recipe', 'branch');
+
+                // LOG-31 — Warehouse Scaling Report: Create
+                HistoryLogService::log([
+                    'user_id'          => Auth::id(),
+                    'report_id'        => $warehouseScalingReport->id,
+                    'type_of_report'   => 'Scaling Report',
+                    'name'             => ($warehouseScalingReport->recipe->name ?? 'Unknown Recipe') . ' for ' . ($warehouseScalingReport->branch->name ?? 'Unknown Branch'),
+                    'action'           => 'created',
+                    'updated_data'     => $report,
+                    'designation'      => $report['warehouse_id'],
+                    'designation_type' => 'warehouse',
+                ]);
+            }
+
+            return response()->json([
+                'status'     => 'success',
+                'message'    => 'Reports and ingredients saved successfully',
+            ], 201);
+        });
+    }
 
     /**
      * Display the specified resource.

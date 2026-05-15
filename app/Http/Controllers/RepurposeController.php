@@ -11,6 +11,9 @@ use App\Models\BranchProduct;
 use App\Models\WarehouseRmStocks;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Services\HistoryLogService;
+
 
 class RepurposeController extends Controller
 {
@@ -95,6 +98,18 @@ class RepurposeController extends Controller
             RepurposeLog::create($logData);
             $breadOut->save();
 
+            // LOG-09 — Repurpose: Process
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $breadOut->id,
+                'type_of_report'   => 'Repurpose',
+                'name'             => "Repurposed: " . $request->action_type,
+                'action'           => 'processed',
+                'updated_data'     => $logData,
+                'designation'      => $breadOut->branch_id,
+                'designation_type' => 'branch',
+            ]);
+
             DB::commit();
 
             return response()->json([
@@ -130,6 +145,21 @@ class RepurposeController extends Controller
 
             $breadOut->status  = 'spoiled';
             $breadOut->save();
+
+            // LOG — Spoilage Processed
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $breadOut->id,
+                'type_of_report'   => 'Spoilage',
+                'name'             => "Spoilage logged for " . $breadOut->product_id,
+                'action'           => 'processed',
+                'updated_data'     => [
+                    'quantity' => $request->quantity,
+                    'reason'   => $request->reason
+                ],
+                'designation'      => $breadOut->branch_id,
+                'designation_type' => 'branch',
+            ]);
 
             DB::commit();
 

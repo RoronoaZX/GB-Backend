@@ -22,7 +22,7 @@ class HistoryLog extends Model
         'updated_data'
     ];
 
-    public function userId()
+    public function user()
     {
         return $this->belongsTo(User::class, 'user_id')
                     ->with('employee');

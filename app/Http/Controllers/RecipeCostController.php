@@ -7,6 +7,9 @@ use App\Models\RecipeCostChangeLog;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use ReturnTypeWillChange;
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class RecipeCostController extends Controller
 {
@@ -166,6 +169,20 @@ class RecipeCostController extends Controller
                 'reason'         => $request->reason ?? null,
             ]);
 
+            // LOG-30 — Recipe Cost: Updated
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $recipeCost->id,
+                'type_of_report'   => 'Recipe Cost',
+                'name'             => "Recipe cost updated for field: " . $changedField,
+                'action'           => 'updated',
+                'updated_field'    => $changedField,
+                'original_data'    => $oldValue,
+                'updated_data'     => $newValue,
+                'designation'      => $recipeCost->branch_id,
+                'designation_type' => 'branch',
+            ]);
+
             return response()->json([
                 'success'        => true,
                 'message'        => 'Cost updated and change logged.',
@@ -251,6 +268,20 @@ class RecipeCostController extends Controller
                     'old_value'      => $oldValue,
                     'new_value'      => $newValue,
                     'reason'         => 'Bulk update: ' . ($request->reason ?? 'No reason provided'),
+                ]);
+
+                // LOG-30 — Recipe Cost: Bulk Updated
+                HistoryLogService::log([
+                    'user_id'          => Auth::id(),
+                    'report_id'        => $recipeCost->id,
+                    'type_of_report'   => 'Recipe Cost',
+                    'name'             => "Recipe cost bulk updated for field: " . $changedField,
+                    'action'           => 'updated',
+                    'updated_field'    => $changedField,
+                    'original_data'    => $oldValue,
+                    'updated_data'     => $newValue,
+                    'designation'      => $recipeCost->branch_id,
+                    'designation_type' => 'branch',
                 ]);
             }
 

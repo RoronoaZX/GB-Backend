@@ -6,6 +6,9 @@ use App\Models\BranchRawMaterialsReport;
 use App\Models\RawMaterial;
 use App\Models\WarehouseRawMaterialsReport;
 use Illuminate\Http\Request;
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class RawMaterialController extends Controller
 {
@@ -144,12 +147,26 @@ class RawMaterialController extends Controller
             'supplier_lead_time'  => 'nullable|integer',
         ]);
 
-        $rawMaterials = RawMaterial::create($validateData);
+        return DB::transaction(function () use ($validateData) {
+            $rawMaterials = RawMaterial::create($validateData);
 
-        return response()->json([
-            'message'        => 'Raw Materials saved successfully',
-            'rawMaterials'   => $rawMaterials
-        ], 201);
+            // LOG-32 — Raw Material Master: Create
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $rawMaterials->id,
+                'type_of_report'   => 'Raw Material Master',
+                'name'             => $rawMaterials->name,
+                'action'           => 'created',
+                'updated_data'     => $rawMaterials->toArray(),
+                'designation'      => 'System',
+                'designation_type' => 'system',
+            ]);
+
+            return response()->json([
+                'message'        => 'Raw Materials saved successfully',
+                'rawMaterials'   => $rawMaterials
+            ], 201);
+        });
     }
 
     public function update(Request $request, $id)
@@ -163,8 +180,8 @@ class RawMaterialController extends Controller
         }
 
         $validateData = $request->validate([
-            'name'                => 'required|unique:raw_materials,name',
-            'code'                => 'required|unique:raw_materials,code',
+            'name'                => 'required|unique:raw_materials,name,' . $id,
+            'code'                => 'required|unique:raw_materials,code,' . $id,
             'category'            => 'required',
             'unit'                => 'required',
             'delivery_unit'       => 'nullable|string',
@@ -173,24 +190,59 @@ class RawMaterialController extends Controller
             'supplier_lead_time'  => 'nullable|integer',
         ]);
 
-        $raw_material->update($validateData);
-        $updated_raw_material = $raw_material->fresh();
-        return response()->json($updated_raw_material);
+        return DB::transaction(function () use ($raw_material, $validateData) {
+            $oldData = $raw_material->toArray();
+            $raw_material->update($validateData);
+            $updated_raw_material = $raw_material->fresh();
+
+            // LOG-32 — Raw Material Master: Update
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $raw_material->id,
+                'type_of_report'   => 'Raw Material Master',
+                'name'             => $raw_material->name,
+                'action'           => 'updated',
+                'original_data'    => $oldData,
+                'updated_data'     => $updated_raw_material->toArray(),
+                'designation'      => 'System',
+                'designation_type' => 'system',
+            ]);
+
+            return response()->json($updated_raw_material);
+        });
     }
 
     public function destroy($id)
     {
-        $raw_materials = RawMaterial::find($id);
-        if (!$raw_materials) {
-            return response()->json([
-                'message' => 'Raw materials not found'
-            ], 404);
-        }
+        return DB::transaction(function () use ($id) {
+            $raw_materials = RawMaterial::find($id);
+            if (!$raw_materials) {
+                return response()->json([
+                    'message' => 'Raw materials not found'
+                ], 404);
+            }
 
-        $raw_materials->delete();
-        return response()->json([
-            'message' => 'raw material deleted successfully'
-        ], 200);
+            $snapshot = $raw_materials->toArray();
+            $name = $raw_materials->name;
+
+            $raw_materials->delete();
+
+            // LOG-32 — Raw Material Master: Delete
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $id,
+                'type_of_report'   => 'Raw Material Master',
+                'name'             => $name,
+                'action'           => 'deleted',
+                'original_data'    => $snapshot,
+                'designation'      => 'System',
+                'designation_type' => 'system',
+            ]);
+
+            return response()->json([
+                'message' => 'raw material deleted successfully'
+            ], 200);
+        });
     }
 
     public function fetchRawMaterialsIngredients()

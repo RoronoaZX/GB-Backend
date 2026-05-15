@@ -6,6 +6,9 @@ use App\Models\EmployeeBenefit;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeBenefitController extends Controller
 {
@@ -100,16 +103,34 @@ class EmployeeBenefitController extends Controller
             ], 409);
         }
 
-        $benefit = EmployeeBenefit::create($validateData)->load('employee');
+        DB::beginTransaction();
+        try {
+            $benefit = EmployeeBenefit::create($validateData)->load('employee');
 
-        // Match the same format as index
-        return response()->json([
-            'data'           => [$benefit],
-            'total'          => 1,
-            'per_page'       => 1,
-            'current_page'   => 1,
-            'last_page'      => 1
-        ], 201);
+            // LOG-26 — Benefit: Created
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $benefit->id,
+                'type_of_report'   => 'Benefit',
+                'name'             => "Benefits set for: " . ($benefit->employee->firstname ?? 'Employee'),
+                'action'           => 'created',
+                'updated_data'     => $benefit->toArray(),
+            ]);
+
+            DB::commit();
+
+            // Match the same format as index
+            return response()->json([
+                'data'           => [$benefit],
+                'total'          => 1,
+                'per_page'       => 1,
+                'current_page'   => 1,
+                'last_page'      => 1
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to create benefits', 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function updateEmployeeSssNumberBenefit(Request $request, $id)
@@ -119,7 +140,20 @@ class EmployeeBenefitController extends Controller
         ]);
 
         $benefit = EmployeeBenefit::findOrFail($id);
+        $oldValue = $benefit->sss_number;
         $benefit->update($validateData);
+
+        // LOG-26 — Benefit: Updated SSS Number
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $benefit->id,
+            'type_of_report'   => 'Benefit',
+            'name'             => "SSS Number updated for: " . ($benefit->employee->firstname ?? 'Employee'),
+            'action'           => 'updated',
+            'updated_field'    => 'sss_number',
+            'original_data'    => $oldValue,
+            'updated_data'     => $benefit->sss_number,
+        ]);
 
         return response()->json($benefit, 200);
     }
@@ -131,7 +165,20 @@ class EmployeeBenefitController extends Controller
         ]);
 
         $benefit = EmployeeBenefit::findOrFail($id);
+        $oldValue = $benefit->sss;
         $benefit->update($validateData);
+
+        // LOG-26 — Benefit: Updated SSS Amount
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $benefit->id,
+            'type_of_report'   => 'Benefit',
+            'name'             => "SSS amount updated for: " . ($benefit->employee->firstname ?? 'Employee'),
+            'action'           => 'updated',
+            'updated_field'    => 'sss',
+            'original_data'    => $oldValue,
+            'updated_data'     => $benefit->sss,
+        ]);
 
         return response()->json($benefit, 200);
     }
@@ -144,7 +191,20 @@ class EmployeeBenefitController extends Controller
         ]);
 
         $benefit = EmployeeBenefit::findOrFail($id);
+        $oldValue = $benefit->hdmf_number;
         $benefit->update($validateData);
+
+        // LOG-26 — Benefit: Updated HDMF Number
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $benefit->id,
+            'type_of_report'   => 'Benefit',
+            'name'             => "HDMF Number updated for: " . ($benefit->employee->firstname ?? 'Employee'),
+            'action'           => 'updated',
+            'updated_field'    => 'hdmf_number',
+            'original_data'    => $oldValue,
+            'updated_data'     => $benefit->hdmf_number,
+        ]);
 
         return response()->json($benefit, 200);
     }
@@ -155,7 +215,20 @@ class EmployeeBenefitController extends Controller
         ]);
 
         $benefit = EmployeeBenefit::findOrFail($id);
+        $oldValue = $benefit->hdmf;
         $benefit->update($validateData);
+
+        // LOG-26 — Benefit: Updated HDMF Amount
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $benefit->id,
+            'type_of_report'   => 'Benefit',
+            'name'             => "HDMF amount updated for: " . ($benefit->employee->firstname ?? 'Employee'),
+            'action'           => 'updated',
+            'updated_field'    => 'hdmf',
+            'original_data'    => $oldValue,
+            'updated_data'     => $benefit->hdmf,
+        ]);
 
         return response()->json($benefit, 200);
     }
@@ -167,7 +240,20 @@ class EmployeeBenefitController extends Controller
         ]);
 
         $benefit = EmployeeBenefit::findOrFail($id);
+        $oldValue = $benefit->phic_number;
         $benefit->update($validateData);
+
+        // LOG-26 — Benefit: Updated PHIC Number
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $benefit->id,
+            'type_of_report'   => 'Benefit',
+            'name'             => "PHIC Number updated for: " . ($benefit->employee->firstname ?? 'Employee'),
+            'action'           => 'updated',
+            'updated_field'    => 'phic_number',
+            'original_data'    => $oldValue,
+            'updated_data'     => $benefit->phic_number,
+        ]);
 
         return response()->json($benefit, 200);
 
@@ -180,7 +266,20 @@ class EmployeeBenefitController extends Controller
         ]);
 
         $benefit = EmployeeBenefit::findOrFail($id);
+        $oldValue = $benefit->phic;
         $benefit->update($validateData);
+
+        // LOG-26 — Benefit: Updated PHIC Amount
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $benefit->id,
+            'type_of_report'   => 'Benefit',
+            'name'             => "PHIC amount updated for: " . ($benefit->employee->firstname ?? 'Employee'),
+            'action'           => 'updated',
+            'updated_field'    => 'phic',
+            'original_data'    => $oldValue,
+            'updated_data'     => $benefit->phic,
+        ]);
 
         return response()->json($benefit, 200);
     }

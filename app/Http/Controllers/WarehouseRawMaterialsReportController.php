@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\WarehouseRawMaterialsReport;
 use Illuminate\Http\Request;
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class WarehouseRawMaterialsReportController extends Controller
 {
@@ -64,26 +67,42 @@ class WarehouseRawMaterialsReportController extends Controller
             'total_quantity'     => 'required|numeric'
         ]);
 
-        $existingWarehouseRawMaterials = WarehouseRawMaterialsReport::where('warehouse_id', $validatedData['warehouse_id'])
-                                            ->where('raw_material_id', $validatedData['raw_material_id'])
-                                            ->first();
+        return DB::transaction(function () use ($validatedData) {
+            $existingWarehouseRawMaterials = WarehouseRawMaterialsReport::where('warehouse_id', $validatedData['warehouse_id'])
+                                                ->where('raw_material_id', $validatedData['raw_material_id'])
+                                                ->first();
 
-        if ($existingWarehouseRawMaterials) {
-            return response()->json([
-                'message' => 'The RawMaterials already exists in this branch.'
+            if ($existingWarehouseRawMaterials) {
+                return response()->json([
+                    'message' => 'The RawMaterials already exists in this branch.'
+                ]);
+            }
+
+            $warehouseRawMaterials = WarehouseRawMaterialsReport::create([
+                'warehouse_id'       => $validatedData['warehouse_id'],
+                'raw_material_id'    =>  $validatedData['raw_material_id'],
+                'total_quantity'     =>  $validatedData['total_quantity'],
             ]);
-        }
 
-        $warehouseRawMaterials = WarehouseRawMaterialsReport::create([
-            'warehouse_id'       => $validatedData['warehouse_id'],
-            'raw_material_id'    =>  $validatedData['raw_material_id'],
-            'total_quantity'     =>  $validatedData['total_quantity'],
-        ]);
+            $warehouseRawMaterials->load('rawMaterials');
 
-        return response()->json([
-            'message'    => "Warehouse Raw Materials saved successfully",
-            'data'       => $warehouseRawMaterials
-        ], 201);
+            // LOG-28 — Warehouse Raw Materials: Create
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $warehouseRawMaterials->id,
+                'type_of_report'   => 'Warehouse Inventory',
+                'name'             => $warehouseRawMaterials->rawMaterials->name ?? 'Unknown Material',
+                'action'           => 'created',
+                'updated_data'     => $warehouseRawMaterials->toArray(),
+                'designation'      => $validatedData['warehouse_id'],
+                'designation_type' => 'warehouse',
+            ]);
+
+            return response()->json([
+                'message'    => "Warehouse Raw Materials saved successfully",
+                'data'       => $warehouseRawMaterials
+            ], 201);
+        });
     }
 
     public function bulkStore(Request $request)
@@ -94,55 +113,68 @@ class WarehouseRawMaterialsReportController extends Controller
             return response()->json(['message' => 'No raw materials provided'], 400);
         }
 
-        // Extract raw_material_id and warehouse_id from input data
-        $rawMaterialWarehousePairs = collect($data)->map(function ($material) {
-            return [
-                'raw_material_id'    => $material['raw_material_id'],
-                'warehouse_id'       => $material['warehouse_id']];
+        return DB::transaction(function () use ($data) {
+            // Extract raw_material_id and warehouse_id from input data
+            $rawMaterialWarehousePairs = collect($data)->map(function ($material) {
+                return [
+                    'raw_material_id'    => $material['raw_material_id'],
+                    'warehouse_id'       => $material['warehouse_id']];
+            });
+
+            // Fetch existing records that match both raw_material_id and warehouse_id
+            $existingRecords = WarehouseRawMaterialsReport::whereIn('raw_material_id', $rawMaterialWarehousePairs->pluck('raw_material_id'))
+                                ->whereIn('warehouse_id', $rawMaterialWarehousePairs->pluck('warehouse_id'))
+                                ->get(['raw_material_id', 'warehouse_id'])
+                                ->toArray();
+
+            // Convert to an associative array for easier lookup
+            $existingPairs = [];
+
+            foreach ($existingRecords as $record) {
+                $existingPairs[$record['raw_material_id'] . '_' . $record['warehouse_id']] = true;
+            }
+
+            // Filter out existing materials
+            $newMaterials = array_filter($data, function ($material) use ($existingPairs) {
+                return !isset($existingPairs[$material['raw_material_id'] . '_' . $material['warehouse_id']]);
+            });
+
+            if (empty($newMaterials)) {
+                return response()->json(['message' => 'All raw materials already exist in the warehouse'], 200);
+            }
+
+            // Add timestamps
+            $now = now();
+            foreach ($newMaterials as &$material) {
+                $material['created_at'] = $now;
+                $material['updated_at'] = $now;
+            }
+
+            // Insert only new materials
+            WarehouseRawMaterialsReport::insert($newMaterials);
+
+            $insertedRawMaterials = WarehouseRawMaterialsReport::with(['rawMaterials', 'warehouse'])
+                                        ->whereIn('raw_material_id', collect($newMaterials)->pluck('raw_material_id'))
+                                        ->whereIn('warehouse_id', collect($newMaterials)->pluck('warehouse_id'))
+                                        ->orderByDesc('id')
+                                        ->get();
+
+            // LOG-28 — Warehouse Raw Materials: Bulk Create
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'type_of_report'   => 'Warehouse Inventory',
+                'name'             => 'Bulk Stock Setup',
+                'action'           => 'created (bulk)',
+                'updated_data'     => $insertedRawMaterials->pluck('rawMaterials.name')->toArray(),
+                'designation'      => $insertedRawMaterials->first()->warehouse_id ?? 0,
+                'designation_type' => 'warehouse',
+            ]);
+
+            return response()->json([
+                'message'    => 'Raw materials added successfully!',
+                'data'       => $insertedRawMaterials
+            ]);
         });
-
-        // Fetch existing records that match both raw_material_id and warehouse_id
-        $existingRecords = WarehouseRawMaterialsReport::whereIn('raw_material_id', $rawMaterialWarehousePairs->pluck('raw_material_id'))
-                            ->whereIn('warehouse_id', $rawMaterialWarehousePairs->pluck('warehouse_id'))
-                            ->get(['raw_material_id', 'warehouse_id'])
-                            ->toArray();
-
-        // Convert to an associative array for easier lookup
-        $existingPairs = [];
-
-        foreach ($existingRecords as $record) {
-            $existingPairs[$record['raw_material_id'] . '_' . $record['warehouse_id']] = true;
-        }
-
-        // Filter out existing materials
-        $newMaterials = array_filter($data, function ($material) use ($existingPairs) {
-            return !isset($existingPairs[$material['raw_material_id'] . '_' . $material['warehouse_id']]);
-        });
-
-        if (empty($newMaterials)) {
-            return response()->json(['message' => 'All raw materials already exist in the warehouse'], 200);
-        }
-
-        // Add timestamps
-        $now = now();
-        foreach ($newMaterials as &$material) {
-            $material['created_at'] = $now;
-            $material['updated_at'] = $now;
-        }
-
-        // Insert only new materials
-        WarehouseRawMaterialsReport::insert($newMaterials);
-
-        $insertedRawMaterials = WarehouseRawMaterialsReport::with(['rawMaterials', 'warehouse'])
-                                    ->whereIn('raw_material_id', collect($newMaterials)->pluck('raw_material_id'))
-                                    ->whereIn('warehouse_id', collect($newMaterials)->pluck('warehouse_id'))
-                                    ->orderByDesc('id')
-                                    ->get();
-
-        return response()->json([
-            'message'    => 'Raw materials added successfully!',
-            'data'       => $insertedRawMaterials
-        ]);
     }
 
 
@@ -151,30 +183,66 @@ class WarehouseRawMaterialsReportController extends Controller
         $validateData = $request->validate([
             'total_quantity' => 'required|integer'
         ]);
-        $warehouseRawMaterials                   = WarehouseRawMaterialsReport::findorFail($id);
-        $warehouseRawMaterials->total_quantity   = $validateData['total_quantity'];
-        $warehouseRawMaterials->save();
 
-        return response()->json([
-            'message' => 'Stocks updated successfully',
-            'total_quantity' => $warehouseRawMaterials
-        ]);
+        return DB::transaction(function () use ($validateData, $id) {
+            $warehouseRawMaterials                   = WarehouseRawMaterialsReport::with('rawMaterials')->findorFail($id);
+            $oldQuantity                             = $warehouseRawMaterials->total_quantity;
+            $warehouseRawMaterials->total_quantity   = $validateData['total_quantity'];
+            $warehouseRawMaterials->save();
+
+            // LOG-28 — Warehouse Raw Materials: Update Stocks
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $warehouseRawMaterials->id,
+                'type_of_report'   => 'Warehouse Inventory',
+                'name'             => $warehouseRawMaterials->rawMaterials->name ?? 'Unknown Material',
+                'action'           => 'updated',
+                'updated_field'    => 'total_quantity',
+                'original_data'    => $oldQuantity,
+                'updated_data'     => $warehouseRawMaterials->total_quantity,
+                'designation'      => $warehouseRawMaterials->warehouse_id,
+                'designation_type' => 'warehouse',
+            ]);
+
+            return response()->json([
+                'message' => 'Stocks updated successfully',
+                'total_quantity' => $warehouseRawMaterials
+            ]);
+        });
     }
 
     public function destroy($id)
     {
-        $warehouseRawMaterials = WarehouseRawMaterialsReport::find($id);
+        return DB::transaction(function () use ($id) {
+            $warehouseRawMaterials = WarehouseRawMaterialsReport::with('rawMaterials')->find($id);
 
-        if (!$warehouseRawMaterials) {
+            if (!$warehouseRawMaterials) {
+                return response()->json([
+                    'message' => 'Raw materials not found'
+                ], 404);
+            }
+
+            $materialName = $warehouseRawMaterials->rawMaterials->name ?? 'Unknown Material';
+            $warehouseId = $warehouseRawMaterials->warehouse_id;
+            $snapshot = $warehouseRawMaterials->toArray();
+
+            $warehouseRawMaterials->delete();
+
+            // LOG-28 — Warehouse Raw Materials: Delete
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $id,
+                'type_of_report'   => 'Warehouse Inventory',
+                'name'             => $materialName,
+                'action'           => 'deleted',
+                'original_data'    => $snapshot,
+                'designation'      => $warehouseId,
+                'designation_type' => 'warehouse',
+            ]);
+
             return response()->json([
-                'message' => 'Raw materials not found'
-            ], 404);
-        }
-
-        $warehouseRawMaterials->delete();
-        return response()->json([
-            'message' => 'Raw materials deleted successfully'
-        ]);
-
+                'message' => 'Raw materials deleted successfully'
+            ]);
+        });
     }
 }

@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\EmployeeOnLeave;
 use Illuminate\Http\Request;
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeOnLeaveController extends Controller
 {
@@ -48,10 +51,28 @@ class EmployeeOnLeaveController extends Controller
             'handled_by'         => 'nullable|integer'
         ]);
 
-        $leave = EmployeeOnLeave::create($validated);
-        $leave->load('employee');
+        DB::beginTransaction();
+        try {
+            $leave = EmployeeOnLeave::create($validated);
+            $leave->load('employee');
 
-        return response()->json($leave, 201);
+            // LOG-36 — Leave: Created
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $leave->id,
+                'type_of_report'   => 'Employee',
+                'name'             => "Leave requested for: " . ($leave->employee->firstname ?? 'Employee'),
+                'action'           => 'created',
+                'updated_data'     => $leave->toArray(),
+            ]);
+
+            DB::commit();
+
+            return response()->json($leave, 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to create leave request', 'error' => $e->getMessage()], 500);
+        }
     }
 
     // Display specific leave request
@@ -77,51 +98,92 @@ class EmployeeOnLeaveController extends Controller
 
         $handledBy = $request->user() ? $request->user()->employee_id : null;
 
-        $leave->update([
-            'status'     => $newStatus,
-            'remarks'    => $request->remarks ?? $leave->remarks,
-            'start_date' => $request->start_date ?? $leave->start_date,
-            'end_date'   => $request->end_date ?? $leave->end_date,
-            'handled_by' => $handledBy ?? $leave->handled_by
-        ]);
+        DB::beginTransaction();
+        try {
+            $oldData = $leave->toArray();
+            
+            $leave->update([
+                'status'     => $newStatus,
+                'remarks'    => $request->remarks ?? $leave->remarks,
+                'start_date' => $request->start_date ?? $leave->start_date,
+                'end_date'   => $request->end_date ?? $leave->end_date,
+                'handled_by' => $handledBy ?? $leave->handled_by
+            ]);
 
-        $employee = $leave->employee;
-        if ($employee && $leave->duration_type === 'days') {
-            $duration = (int) $leave->duration_value;
+            $employee = $leave->employee;
+            if ($employee && $leave->duration_type === 'days') {
+                $duration = (int) $leave->duration_value;
 
-            // Deduct upon approval
-            if ($previousStatus !== 'approved' && $newStatus === 'approved') {
-                if ($leave->leave_type === 'vacation_leave') {
-                    $employee->decrement('vl_balance', $duration);
-                } elseif ($leave->leave_type === 'sick_leave') {
-                    $employee->decrement('sl_balance', $duration);
-                } elseif ($leave->leave_type === 'emergency_leave') {
-                    $employee->decrement('el_balance', $duration);
+                // Deduct upon approval
+                if ($previousStatus !== 'approved' && $newStatus === 'approved') {
+                    if ($leave->leave_type === 'vacation_leave') {
+                        $employee->decrement('vl_balance', $duration);
+                    } elseif ($leave->leave_type === 'sick_leave') {
+                        $employee->decrement('sl_balance', $duration);
+                    } elseif ($leave->leave_type === 'emergency_leave') {
+                        $employee->decrement('el_balance', $duration);
+                    }
+                }
+
+                // Refund balance if revoked
+                if ($previousStatus === 'approved' && $newStatus !== 'approved') {
+                    if ($leave->leave_type === 'vacation_leave') {
+                        $employee->increment('vl_balance', $duration);
+                    } elseif ($leave->leave_type === 'sick_leave') {
+                        $employee->increment('sl_balance', $duration);
+                    } elseif ($leave->leave_type === 'emergency_leave') {
+                        $employee->increment('el_balance', $duration);
+                    }
                 }
             }
 
-            // Refund balance if revoked
-            if ($previousStatus === 'approved' && $newStatus !== 'approved') {
-                if ($leave->leave_type === 'vacation_leave') {
-                    $employee->increment('vl_balance', $duration);
-                } elseif ($leave->leave_type === 'sick_leave') {
-                    $employee->increment('sl_balance', $duration);
-                } elseif ($leave->leave_type === 'emergency_leave') {
-                    $employee->increment('el_balance', $duration);
-                }
-            }
+            // LOG-36 — Leave: Updated Status
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $leave->id,
+                'type_of_report'   => 'Employee',
+                'name'             => "Leave status updated to $newStatus for: " . ($leave->employee->firstname ?? 'Employee'),
+                'action'           => 'updated',
+                'updated_field'    => 'status',
+                'original_data'    => $oldData,
+                'updated_data'     => $leave->fresh()->toArray(),
+            ]);
+
+            DB::commit();
+
+            return response()->json($leave);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to update leave request', 'error' => $e->getMessage()], 500);
         }
-
-        return response()->json($leave);
     }
 
     // Delete leave request
     public function destroy($id)
     {
-        $leave = EmployeeOnLeave::findOrFail($id);
-        $leave->delete();
+        DB::beginTransaction();
+        try {
+            $leave = EmployeeOnLeave::findOrFail($id);
+            $oldData = $leave->toArray();
+            $leave->delete();
 
-        return response()->json(['message' => 'Leave request deleted successfully']);
+            // LOG-36 — Leave: Deleted
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $id,
+                'type_of_report'   => 'Employee',
+                'name'             => "Leave request deleted for: " . ($oldData['employee']['firstname'] ?? 'Employee'),
+                'action'           => 'deleted',
+                'original_data'    => $oldData,
+            ]);
+
+            DB::commit();
+
+            return response()->json(['message' => 'Leave request deleted successfully']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to delete leave request', 'error' => $e->getMessage()], 500);
+        }
     }
 
     // Get leave request for current year

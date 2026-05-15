@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\BranchRecipe;
 use App\Models\BranchRmStocks;
-use App\Models\HistoryLog;
-use Illuminate\Contracts\Support\ValidatedData;
 use Illuminate\Http\Request;
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class BranchRecipeController extends Controller
 {
@@ -87,15 +88,35 @@ class BranchRecipeController extends Controller
                 'message' => 'The recipe already exists in this branch.'
             ]);
         }
-        $branchRecipe = BranchRecipe::create($validatedData);
+        DB::beginTransaction();
+        try {
+            $branchRecipe = BranchRecipe::create($validatedData);
 
-        $branchRecipe->ingredientGroups()->createMany($validatedData['ingredients']);
-        $branchRecipe->breadGroups()->createMany($validatedData['breads']);
+            $branchRecipe->ingredientGroups()->createMany($validatedData['ingredients']);
+            $branchRecipe->breadGroups()->createMany($validatedData['breads']);
 
-        return response()->json([
-            'message'    => 'Branch recipe saved successfully',
-            'data'       => $branchRecipe
-        ]);
+            // LOG-30 — Recipe: Branch Assign
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $branchRecipe->id,
+                'type_of_report'   => 'Recipe',
+                'name'             => "Recipe assigned to branch",
+                'action'           => 'created',
+                'updated_data'     => $branchRecipe->load(['ingredientGroups', 'breadGroups'])->toArray(),
+                'designation'      => $validatedData['branch_id'],
+                'designation_type' => 'branch',
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message'    => 'Branch recipe saved successfully',
+                'data'       => $branchRecipe
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to save branch recipe', 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function updateTarget(Request $request, $id)
@@ -105,20 +126,22 @@ class BranchRecipeController extends Controller
         ]);
 
         $recipe          = BranchRecipe::findOrFail($id);
+        $oldTarget       = $recipe->target;
         $recipe->target  = $validatedData['target'];
         $recipe->save();
 
-        HistoryLog::create([
-            'report_id'          => $request->input('report_id'),
-            'name'               => $request->input('name'),
-            'original_data'      => $request->input('original_data'),
-            'updated_data'       => $request->input('updated_data'),
-            'updated_field'      => $request->input('updated_field'),
-            'designation'        => $request->input('designation'),
-            'designation_type'   => $request->input('designation_type'),
-            'action'             => $request->input('action'),
-            'type_of_report'     => $request->input('type_of_report'),
-            'user_id'            => $request->input('user_id'),
+        // LOG-30 — Recipe: Target Updated
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $recipe->id,
+            'type_of_report'   => 'Recipe',
+            'name'             => "Recipe target updated",
+            'action'           => 'updated',
+            'updated_field'    => 'target',
+            'original_data'    => $oldTarget,
+            'updated_data'     => $recipe->target,
+            'designation'      => $recipe->branch_id,
+            'designation_type' => 'branch',
         ]);
 
         return response()->json(['message' => 'Target updated successfully', 'recipe' => $recipe]);
@@ -130,20 +153,22 @@ class BranchRecipeController extends Controller
         ]);
 
         $recipe          = BranchRecipe::findOrFail($id);
+        $oldStatus       = $recipe->status;
         $recipe->status  = $validatedData['status'];
         $recipe->save();
 
-        HistoryLog::create([
-            'report_id'          => $request->input('report_id'),
-            'name'               => $request->input('name'),
-            'original_data'      => $request->input('original_data'),
-            'updated_data'       => $request->input('updated_data'),
-            'updated_field'      => $request->input('updated_field'),
-            'designation'        => $request->input('designation'),
-            'designation_type'   => $request->input('designation_type'),
-            'action'             => $request->input('action'),
-            'type_of_report'     => $request->input('type_of_report'),
-            'user_id'            => $request->input('user_id'),
+        // LOG-30 — Recipe: Status Updated
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $recipe->id,
+            'type_of_report'   => 'Recipe',
+            'name'             => "Recipe status updated",
+            'action'           => 'updated',
+            'updated_field'    => 'status',
+            'original_data'    => $oldStatus,
+            'updated_data'     => $recipe->status,
+            'designation'      => $recipe->branch_id,
+            'designation_type' => 'branch',
         ]);
 
         return response()->json(['message' => 'Status updated successfully', 'recipe' => $recipe]);
@@ -223,12 +248,33 @@ class BranchRecipeController extends Controller
             ], 404);
         }
 
-        $branchRecipe->delete();
+        DB::beginTransaction();
+        try {
+            $oldData = $branchRecipe->toArray();
+            $branchRecipe->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Recipe deleted successfully'
-        ], 200);
+            // LOG-30 — Recipe: Deleted
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $id,
+                'type_of_report'   => 'Recipe',
+                'name'             => "Recipe removed from branch",
+                'action'           => 'deleted',
+                'original_data'    => $oldData,
+                'designation'      => $oldData['branch_id'],
+                'designation_type' => 'branch',
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Recipe deleted successfully'
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to delete branch recipe', 'error' => $e->getMessage()], 500);
+        }
     }
 
 }

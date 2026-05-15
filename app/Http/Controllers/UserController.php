@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -74,6 +76,18 @@ class UserController extends Controller
             // Update password
             $user->password = Hash::make($request->new_password);
             $user->save();
+
+            // LOG-17 — User Account: Password Reset
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $user->id,
+                'type_of_report'   => 'User Account',
+                'name'             => $user->name,
+                'action'           => 'password reset',
+                'updated_data'     => 'Password was reset by admin',
+                'designation'      => $user->branchEmployee->branch_id ?? 'System',
+                'designation_type' => $user->branchEmployee ? 'branch' : 'system',
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -218,6 +232,24 @@ class UserController extends Controller
             'role'               => $request->user_position,
             'remember_token'     => Str::random(60),
         ]);
+
+        // LOG-16 — User Account: Create
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $user->id,
+            'type_of_report'   => 'User Account',
+            'name'             => $user->name,
+            'action'           => 'created',
+            'updated_data'     => [
+                'email'    => $user->email,
+                'name'     => $user->name,
+                'role'     => $user->role,
+                'status'   => $user->status,
+            ],
+            'designation'      => 'System',
+            'designation_type' => 'system',
+        ]);
+
         return response()->json($user);
 
 
@@ -264,6 +296,11 @@ class UserController extends Controller
             'time_shift'     => 'required|date_format:h:i A',
         ]);
 
+        // Capture old values for logging
+        $oldUserData = $user->only(['name', 'address', 'birthdate', 'sex', 'status', 'phone', 'role']);
+        $branchEmployee = BranchEmployee::where('user_id', $userId)->first();
+        $oldBranchData = $branchEmployee ? $branchEmployee->only(['branch_id', 'time_shift']) : [];
+
         // Update the User model fields
         $user->name          = $validatedData['name'];
         $user->address       = $validatedData['address'];
@@ -276,8 +313,6 @@ class UserController extends Controller
         // Save changes to the User model
         $user->save();
 
-        // Find the associated BranchEmployee or create one if it doesn't exist
-        $branchEmployee = BranchEmployee::where('user_id', $userId)->first();
         if (!$branchEmployee) {
             Log::error('BranchEmployee not found for user ID: ' . $userId);
             return response()->json([
@@ -292,6 +327,19 @@ class UserController extends Controller
         // Save changes to the BranchEmployee model
         $branchEmployee->save();
 
+        // LOG-17 — User Account: Update
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $user->id,
+            'type_of_report'   => 'User Account',
+            'name'             => $user->name,
+            'action'           => 'updated',
+            'original_data'    => array_merge($oldUserData, $oldBranchData),
+            'updated_data'     => $validatedData,
+            'designation'      => $validatedData['branch_id'],
+            'designation_type' => 'branch',
+        ]);
+
         // Return a successful response
         return response()->json([
             'message' => 'User profile and branch employee details updated successfully'
@@ -305,16 +353,24 @@ class UserController extends Controller
         ]);
 
         $user            = User::findOrFail($id);
+        $oldEmail        = $user->email;
         $user->email     = $validatedData['email'];
         $user->save();
 
-        // /** @var User $user */
-        // $user = Auth::user(); // This tells Intelephense that $user is a User instance
+        // LOG-17 — User Account: Email Update
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $user->id,
+            'type_of_report'   => 'User Account',
+            'name'             => $user->name,
+            'action'           => 'updated (email)',
+            'original_data'    => ['email' => $oldEmail],
+            'updated_data'     => ['email' => $user->email],
+            'designation'      => $user->branchEmployee->branch_id ?? 'System',
+            'designation_type' => $user->branchEmployee ? 'branch' : 'system',
+        ]);
 
-        // $user->email = $request->email;
-        // $user->save();
-
-        // return response()->json(['message' => 'Email updated successfully!'], 200);
+        return response()->json(['message' => 'Email updated successfully!'], 200);
     }
 
 
@@ -323,6 +379,25 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $user = User::with('branchEmployee')->findOrFail($id);
+        
+        $userData = $user->only(['name', 'email', 'role']);
+        $branchId = $user->branchEmployee->branch_id ?? 'System';
+
+        $user->delete();
+
+        // LOG-15 — User Account: Delete (Snapshot)
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $id,
+            'type_of_report'   => 'User Account',
+            'name'             => $userData['name'],
+            'action'           => 'deleted',
+            'original_data'    => $userData,
+            'designation'      => $branchId,
+            'designation_type' => $branchId === 'System' ? 'system' : 'branch',
+        ]);
+
+        return response()->json(['message' => 'User deleted successfully']);
     }
 }

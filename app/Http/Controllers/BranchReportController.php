@@ -12,6 +12,8 @@ use App\Models\OtherProducts;
 use App\Models\SalesReports;
 use App\Models\SelectaSalesReport;
 use App\Models\SoftdrinksSalesReport;
+use App\Models\User;
+use App\Services\HistoryLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -516,7 +518,29 @@ class BranchReportController extends Controller
                 }
             }
 
+            $branchName  = optional(Branch::find($request->branches_id))->name ?? 'Branch';
+            $productName = optional($report->bread ?? $report->selecta ?? $report->nestle ?? $report->softdrinks ?? $report->otherProducts)->name ?? 'Product #' . $report->product_id;
+
+            // Resolve the correct user_id from the employee who took this action.
+            // employee_id and user_id are different tables — must NOT use employee_id as user_id.
+            $actorUser   = User::where('employee_id', $request->employee_id)->first();
+            $actorUserId = auth()->id() ?? $actorUser?->id;
+
             DB::commit();
+
+            // ✅ HISTORY LOG — Supervisor confirmed/declined a sales report item
+            HistoryLogService::log([
+                'user_id'          => $actorUserId,
+                'report_id'        => $report->sales_report_id,
+                'type_of_report'   => 'Sales Report',
+                'name'             => $branchName . ' — ' . ucfirst($type) . ': ' . $productName,
+                'action'           => $request->status,
+                'updated_field'    => 'status',
+                'original_data'    => 'pending',
+                'updated_data'     => $request->status,
+                'designation'      => $request->branches_id,
+                'designation_type' => 'branch',
+            ]);
 
             return response()->json([
                 'message'            => ucfirst($type) . 'sales report confirmed successfully.',
@@ -596,7 +620,29 @@ class BranchReportController extends Controller
                 }
             }
 
+            $branchName  = optional(Branch::find($request->branches_id))->name ?? 'Branch';
+            $productName = optional($report->bread ?? $report->selecta ?? $report->softdrinks ?? $report->otherProducts)->name ?? 'Product #' . $report->product_id;
+
+            // Resolve the correct user_id from the employee who took this action.
+            // employee_id and user_id are different tables — must NOT use employee_id as user_id.
+            $actorUser   = User::where('employee_id', $request->employee_id)->first();
+            $actorUserId = auth()->id() ?? $actorUser?->id;
+
             DB::commit();
+
+            // ✅ HISTORY LOG — Supervisor declined a sales report item
+            HistoryLogService::log([
+                'user_id'          => $actorUserId,
+                'report_id'        => $report->sales_report_id,
+                'type_of_report'   => 'Sales Report',
+                'name'             => $branchName . ' — ' . ucfirst($type) . ': ' . $productName,
+                'action'           => 'declined',
+                'updated_field'    => 'status',
+                'original_data'    => 'pending',
+                'updated_data'     => 'declined — reason: ' . $request->reason,
+                'designation'      => $request->branches_id,
+                'designation_type' => 'branch',
+            ]);
 
             return response()->json([
                 'message'            => ucfirst($type). 'sales report declined successfully.',

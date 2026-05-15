@@ -26,6 +26,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\Auth;
 
 class PayslipController extends Controller
 {
@@ -523,6 +525,19 @@ class PayslipController extends Controller
                     'total_price'                    => $deductionCredit['total_price'],
                 ]);
             }
+
+            // LOG-25 — Payroll: Payslip Generation
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $payslip->id,
+                'type_of_report'   => 'Payroll',
+                'name'             => "Generated payslip for employee ID: " . $request->employee_id,
+                'action'           => 'created',
+                'updated_data'     => [
+                    'payroll_release_date' => $request->payroll_release_date,
+                    'net_income'           => $request->net_income
+                ],
+            ]);
 
         });
 

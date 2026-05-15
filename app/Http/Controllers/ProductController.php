@@ -6,6 +6,9 @@ use App\Models\BranchProduct;
 use App\Models\Product;
 use Dotenv\Repository\RepositoryInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Services\HistoryLogService;
+
 
 class ProductController extends Controller
 {
@@ -47,6 +50,17 @@ class ProductController extends Controller
 
         $productResponseData =  $product->fresh();
 
+        // LOG-10 — Product: Create
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'type_of_report'   => 'Product',
+            'name'             => $product->name,
+            'action'           => 'created',
+            'updated_data'     => $product->toArray(),
+            'designation'      => 0,
+            'designation_type' => 'system',
+        ]);
+
         return response()->json([
             'message'    => "Product saved successfully",
             $productResponseData
@@ -81,10 +95,24 @@ class ProductController extends Controller
         ]);
 
         $product = Product::findOrFail($validated['id']);
+        $oldValue = $product->{$validated['field']};
 
         // Dynamic update
         $product->{$validated['field']} = $validated['value'];
         $product->save();
+
+        // LOG-11 — Product: Update (Dynamic)
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'type_of_report'   => 'Product',
+            'name'             => $product->name,
+            'action'           => 'updated',
+            'updated_field'    => $validated['field'],
+            'original_data'    => $oldValue,
+            'updated_data'     => $validated['value'],
+            'designation'      => 0,
+            'designation_type' => 'system',
+        ]);
 
         // ✅ If category changed, update BranchProduct category too
         if ($validated['field'] === 'category') {
@@ -112,13 +140,28 @@ class ProductController extends Controller
         ], 404);
        }
 
+       $oldData = $product->toArray();
+
        $validatedData = $request->validate([
-        'name'       => 'required|string|unique:products',
+        'name'       => 'required|string|unique:products,name,' . $id,
         'category'   => 'required|string',
          ]);
 
 
        $product->update($validatedData);
+
+       // LOG-11 — Product: Update (Standard)
+       HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'type_of_report'   => 'Product',
+            'name'             => $product->name,
+            'action'           => 'updated',
+            'original_data'    => $oldData,
+            'updated_data'     => $product->toArray(),
+            'designation'      => 0,
+            'designation_type' => 'system',
+        ]);
+
        $updated_product = $product->fresh();
        return response()->json($updated_product);
     }
@@ -134,15 +177,31 @@ class ProductController extends Controller
                 'message' => 'Product not found'
             ], 404);
         }
+        $oldData = $product->toArray();
         $product->delete();
+
+        // LOG-12 — Product: Delete
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'type_of_report'   => 'Product',
+            'name'             => $product->name,
+            'action'           => 'deleted',
+            'original_data'    => $oldData,
+            'designation'      => 0,
+            'designation_type' => 'system',
+        ]);
+
         return response()->json([
             'message' => 'Product deleted successfully'
         ]);
     }
 
-    public function fetchBreadProducts()
+    public function fetchBreadProducts(Request $request)
     {
-        $breadProducts = Product::where('category', 'bread')->get();
+        // Accept an optional ?category param; default to 'bread' for backward compatibility.
+        // strtolower() ensures "Bread", "bread", and "BREAD" all match correctly.
+        $category      = strtolower($request->input('category', 'bread'));
+        $breadProducts = Product::where('category', $category)->get();
         return response()->json($breadProducts);
     }
 }

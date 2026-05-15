@@ -7,7 +7,8 @@ use App\Models\EmployeeCredits;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use PhpParser\Node\Stmt\TryCatch;
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\Auth;
 
 class EmployeeCreditsController extends Controller
 {
@@ -107,6 +108,18 @@ class EmployeeCreditsController extends Controller
                     'pieces'                 => $credit['pieces'],
                 ]);
             }
+
+            // LOG-27 — Employee Credits: Created
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $employeeCredit->id,
+                'type_of_report'   => 'Employee Credits',
+                'name'             => "Credits created for: " . ($employeeCredit->creditUserId->firstname ?? 'Employee'),
+                'action'           => 'created',
+                'updated_data'     => $employeeCredit->load('creditProducts')->toArray(),
+                'designation'      => $validatedData['branch_id'],
+                'designation_type' => 'branch',
+            ]);
 
             DB::commit(); // Commit transaction
 

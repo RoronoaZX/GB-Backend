@@ -15,7 +15,7 @@ class HistoryLogController extends Controller
 
     public function index(Request $request)
     {
-        $query = HistoryLog::with('userId.employee');
+        $query = HistoryLog::with('user.employee');
 
         // Global Search Filter Engine
         if ($request->has('search') && !empty($request->search)) {
@@ -25,11 +25,21 @@ class HistoryLogController extends Controller
                   ->orWhere('type_of_report', 'like', "%{$search}%")
                   ->orWhere('name', 'like', "%{$search}%")
                   ->orWhere('updated_field', 'like', "%{$search}%")
-                  ->orWhereHas('userId.employee', function($qStaff) use ($search) {
+                  ->orWhereHas('user.employee', function($qStaff) use ($search) {
                       $qStaff->where('firstname', 'like', "%{$search}%")
                              ->orWhere('lastname', 'like', "%{$search}%");
                   });
             });
+        }
+
+        if ($request->has('branch_id')) {
+            $query->where('designation', $request->branch_id)
+                  ->where('designation_type', 'branch');
+        }
+
+        if ($request->has('warehouse_id')) {
+            $query->where('designation', $request->warehouse_id)
+                  ->where('designation_type', 'warehouse');
         }
 
         $perPage = $request->query('per_page', 15);

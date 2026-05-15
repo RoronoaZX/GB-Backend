@@ -16,4 +16,9 @@ class BranchRmStocks extends Model
         'price_per_gram',
         'quantity',
     ];
+
+    public function deliveryUnit()
+    {
+        return $this->belongsTo(DeliveryStocksUnit::class, 'delivery_su_id');
+    }
 }

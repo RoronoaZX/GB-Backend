@@ -19,6 +19,9 @@ use Illuminate\Http\Client\ResponseSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use App\Services\HistoryLogService;
+
 use Symfony\Contracts\Service\Attribute\Required;
 
 class RawMaterialsDeliveryController extends Controller
@@ -524,6 +527,20 @@ class RawMaterialsDeliveryController extends Controller
                         if ($report) {
                             $report->decrement('total_quantity', (float)($item['total_grams'] ?? 0));
                         }
+
+                        $stock = WarehouseRmStocks::where([
+                            'warehouse_id'       => $validated['from_id'],
+                            'raw_material_id'    => $item['raw_material_id'],
+                            'price_per_gram'     => $item['price_per_gram']
+                        ])->first();
+
+                        if ($stock) {
+                            $stock->decrement('quantity', (float)($item['quantity'] ?? 0));
+                            $stock->decrement('total_grams', (float)($item['total_grams'] ?? 0));
+                            if ($stock->total_grams <= 0) {
+                                $stock->delete();
+                            }
+                        }
                     } elseif ($validated['from_designation'] === 'Branch') {
                         $report = BranchRawMaterialsReport::where([
                             'branch_id'          => $validated['from_id'],
@@ -532,6 +549,19 @@ class RawMaterialsDeliveryController extends Controller
 
                         if ($report) {
                             $report->decrement('total_quantity', (float)($item['total_grams'] ?? 0));
+                        }
+
+                        $stock = BranchRmStocks::where([
+                            'branch_id'          => $validated['from_id'],
+                            'raw_material_id'    => $item['raw_material_id'],
+                            'price_per_gram'     => $item['price_per_gram']
+                        ])->first();
+
+                        if ($stock) {
+                            $stock->decrement('quantity', (float)($item['total_grams'] ?? 0));
+                            if ($stock->quantity <= 0) {
+                                $stock->delete();
+                            }
                         }
                     }
 
@@ -619,6 +649,21 @@ class RawMaterialsDeliveryController extends Controller
                 }
             }
 
+            // LOG-07 — Raw Materials Delivery: Branch Receive
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $delivery->id,
+                'type_of_report'   => 'Raw Materials Delivery',
+                'name'             => "Received delivery from " . ($delivery->from_name ?? 'Unknown'),
+                'action'           => 'received',
+                'updated_data'     => [
+                    'status' => 'confirmed',
+                    'items_count' => count($validated['items'])
+                ],
+                'designation'      => $delivery->to_id,
+                'designation_type' => strtolower($delivery->to_designation),
+            ]);
+
             DB::commit();
 
             return response()->json([
@@ -656,6 +701,20 @@ class RawMaterialsDeliveryController extends Controller
             $delivery->remarks       = $validated['remarks'];
             $delivery->approved_by   = $validated['employee_id'];
             $delivery->save();
+
+            // LOG — Raw Materials Delivery: Declined
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $delivery->id,
+                'type_of_report'   => 'Raw Materials Delivery',
+                'name'             => "Declined delivery from " . ($delivery->from_name ?? 'Unknown'),
+                'action'           => 'declined',
+                'updated_data'     => [
+                    'remarks' => $delivery->remarks
+                ],
+                'designation'      => $delivery->to_id,
+                'designation_type' => strtolower($delivery->to_designation),
+            ]);
 
             // ✅ 4. Return success
             return response()->json([
@@ -742,35 +801,180 @@ class RawMaterialsDeliveryController extends Controller
                     $gram = round((float)($group['gram'] ?? 0), 3);
                     $pcs = round((float)($group['pcs'] ?? 0), 3);
                     $kilo = round((float)($group['kilo'] ?? 0), 3);
+                    $category = $group['category'];
 
-                    DeliveryStocksUnit::create([
-                        'rm_delivery_id'     => $rawMaterialsDelivery->id,
-                        'raw_material_id'    => $group['raw_materials_id'],
-                        'unit_type'          => $group['unit_type'],
-                        'category'           => $group['category'],
-                        'quantity'           => $qty,
-                        'price_per_unit'     => $pricePerUnit,
-                        'price_per_gram'     => $pricePerGram,
-                        'gram'               => $gram,
-                        'pcs'                => $pcs,
-                        'kilo'               => $kilo
-                    ]);
+                    $totalRequestedGrams = 0;
+                    if (in_array($category, ['sack', 'can', 'bottle', 'tub', 'gallon', 'kilo', 'gram'])) {
+                        if ($category === 'gram') {
+                            $totalRequestedGrams = $qty;
+                        } else {
+                            $totalRequestedGrams = $qty * $gram;
+                        }
+                    } else if ($category === 'box' || $category === 'pcs') {
+                        $totalRequestedGrams = $qty * $gram; 
+                    }
 
-                    // ✅ Step 4: If from_designation = Supplier → also save supplier_ingredients
-                    if ($supplierRecord) {
-                        SupplierIngredient::create([
-                            'supplier_record_id' => $supplierRecord->id,
+                    if (strtolower($request->input('from_designation')) === 'warehouse' && $totalRequestedGrams > 0) {
+                        $fromId = (int) ($request->input('from_id') ?? 0);
+                        $stocks = \App\Models\WarehouseRmStocks::where('warehouse_id', $fromId)
+                            ->where('raw_material_id', $group['raw_materials_id'])
+                            ->where('total_grams', '>', 0)
+                            ->orderBy('created_at', 'asc')
+                            ->get();
+                            
+                        $remainingGramsToFulfill = $totalRequestedGrams;
+                        $splits = [];
+                        
+                        foreach ($stocks as $stock) {
+                            if ($remainingGramsToFulfill <= 0) break;
+                            
+                            $takeGrams = min($stock->total_grams, $remainingGramsToFulfill);
+                            $remainingGramsToFulfill -= $takeGrams;
+                            $proportion = $takeGrams / $totalRequestedGrams;
+                            
+                            $ratio = ($pricePerGram > 0) ? ($pricePerUnit / $pricePerGram) : 0;
+                            $newPricePerUnit = $ratio > 0 ? $stock->price_per_gram * $ratio : $pricePerUnit;
+
+                            $splits[] = [
+                                'qty' => $qty * $proportion,
+                                'pricePerUnit' => $newPricePerUnit,
+                                'pricePerGram' => $stock->price_per_gram,
+                                'gram' => $gram,
+                                'pcs' => $pcs * $proportion,
+                                'kilo' => $kilo * $proportion
+                            ];
+                        }
+                        
+                        if ($remainingGramsToFulfill > 0) {
+                             $proportion = $remainingGramsToFulfill / $totalRequestedGrams;
+                             $splits[] = [
+                                'qty' => $qty * $proportion,
+                                'pricePerUnit' => $pricePerUnit,
+                                'pricePerGram' => $pricePerGram,
+                                'gram' => $gram,
+                                'pcs' => $pcs * $proportion,
+                                'kilo' => $kilo * $proportion
+                             ];
+                        }
+                        
+                        foreach ($splits as $split) {
+                            DeliveryStocksUnit::create([
+                                'rm_delivery_id'     => $rawMaterialsDelivery->id,
+                                'raw_material_id'    => $group['raw_materials_id'],
+                                'unit_type'          => $group['unit_type'],
+                                'category'           => $group['category'],
+                                'quantity'           => round($split['qty'], 3),
+                                'price_per_unit'     => round($split['pricePerUnit'], 3),
+                                'price_per_gram'     => round($split['pricePerGram'], 4),
+                                'gram'               => round($split['gram'], 3),
+                                'pcs'                => round($split['pcs'], 3),
+                                'kilo'               => round($split['kilo'], 3)
+                            ]);
+                        }
+                        
+                    } else if (strtolower($request->input('from_designation')) === 'branch' && $totalRequestedGrams > 0) {
+                        $fromId = (int) ($request->input('from_id') ?? 0);
+                        $stocks = \App\Models\BranchRmStocks::where('branch_id', $fromId)
+                            ->where('raw_material_id', $group['raw_materials_id'])
+                            ->where('quantity', '>', 0)
+                            ->orderBy('created_at', 'asc')
+                            ->get();
+                            
+                        $remainingGramsToFulfill = $totalRequestedGrams;
+                        $splits = [];
+                        
+                        foreach ($stocks as $stock) {
+                            if ($remainingGramsToFulfill <= 0) break;
+                            $takeGrams = min($stock->quantity, $remainingGramsToFulfill);
+                            $remainingGramsToFulfill -= $takeGrams;
+                            $proportion = $takeGrams / $totalRequestedGrams;
+                            
+                            $ratio = ($pricePerGram > 0) ? ($pricePerUnit / $pricePerGram) : 0;
+                            $newPricePerUnit = $ratio > 0 ? $stock->price_per_gram * $ratio : $pricePerUnit;
+
+                            $splits[] = [
+                                'qty' => $qty * $proportion,
+                                'pricePerUnit' => $newPricePerUnit,
+                                'pricePerGram' => $stock->price_per_gram,
+                                'gram' => $gram,
+                                'pcs' => $pcs * $proportion,
+                                'kilo' => $kilo * $proportion
+                            ];
+                        }
+                        
+                        if ($remainingGramsToFulfill > 0) {
+                             $proportion = $remainingGramsToFulfill / $totalRequestedGrams;
+                             $splits[] = [
+                                'qty' => $qty * $proportion,
+                                'pricePerUnit' => $pricePerUnit,
+                                'pricePerGram' => $pricePerGram,
+                                'gram' => $gram,
+                                'pcs' => $pcs * $proportion,
+                                'kilo' => $kilo * $proportion
+                             ];
+                        }
+                        
+                        foreach ($splits as $split) {
+                            DeliveryStocksUnit::create([
+                                'rm_delivery_id'     => $rawMaterialsDelivery->id,
+                                'raw_material_id'    => $group['raw_materials_id'],
+                                'unit_type'          => $group['unit_type'],
+                                'category'           => $group['category'],
+                                'quantity'           => round($split['qty'], 3),
+                                'price_per_unit'     => round($split['pricePerUnit'], 3),
+                                'price_per_gram'     => round($split['pricePerGram'], 4),
+                                'gram'               => round($split['gram'], 3),
+                                'pcs'                => round($split['pcs'], 3),
+                                'kilo'               => round($split['kilo'], 3)
+                            ]);
+                        }
+                    } else {
+                        DeliveryStocksUnit::create([
+                            'rm_delivery_id'     => $rawMaterialsDelivery->id,
                             'raw_material_id'    => $group['raw_materials_id'],
-                            'quantity'           => $qty,
-                            'price_per_gram'     => $pricePerGram,
-                            'price_per_unit'     => $pricePerUnit,
-                            'pcs'                => $pcs,
-                            'kilo'               => $kilo,
-                            'gram'               => $gram,
+                            'unit_type'          => $group['unit_type'],
                             'category'           => $group['category'],
+                            'quantity'           => $qty,
+                            'price_per_unit'     => $pricePerUnit,
+                            'price_per_gram'     => $pricePerGram,
+                            'gram'               => $gram,
+                            'pcs'                => $pcs,
+                            'kilo'               => $kilo
                         ]);
+
+                        // ✅ Step 4: If from_designation = Supplier → also save supplier_ingredients
+                        if ($supplierRecord) {
+                            SupplierIngredient::create([
+                                'supplier_record_id' => $supplierRecord->id,
+                                'raw_material_id'    => $group['raw_materials_id'],
+                                'quantity'           => $qty,
+                                'price_per_gram'     => $pricePerGram,
+                                'price_per_unit'     => $pricePerUnit,
+                                'pcs'                => $pcs,
+                                'kilo'               => $kilo,
+                                'gram'               => $gram,
+                                'category'           => $group['category'],
+                            ]);
+                        }
                     }
                 }
+
+                // LOG-06 — Raw Materials Delivery: Create
+                HistoryLogService::log([
+                    'user_id'          => Auth::id(),
+                    'report_id'        => $rawMaterialsDelivery->id,
+                    'type_of_report'   => 'Raw Materials Delivery',
+                    'name'             => "New delivery from " . ($rawMaterialsDelivery->from_name ?? 'Source') . " to " . $rawMaterialsDelivery->to_designation,
+                    'action'           => 'created',
+                    'updated_data'     => [
+                        'from' => $rawMaterialsDelivery->from_name,
+                        'to' => $rawMaterialsDelivery->to_designation,
+                        'remarks' => $rawMaterialsDelivery->remarks,
+                        'items' => $request->input('raw_materials_groups')
+                    ],
+                    'designation'      => $rawMaterialsDelivery->to_id,
+                    'designation_type' => strtolower($rawMaterialsDelivery->to_designation),
+                ]);
 
                 return $rawMaterialsDelivery;
             });

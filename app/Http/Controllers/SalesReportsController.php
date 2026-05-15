@@ -10,8 +10,11 @@ use App\Models\CakeSalesReport;
 use App\Models\EmployeeSaleschargesReport;
 use App\Models\SalesReports;
 use App\Models\User;
+use App\Services\HistoryLogService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class SalesReportsController extends Controller
@@ -35,7 +38,7 @@ class SalesReportsController extends Controller
         }
 
         // Backward Compatibility for other system modules
-        $reports = SalesReports::orderBy('created_at', 'desc')->get();
+        $reports = SalesReports::orderBy('created_at', 'desc')->paginate(50);
             
         return response()->json($reports);
     }
@@ -55,7 +58,7 @@ class SalesReportsController extends Controller
         $charges     = SalesReports::where('user_id', $user->id)
                         ->with('branch')
                         ->whereBetween('created_at', [$fromDate, $toDate])
-                        ->get();
+                        ->paginate(50);
 
         return response()->json($charges);
     }
@@ -238,7 +241,7 @@ class SalesReportsController extends Controller
             $employeeCount = count($employees);
             $sharePerEmployee = $employeeCount > 0 ? round($totalCharges / $employeeCount, 2) : 0;
 
-            // Save record far each employee
+            // Save record for each employee
             foreach ($employees as $shiftEmployee) {
                 EmployeeSaleschargesReport::create([
                     'sales_report_id'    => $salesReport->id,
@@ -248,6 +251,34 @@ class SalesReportsController extends Controller
             }
         }
 
+        // ✅ HISTORY LOG — Admin submitted sales report
+        $branch      = Branch::find($request->branch_id);
+        $submitter   = User::with('employee')->find($request->user_id);
+        $submitterName = $submitter?->employee
+            ? trim($submitter->employee->firstname . ' ' . $submitter->employee->lastname)
+            : ('User #' . $request->user_id);
+
+        // Determine AM or PM shift from the submission time (Asia/Manila)
+        $nowManila   = Carbon::now('Asia/Manila');
+        $reportDate  = $nowManila->format('F j, Y');          // e.g. May 8, 2026
+        $hour        = (int) $nowManila->format('G');         // 0–23
+        $shift       = ($hour >= 6 && $hour < 22) ? 'AM' : 'PM';
+
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $salesReport->id,
+            'type_of_report'   => 'Sales Report',
+            'name'             => ($branch->name ?? 'Branch') . ' — ' . $reportDate . ' (' . $shift . ' Shift)',
+            'action'           => 'created (admin)',
+            'designation'      => $request->branch_id,
+            'designation_type' => 'branch',
+            'updated_data'     => [
+                'gross_sales' => $request->products_total_sales,
+                'charges'     => $request->charges_amount,
+                'over'        => $request->over_total,
+                'submitted_by' => $submitterName
+            ],
+        ]);
 
         return response()->json(['message' => 'Sales report saved successfully.'], 200);
     }
@@ -282,111 +313,148 @@ class SalesReportsController extends Controller
             return response()->json(['errors' => $validator->errors()], 400);
         }
 
-        $salesReport = SalesReports::create([
-            'branch_id'              => $request->branch_id,
-            'user_id'                => $request->user_id,
-            'denomination_total'     => $request->denomination_total,
-            'expenses_total'         => $request->expenses_total,
-            'products_total_sales'   => $request->products_total_sales,
-            'charges_amount'         => $request->charges_amount,
-            'over_total'             => $request->over_total,
-            'credit_total'           => $request->credit_total,
-        ]);
-
-        foreach ($request->breadReports as $breadReport) {
-            $breadReport['status'] = 'pending';
-
-            $salesReport->breadReports()->create($breadReport);
-
-        }
-
-        // Store Selecta Reports
-        foreach ($request->selectaReports as $selectaReport) {
-            $selectaReport['status'] = 'pending';
-
-            $salesReport->selectaReports()->create($selectaReport);
-        }
-
-        foreach ($request->nestleReports as $nestleReport) {
-            $nestleReport['status'] = 'pending';
-
-            $salesReport->nestleReports()->create($nestleReport);
-        }
-
-        // Store Cake Reports
-        foreach ($request->cakeReports as $cakeReport) {
-
-            // Find the Cake entry using its ID and update its sales_status
-            $existingCake = CakeReport::find($cakeReport['cake_report_id']); // Assuming Cake is an Eloquent model for the Cake table
-        }
-
-        // Store Softdrinks Reports
-        foreach ($request->softdrinksReports as $softdrinksReport) {
-            $softdrinksReport['status'] = 'pending';
-
-            $salesReport->softdrinksReports()->create($softdrinksReport);
-        }
-
-        // Store  Other Products
-        foreach ($request->otherProductsReports as $otherProductsReports) {
-            $otherProductsReports['status'] = 'pending';
-
-            $salesReport->otherProductsReports()->create($otherProductsReports);
-        }
-
-        // Store Expenses Reports
-        foreach ($request->withOutReceiptExpensesReport as $withOutReceiptExpensesReport) {
-            $salesReport->expensesReports()->create($withOutReceiptExpensesReport);
-        }
-
-        // Store denomination Reports
-        $denominationReport = $request->denominationReports;
-
-        // sanitize values
-        foreach ($denominationReport as $key => $value) {
-            if (is_string($value)) {
-                $denominationReport[$key] = (int)str_replace(',', '', $value);
-            }
-        }
-
-        $salesReport->denominationReports()->create($denominationReport);
-
-            // Loop through each creditReport entry
-        foreach ($request->creditReports as $creditReportData) {
-            // Store each Credit Report
-            $creditReports = $salesReport->creditReports()->create([
-                'credit_user_id'     => $creditReportData['credit_user_id'],
-                'total_amount'       => $creditReportData['total_amount'],
-                'branch_id'          => $creditReportData['branch_id'],
-                'user_id'            => $creditReportData['user_id'],
+        DB::beginTransaction();
+        try {
+            $salesReport = SalesReports::create([
+                'branch_id'              => $request->branch_id,
+                'user_id'                => $request->user_id,
+                'denomination_total'     => $request->denomination_total,
+                'expenses_total'         => $request->expenses_total,
+                'products_total_sales'   => $request->products_total_sales,
+                'charges_amount'         => $request->charges_amount,
+                'over_total'             => $request->over_total,
+                'credit_total'           => $request->credit_total,
             ]);
 
-            // Store each Credit within the Credit Report
-            foreach ($creditReportData['credits'] as $credit) {
-                $credit['credit_user_id'] = $creditReportData['credit_user_id'];
-                $creditReports->creditProducts()->create($credit);
+            // Store Bread Reports
+            foreach ($request->breadReports ?? [] as $breadReport) {
+                $breadReport['status'] = 'pending';
+                $salesReport->breadReports()->create($breadReport);
             }
-        }
 
-        // --- Compute Charges Distribution ---
-        $employees = $request->employee_in_shift;
+            // Store Selecta Reports
+            foreach ($request->selectaReports ?? [] as $selectaReport) {
+                $selectaReport['status'] = 'pending';
+                $salesReport->selectaReports()->create($selectaReport);
+            }
 
-        // make sure not empty (already validated, but safe check)
-        if (count($employees) > 0) {
+            // Store Nestle Reports
+            foreach ($request->nestleReports ?? [] as $nestleReport) {
+                $nestleReport['status'] = 'pending';
+                $salesReport->nestleReports()->create($nestleReport);
+            }
 
-            // Divide charges_amount equally
-            $totalCharges = floatval($request->charges_amount);
-            $employeeCount = count($employees);
-            $sharePerEmployee = $employeeCount > 0 ? round($totalCharges / $employeeCount, 2) : 0;
+            // Store Cake Reports — update status AND create the pivot link (TASK-09 fix)
+            foreach ($request->cakeReports ?? [] as $cakeReport) {
+                $existingCake = CakeReport::find($cakeReport['cake_report_id']);
 
-            // Save record for each employee
-            foreach ($employees as $shiftEmployee) {
-                EmployeeSaleschargesReport::create([
-                    'sales_report_id' => $salesReport->id,
-                    'employee_id'     => $shiftEmployee['employee_id'],
-                    'charge_amount'   => $sharePerEmployee,
+                if ($existingCake) {
+                    $existingCake->sales_status = $cakeReport['sales_status'] ?? 'pending';
+                    $existingCake->save();
+
+                    $salesReport->cakeSalesReports()->create([
+                        'sales_report_id' => $salesReport->id,
+                        'cake_report_id'  => $cakeReport['cake_report_id'],
+                    ]);
+                } else {
+                    throw new \Exception("Cake report with ID {$cakeReport['cake_report_id']} not found.");
+                }
+            }
+
+            // Store Softdrinks Reports
+            foreach ($request->softdrinksReports ?? [] as $softdrinksReport) {
+                $softdrinksReport['status'] = 'pending';
+                $salesReport->softdrinksReports()->create($softdrinksReport);
+            }
+
+            // Store Other Products
+            foreach ($request->otherProductsReports ?? [] as $otherProductsReport) {
+                $otherProductsReport['status'] = 'pending';
+                $salesReport->otherProductsReports()->create($otherProductsReport);
+            }
+
+            // Store Expenses Reports
+            foreach ($request->withOutReceiptExpensesReport ?? [] as $withOutReceiptExpensesReport) {
+                $salesReport->expensesReports()->create($withOutReceiptExpensesReport);
+            }
+
+            // Store Denomination Report — sanitize string values first
+            $denominationReport = $request->denominationReports;
+            foreach ($denominationReport as $key => $value) {
+                if (is_string($value)) {
+                    $denominationReport[$key] = (int) str_replace(',', '', $value);
+                }
+            }
+            $salesReport->denominationReports()->create($denominationReport);
+
+            // Store Credit Reports
+            foreach ($request->creditReports ?? [] as $creditReportData) {
+                $creditReports = $salesReport->creditReports()->create([
+                    'credit_user_id' => $creditReportData['credit_user_id'],
+                    'total_amount'   => $creditReportData['total_amount'],
+                    'branch_id'      => $creditReportData['branch_id'],
+                    'user_id'        => $creditReportData['user_id'],
                 ]);
+
+                foreach ($creditReportData['credits'] ?? [] as $credit) {
+                    $credit['credit_user_id'] = $creditReportData['credit_user_id'];
+                    $creditReports->creditProducts()->create($credit);
+                }
             }
+
+            // --- Compute Charges Distribution ---
+            $employees = $request->employee_in_shift;
+
+            if (count($employees) > 0) {
+                $totalCharges     = floatval($request->charges_amount);
+                $employeeCount    = count($employees);
+                $sharePerEmployee = $employeeCount > 0 ? round($totalCharges / $employeeCount, 2) : 0;
+
+                foreach ($employees as $shiftEmployee) {
+                    EmployeeSaleschargesReport::create([
+                        'sales_report_id' => $salesReport->id,
+                        'employee_id'     => $shiftEmployee['employee_id'],
+                        'charge_amount'   => $sharePerEmployee,
+                    ]);
+                }
+            }
+
+            // ✅ HISTORY LOG — Cashier submitted sales report
+            $branch        = Branch::find($request->branch_id);
+            $submitter     = User::with('employee')->find($request->user_id);
+            $submitterName = $submitter?->employee
+                ? trim($submitter->employee->firstname . ' ' . $submitter->employee->lastname)
+                : ('User #' . $request->user_id);
+
+            // Determine AM or PM shift from the submission time (Asia/Manila)
+            $nowManila  = Carbon::now('Asia/Manila');
+            $reportDate = $nowManila->format('F j, Y');   // e.g. May 8, 2026
+            $hour       = (int) $nowManila->format('G');  // 0–23
+            $shift      = ($hour >= 6 && $hour < 22) ? 'AM' : 'PM';
+
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $salesReport->id,
+                'type_of_report'   => 'Sales Report',
+                'name'             => ($branch->name ?? 'Branch') . ' — ' . $reportDate . ' (' . $shift . ' Shift)',
+                'action'           => 'created',
+                'designation'      => $request->branch_id,
+                'designation_type' => 'branch',
+                'updated_data'     => [
+                    'gross_sales'  => $request->products_total_sales,
+                    'charges'      => $request->charges_amount,
+                    'over'         => $request->over_total,
+                    'submitted_by' => $submitterName,
+                ],
+            ]);
+
+            DB::commit();
+
+            return response()->json(['message' => 'Sales report submitted successfully.'], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to submit sales report.', 'error' => $e->getMessage()], 500);
         }
     }
 
@@ -398,7 +466,7 @@ class SalesReportsController extends Controller
                         'softdrinksReports', 'expensesReports', 'denominationReports', 'creditReports'
                         ])
                     ->orderBy('created_at', 'desc')
-                    ->get();
+                    ->paginate(50);
 
         return response()->json($reports);
     }

@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Branch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use App\Services\HistoryLogService;
+
 
 class BranchController extends Controller
 {
@@ -92,6 +95,18 @@ class BranchController extends Controller
             'phone'         => $validatedData['phone'],
             'status'        => $validatedData['status'],
         ]);
+
+        // LOG-18 — Branch: Create
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'type_of_report'   => 'Branch',
+            'name'             => $branch->name,
+            'action'           => 'created',
+            'updated_data'     => $branch->toArray(),
+            'designation'      => $branch->id,
+            'designation_type' => 'branch',
+        ]);
+
         $branchResponseData = $branch->fresh()->load('employees', 'warehouse');
         return response()->json([
             'message'    => 'Branch saved successfully',
@@ -119,7 +134,21 @@ class BranchController extends Controller
             'status'        => 'nullable',
         ]);
 
+        $oldData = $branch->toArray();
+
         $branch->update($validatedData);
+
+        // LOG-18 — Branch: Update
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'type_of_report'   => 'Branch',
+            'name'             => $branch->name,
+            'action'           => 'updated',
+            'original_data'    => $oldData,
+            'updated_data'     => $branch->toArray(),
+            'designation'      => $branch->id,
+            'designation_type' => 'branch',
+        ]);
         $updated_branch = $branch->fresh()->load('warehouse', 'employees');
         return response()->json($updated_branch);
     }
@@ -132,7 +161,21 @@ class BranchController extends Controller
                 'message' => 'Branch not found'
             ], 404);
         }
+
+        $oldData = $branch->toArray();
         $branch->delete();
+
+        // LOG — Branch: Delete
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'type_of_report'   => 'Branch',
+            'name'             => $branch->name,
+            'action'           => 'deleted',
+            'original_data'    => $oldData,
+            'designation'      => $branch->id,
+            'designation_type' => 'branch',
+        ]);
+
         return response()->json([
             'message' => 'Branch deleted successfully'
         ]);

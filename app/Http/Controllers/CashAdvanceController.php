@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\CashAdvance;
 use Illuminate\Auth\Events\Validated;
 use Illuminate\Http\Request;
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class CashAdvanceController extends Controller
 {
@@ -92,16 +95,34 @@ class CashAdvanceController extends Controller
             'reason'                 => 'required|string'
         ]);
 
-        $cashAdvance = CashAdvance::create($validatedData)
-                            ->load('employee');
+        DB::beginTransaction();
+        try {
+            $cashAdvance = CashAdvance::create($validatedData)
+                                ->load('employee');
 
-        return response()->json([
-            'data'           => [$cashAdvance],
-            'total'          => 1,
-            'per_page'       => 1,
-            'curren_page'    => 1,
-            'last_page'      => 1
-        ], 201);
+            // LOG-27 — Cash Advance: Created
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $cashAdvance->id,
+                'type_of_report'   => 'Cash Advance',
+                'name'             => "Cash Advance for: " . ($cashAdvance->employee->firstname ?? 'Employee'),
+                'action'           => 'created',
+                'updated_data'     => $cashAdvance->toArray(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'data'           => [$cashAdvance],
+                'total'          => 1,
+                'per_page'       => 1,
+                'curren_page'    => 1,
+                'last_page'      => 1
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to create cash advance', 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function updateCashAdvanceAmount(Request $request, $id)
@@ -118,10 +139,31 @@ class CashAdvanceController extends Controller
             ], 404);
         }
 
-        $cashAdvance->update([
-            'amount'     => $validatedData['amount']
-        ]);
-        return response()->json($cashAdvance, 200);
+        DB::beginTransaction();
+        try {
+            $oldAmount = $cashAdvance->amount;
+            $cashAdvance->update([
+                'amount'     => $validatedData['amount']
+            ]);
+
+            // LOG-27 — Cash Advance: Updated Amount
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $cashAdvance->id,
+                'type_of_report'   => 'Cash Advance',
+                'name'             => "Cash Advance amount updated for: " . ($cashAdvance->employee->firstname ?? 'Employee'),
+                'action'           => 'updated',
+                'updated_field'    => 'amount',
+                'original_data'    => $oldAmount,
+                'updated_data'     => $cashAdvance->amount,
+            ]);
+
+            DB::commit();
+            return response()->json($cashAdvance, 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to update cash advance amount', 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function updateCashAdvanceReason(Request $request, $id)
@@ -138,10 +180,31 @@ class CashAdvanceController extends Controller
             ], 404);
         }
 
-        $cashAdvance->update([
-            'reason'     => $validatedData['reason']
-        ]);
-        return response()->json($cashAdvance, 200);
+        DB::beginTransaction();
+        try {
+            $oldReason = $cashAdvance->reason;
+            $cashAdvance->update([
+                'reason'     => $validatedData['reason']
+            ]);
+
+            // LOG-27 — Cash Advance: Updated Reason
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $cashAdvance->id,
+                'type_of_report'   => 'Cash Advance',
+                'name'             => "Cash Advance reason updated for: " . ($cashAdvance->employee->firstname ?? 'Employee'),
+                'action'           => 'updated',
+                'updated_field'    => 'reason',
+                'original_data'    => $oldReason,
+                'updated_data'     => $cashAdvance->reason,
+            ]);
+
+            DB::commit();
+            return response()->json($cashAdvance, 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to update cash advance reason', 'error' => $e->getMessage()], 500);
+        }
     }
 
 

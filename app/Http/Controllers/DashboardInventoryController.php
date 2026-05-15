@@ -349,12 +349,12 @@ class DashboardInventoryController extends Controller
                     ->get()
                     ->map(function ($log) {
                         $emp = $log->user?->employee;
-                        $recipeName = $log->recipeCost?->recipe?->name ?? 'Unknown Recipe';
+                        $rmName = $log->recipeCost?->rawMaterial?->name ?? ($log->recipeCost?->recipe?->name ?? 'Unknown Material');
                         $unit = $log->recipeCost?->rawMaterial?->unit ?? 'Gram';
                         
                         return [
                             'id'            => $log->id,
-                            'recipe_name'   => $recipeName,
+                            'recipe_name'   => $rmName, // Keeping key as recipe_name for frontend compatibility but using RM name
                             'unit'          => $unit,
                             'changed_field' => $log->changed_field,
                             'old_value'     => $log->old_value,

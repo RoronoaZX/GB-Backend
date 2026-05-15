@@ -70,6 +70,7 @@ class BreadAddedController extends Controller
     }
     public function receivedBread(Request $request)
     {
+        DB::beginTransaction();
         try {
             $validated   = $request->validate([
                             'status'         => 'required|string',
@@ -86,9 +87,11 @@ class BreadAddedController extends Controller
             // Find the product based on product_id and branch_id
             $product = BranchProduct::where('product_id', $productId)
                         ->where('branches_id', $branchId)
+                        ->lockForUpdate()
                         ->first();
 
             if (!$product) {
+                DB::rollBack();
                 return response()->json([
                     'success' => false,
                     'message' => 'Product not found for this branch.',
@@ -103,12 +106,14 @@ class BreadAddedController extends Controller
             BreadAdded::where('id', $validated['report_id'])
                 ->update(['status' => $validated['status']]);
 
+            DB::commit();
             return response()->json([
                 'success' => true,
                 'message' => 'Bread received and product quantity updated successfully.',
                 'product' => $product
             ]);
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to receive bread. ' . $e->getMessage(),
@@ -188,6 +193,7 @@ class BreadAddedController extends Controller
                 // 2. Update bread stock from the source branch
                 $branchProduct = BranchProduct::where('branches_id', $validatedData['from_branch_id'])
                     ->where('product_id', $product['product_id'])
+                    ->lockForUpdate()
                     ->first();
 
                 if(!$branchProduct) {

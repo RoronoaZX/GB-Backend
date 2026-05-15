@@ -6,7 +6,10 @@ use App\Models\BranchEmployee;
 use App\Models\Employee;
 use App\Models\WarehouseEmployee;
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\ModelNotFoundException; // Import the exception class
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Auth;
+use App\Services\HistoryLogService;
+
 use PhpParser\Node\Stmt\TryCatch;
 
 class EmployeeController extends Controller
@@ -251,6 +254,17 @@ class EmployeeController extends Controller
             ->where('id', $employee->id)
             ->first();
 
+        // LOG-13 — Employee: Create
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'type_of_report'   => 'Employee',
+            'name'             => $employee->firstname . " " . $employee->lastname,
+            'action'           => 'created',
+            'updated_data'     => $validateEmployee,
+            'designation'      => 0,
+            'designation_type' => 'system',
+        ]);
+
         return response()->json([
             'message'    => 'Employee successfully created',
             'employee'   => $employee,
@@ -265,11 +279,26 @@ class EmployeeController extends Controller
             'lastname'       => 'required|string',
         ]);
         $employee = Employee::findOrFail($id);
+        $oldData = $employee->only(['firstname', 'middlename', 'lastname']);
+        
         $employee->firstname     = $validateEmployee['firstname'];
         $employee->middlename    = $validateEmployee['middlename'];
         $employee->lastname      = $validateEmployee['lastname'];
 
         $employee->save();
+
+        // LOG-14 — Employee: Update Fullname
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'type_of_report'   => 'Employee',
+            'name'             => $employee->firstname . " " . $employee->lastname,
+            'action'           => 'updated',
+            'updated_field'    => 'Fullname',
+            'original_data'    => $oldData,
+            'updated_data'     => $employee->only(['firstname', 'middlename', 'lastname']),
+            'designation'      => $employee->designation->id ?? 0,
+            'designation_type' => $employee->designation->designation_type ?? 'system',
+        ]);
 
         $employee->load('employmentType');
 
@@ -306,9 +335,23 @@ class EmployeeController extends Controller
         'position' => 'required|string',
        ]);
        $employee          = Employee::findOrFail($id);
+       $oldPosition       = $employee->position;
        $employee->position = $validateEmployee['position'];
 
        $employee->save();
+
+       // LOG-14 — Employee: Update Position
+       HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'type_of_report'   => 'Employee',
+            'name'             => $employee->firstname . " " . $employee->lastname,
+            'action'           => 'updated',
+            'updated_field'    => 'Position',
+            'original_data'    => $oldPosition,
+            'updated_data'     => $employee->position,
+            'designation'      => $employee->designation->id ?? 0,
+            'designation_type' => $employee->designation->designation_type ?? 'system',
+        ]);
 
        $employee->load('employmentType');
 
@@ -399,8 +442,22 @@ class EmployeeController extends Controller
         ]);
 
         $employee                = Employee::findOrFail($id);
+        $oldStatus               = $employee->status;
         $employee->status        = $validatedData['status'];
         $employee->save();
+
+        // LOG-15 — Employee: Deactivate/Status Change
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'type_of_report'   => 'Employee',
+            'name'             => $employee->firstname . " " . $employee->lastname,
+            'action'           => 'updated',
+            'updated_field'    => 'Status',
+            'original_data'    => $oldStatus,
+            'updated_data'     => $employee->status,
+            'designation'      => $employee->designation->id ?? 0,
+            'designation_type' => $employee->designation->designation_type ?? 'system',
+        ]);
 
         $employee->load('employmentType');
 

@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\Auth;
+
 class AddedProductsController extends Controller
 {
     /**
@@ -46,22 +49,19 @@ class AddedProductsController extends Controller
         return response()->json($addedProducts);
     }
 
-    public function fetchSendAddedProducts(Request $request,$branchId, $category)
+    public function fetchSendAddedProducts(Request $request, $branchId, $category)
     {
         // validate the category parameter, if provided
         $page    = $request->get('page', 1);
-        $perPage = $request->get('per_page', 5);
+        $perPage = $request->get('per_page', 10);
         $search  = $request->query('search', '');
 
         $query = AddedProducts::where(function ($q) use ($branchId) {
-                $q->where('from_branch_id', $branchId)
-                ->orWhere('to_branch_id', $branchId);
-            })
-            ->where('category', $category)
-            ->with('fromBranch', 'toBranch', 'employee',  'product');
-
-                // ->where('status', 'pending')
-
+            $q->where('from_branch_id', $branchId)
+              ->orWhere('to_branch_id', $branchId);
+        })
+        ->where('category', $category)
+        ->with('fromBranch', 'toBranch', 'employee', 'product');
 
         if (!empty($search)) {
             $query->whereHas('product', function ($q) use ($search) {
@@ -72,10 +72,48 @@ class AddedProductsController extends Controller
             });
         }
 
-        $addedProducts = $query->orderBy('created_at', 'desc')
-                                ->paginate($perPage);
+        $addedProducts = $query->get();
 
-        return response()->json($addedProducts);
+        // If category is bread, also include BreadOut records
+        if (strtolower($category) === 'bread') {
+            $breadOutQuery = \App\Models\BreadOut::where('branch_id', $branchId)
+                ->with(['branch', 'product']);
+            
+            if (!empty($search)) {
+                $breadOutQuery->whereHas('product', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                });
+            }
+
+            $breadOuts = $breadOutQuery->get()->map(function($item) {
+                return [
+                    'id'            => $item->id,
+                    'product'       => $item->product,
+                    'from_branch'   => $item->branch,
+                    'to_branch'     => ['name' => 'Repurposing'],
+                    'action'        => 'Pull Out',
+                    'added_product' => $item->quantity,
+                    'status'        => $item->status,
+                    'created_at'    => $item->created_at,
+                    'is_repurpose'  => true
+                ];
+            });
+
+            $merged = $addedProducts->concat($breadOuts)->sortByDesc('created_at');
+        } else {
+            $merged = $addedProducts->sortByDesc('created_at');
+        }
+
+        $offset = ($page - 1) * $perPage;
+        $paginatedItems = $merged->slice($offset, $perPage)->values();
+        
+        return response()->json([
+            'data'         => $paginatedItems,
+            'current_page' => (int)$page,
+            'per_page'     => (int)$perPage,
+            'total'        => $merged->count(),
+            'last_page'    => ceil($merged->count() / $perPage)
+        ]);
     }
 
     public function store(Request $request)
@@ -98,7 +136,7 @@ class AddedProductsController extends Controller
             DB::beginTransaction();
 
             foreach ($validatedData['products'] as $product) {
-                AddedProducts::create([
+                $addedProduct = AddedProducts::create([
                     'employee_id'        => $validatedData['employee_id'],
                     'product_id'         => $product['product_id'],
                     'from_branch_id'     => $validatedData['from_branch_id'],
@@ -114,6 +152,7 @@ class AddedProductsController extends Controller
                 // 2. Update bread stock from the source branch
                 $branchProduct = BranchProduct::where('branches_id', $validatedData['from_branch_id'])
                     ->where('product_id', $product['product_id'])
+                    ->lockForUpdate()
                     ->first();
 
                 if (!$branchProduct) {
@@ -133,11 +172,23 @@ class AddedProductsController extends Controller
                     }
 
                     // Deduct the product quantity
-                    // $branchProduct->total_quantity -= $product['quantity'];
-                    // $branchProduct->save();
+                    $branchProduct->total_quantity -= $product['quantity'];
+                    $branchProduct->save();
+
+                    // LOG-30 — Branch Product Transfer: Deduction (Source)
+                    HistoryLogService::log([
+                        'user_id'          => Auth::id(),
+                        'report_id'        => $addedProduct->id,
+                        'type_of_report'   => 'Product Transfer',
+                        'name'             => $branchProduct->product->name,
+                        'action'           => 'transferred (out)',
+                        'updated_field'    => 'total_quantity',
+                        'original_data'    => $branchProduct->total_quantity + $product['quantity'],
+                        'updated_data'     => $branchProduct->total_quantity,
+                        'designation'      => $validatedData['from_branch_id'],
+                        'designation_type' => 'branch',
+                    ]);
                 }
-
-
             }
 
             DB::commit();
@@ -173,6 +224,7 @@ class AddedProductsController extends Controller
 
     public function receiveProduct(Request $request)
     {
+        DB::beginTransaction();
         try {
              $validatedData = $request->validate([
                 'id'                     => 'required|exists:added_products,id',
@@ -192,6 +244,7 @@ class AddedProductsController extends Controller
                         'status' => $validatedData['status'],
                         'remark' => $validatedData['remark']
                     ]);
+                DB::commit();
                 return response()->json([
                     'success' => true,
                     'message' => 'Product was declined, No quantity was updated.'
@@ -205,9 +258,11 @@ class AddedProductsController extends Controller
 
             $branchProduct = BranchProduct::where('branches_id', $branchId)
                         ->where('product_id', $productId)
+                        ->lockForUpdate()
                         ->first();
 
             if (!$branchProduct) {
+                DB::rollBack();
                 return response()->json([
                     'success' => false,
                     'message' => 'Product not found for this branch.',
@@ -226,6 +281,22 @@ class AddedProductsController extends Controller
                     'remark'      => $validatedData['remark']
                 ]);
 
+            // LOG-30 — Branch Product Transfer: Addition (Destination)
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $validatedData['id'],
+                'type_of_report'   => 'Product Transfer',
+                'name'             => $branchProduct->product->name,
+                'action'           => 'received (transfer)',
+                'updated_field'    => 'total_quantity',
+                'original_data'    => $branchProduct->total_quantity - $productAdded,
+                'updated_data'     => $branchProduct->total_quantity,
+                'designation'      => $branchId,
+                'designation_type' => 'branch',
+            ]);
+
+            DB::commit();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Product received and product quantity updated successfully.',
@@ -233,6 +304,7 @@ class AddedProductsController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to receive product. ' . $e->getMessage(),

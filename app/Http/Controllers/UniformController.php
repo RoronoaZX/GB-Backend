@@ -6,6 +6,9 @@ use App\Models\Uniform;
 use App\Models\UniformPants;
 use App\Models\UniformTshirt;
 use Illuminate\Http\Request;
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class UniformController extends Controller
 {
@@ -91,41 +94,59 @@ class UniformController extends Controller
             'tShirtsize'             => 'nullable|string'
         ]);
 
-        $uniform = Uniform::create([
-            'employee_id'            => $validatedData['employee_id'],
-            'number_of_payments'     => $validatedData['numberOfPayments'],
-            'total_amount'           => $validatedData['totalAmount'],
-            'payments_per_payroll'   => $validatedData['paymentPerPayroll'],
-            'remaining_payments'     => $validatedData['remaining_payments']
-        ]);
-
-        if ($validatedData['pantsPcs'] && $validatedData['pantsPrice'] && $validatedData['pantsSize']) {
-             UniformPants::create([
-                'uniform_id'     => $uniform->id,
-                'size'           => $validatedData['pantsSize'],
-                'pcs'            => $validatedData['pantsPcs'],
-                'price'          => $validatedData['pantsPrice'],
+        DB::beginTransaction();
+        try {
+            $uniform = Uniform::create([
+                'employee_id'            => $validatedData['employee_id'],
+                'number_of_payments'     => $validatedData['numberOfPayments'],
+                'total_amount'           => $validatedData['totalAmount'],
+                'payments_per_payroll'   => $validatedData['paymentPerPayroll'],
+                'remaining_payments'     => $validatedData['remaining_payments']
             ]);
-        }
 
-        if ($validatedData['tShirtPcs'] && $validatedData['tShirtPrice'] && $validatedData['tShirtsize']) {
-             UniformTshirt::create([
-                'uniform_id'     => $uniform->id,
-                'size'           => $validatedData['tShirtsize'],
-                'pcs'            => $validatedData['tShirtPcs'],
-                'price'          => $validatedData['tShirtPrice'],
+            if ($validatedData['pantsPcs'] && $validatedData['pantsPrice'] && $validatedData['pantsSize']) {
+                UniformPants::create([
+                    'uniform_id'     => $uniform->id,
+                    'size'           => $validatedData['pantsSize'],
+                    'pcs'            => $validatedData['pantsPcs'],
+                    'price'          => $validatedData['pantsPrice'],
+                ]);
+            }
+
+            if ($validatedData['tShirtPcs'] && $validatedData['tShirtPrice'] && $validatedData['tShirtsize']) {
+                UniformTshirt::create([
+                    'uniform_id'     => $uniform->id,
+                    'size'           => $validatedData['tShirtsize'],
+                    'pcs'            => $validatedData['tShirtPcs'],
+                    'price'          => $validatedData['tShirtPrice'],
+                ]);
+            }
+
+            $uniform->load('employee');
+
+            // LOG-28 — Uniform: Created
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $uniform->id,
+                'type_of_report'   => 'Uniform',
+                'name'             => "Uniform order for: " . ($uniform->employee->firstname ?? 'Employee'),
+                'action'           => 'created',
+                'updated_data'     => $uniform->toArray(),
             ]);
+
+            DB::commit();
+
+            return response()->json([
+               'data'            => [$uniform],
+               'total'           => 1,
+               'per_page'        => 1,
+               'current_page'    => 1,
+               'last_page'       => 1
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to create uniform order', 'error' => $e->getMessage()], 500);
         }
-
-        $uniform->load('employee');
-
-        return response()->json([
-           'data'            => [$uniform],
-           'total'           => 1,
-           'per_page'        => 1,
-           'current_page'    => 1,
-           'last_page'       => 1
-        ], 201);
     }
 
     public function updateUniform(Request $request, $id)
@@ -146,66 +167,87 @@ class UniformController extends Controller
 
         $uniform = Uniform::findOrFail($id);
 
-        // Update the uniform details
-        $uniform->update([
-            'employee_id'            => $validatedData['employee_id'],
-            'number_of_payments'     => $validatedData['numberOfPayments'],
-            'total_amount'           => $validatedData['totalAmount'],
-            'payments_per_payroll'   => $validatedData['paymentPerPayroll'],
-            'remaining_payments'     => $validatedData['remaining_payments']
-        ]);
+        DB::beginTransaction();
+        try {
+            $oldData = $uniform->toArray();
+            
+            // Update the uniform details
+            $uniform->update([
+                'employee_id'            => $validatedData['employee_id'],
+                'number_of_payments'     => $validatedData['numberOfPayments'],
+                'total_amount'           => $validatedData['totalAmount'],
+                'payments_per_payroll'   => $validatedData['paymentPerPayroll'],
+                'remaining_payments'     => $validatedData['remaining_payments']
+            ]);
 
-        //Handle T-Shirt Update
-        if ($validatedData['tShirtPcs'] && $validatedData['tShirtPrice'] && $validatedData['tShirtsize']) {
-            $tShirt = $uniform->tShirt()->first();
+            //Handle T-Shirt Update
+            if ($validatedData['tShirtPcs'] && $validatedData['tShirtPrice'] && $validatedData['tShirtsize']) {
+                $tShirt = $uniform->tShirt()->first();
 
-            if ($tShirt) {
-                $tShirt->update([
-                    'size'   => $validatedData['tShirtsize'],
-                    'pcs'    => $validatedData['tShirtPcs'],
-                    'price'  => $validatedData['tShirtPrice']
-                ]);
+                if ($tShirt) {
+                    $tShirt->update([
+                        'size'   => $validatedData['tShirtsize'],
+                        'pcs'    => $validatedData['tShirtPcs'],
+                        'price'  => $validatedData['tShirtPrice']
+                    ]);
+                } else {
+                    UniformTshirt::create([
+                        'uniform_id'     => $uniform->id,
+                        'size'           => $validatedData['tShirtsize'],
+                        'pcs'            => $validatedData['tShirtPcs'],
+                        'price'          => $validatedData['tShirtPrice']
+                    ]);
+                }
             } else {
-                UniformTshirt::create([
-                    'uniform_id'     => $uniform->id,
-                    'size'           => $validatedData['tShirtsize'],
-                    'pcs'            => $validatedData['tShirtPcs'],
-                    'price'          => $validatedData['tShirtPrice']
-                ]);
+                // Delete t-shirts if previously existing but now removed
+                $uniform->tShirt()->delete();
             }
-        } else {
-            // Delete t-shirts if previously existing but now removed
-            $uniform->tShirt()->delete();
-        }
 
-        //Handle Pants Update
-         if ($validatedData['pantsPcs'] && $validatedData['pantsPrice'] && $validatedData['pantsSize'])
-         {
-            $pants = $uniform->pants()->first();
+            //Handle Pants Update
+             if ($validatedData['pantsPcs'] && $validatedData['pantsPrice'] && $validatedData['pantsSize'])
+             {
+                $pants = $uniform->pants()->first();
 
-            if ($pants) {
-                $pants->update([
-                    'size'   => $validatedData['pantsSize'],
-                    'pcs'    => $validatedData['pantsPcs'],
-                    'price'  => $validatedData['pantsPrice'],
-                ]);
+                if ($pants) {
+                    $pants->update([
+                        'size'   => $validatedData['pantsSize'],
+                        'pcs'    => $validatedData['pantsPcs'],
+                        'price'  => $validatedData['pantsPrice'],
+                    ]);
+                } else {
+                    UniformPants::create([
+                        'uniform_id'     => $uniform->id,
+                        'size'           => $validatedData['pantsSize'],
+                        'pcs'            => $validatedData['pantsPcs'],
+                        'price'          => $validatedData['pantsPrice'],
+                    ]);
+                }
             } else {
-                UniformPants::create([
-                    'uniform_id'     => $uniform->id,
-                    'size'           => $validatedData['pantsSize'],
-                    'pcs'            => $validatedData['pantsPcs'],
-                    'price'          => $validatedData['pantsPrice'],
-                ]);
+                // Delete pants if previously existing but now removed
+                $uniform->pants()->delete();
             }
-        } else {
-            // Delete pants if previously existing but now removed
-            $uniform->pants()->delete();
+
+            // LOG-28 — Uniform: Updated
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $uniform->id,
+                'type_of_report'   => 'Uniform',
+                'name'             => "Uniform order updated for: " . ($uniform->employee->firstname ?? 'Employee'),
+                'action'           => 'updated',
+                'original_data'    => $oldData,
+                'updated_data'     => $uniform->fresh(['pants', 'tShirt'])->toArray(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Uniform updated successfully',
+                'uniform' => $uniform->fresh(['pants', 'tShirt']),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to update uniform order', 'error' => $e->getMessage()], 500);
         }
-        //Handle T-Shirt Update
-         return response()->json([
-            'message' => 'Uniform updated successfully',
-            'uniform' => $uniform->fresh(['pants', 'tShirt']),
-         ]);
     }
 
 }

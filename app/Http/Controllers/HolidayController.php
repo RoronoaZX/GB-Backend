@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Holiday;
 use Illuminate\Http\Client\Events\ResponseReceived;
 use Illuminate\Http\Request;
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class HolidayController extends Controller
 {
@@ -47,12 +50,30 @@ class HolidayController extends Controller
             'date.unique' => 'This date is already marked as a holiday'
         ]);
 
-        $holiday = Holiday::create($validateData);
+        DB::beginTransaction();
+        try {
+            $holiday = Holiday::create($validateData);
 
-        return response()->json([
-            'message' => 'Device successfully created',
-            'holiday' => $holiday,
-        ], 201);
+            // LOG-29 — Holiday: Created
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $holiday->id,
+                'type_of_report'   => 'Holiday',
+                'name'             => $holiday->name,
+                'action'           => 'created',
+                'updated_data'     => $holiday->toArray(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Holiday successfully created',
+                'holiday' => $holiday,
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to create holiday', 'error' => $e->getMessage()], 500);
+        }
     }
 
     private function checkIfHolidayExists($date)
@@ -73,11 +94,30 @@ class HolidayController extends Controller
             ]);
         }
 
-        $holiday->update($request->all());
+        DB::beginTransaction();
+        try {
+            $oldData = $holiday->toArray();
+            $holiday->update($request->all());
+            $updated_holiday = $holiday->fresh();
 
-        $updated_holiday = $holiday->fresh();
+            // LOG-29 — Holiday: Updated
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $holiday->id,
+                'type_of_report'   => 'Holiday',
+                'name'             => $holiday->name,
+                'action'           => 'updated',
+                'original_data'    => $oldData,
+                'updated_data'     => $updated_holiday->toArray(),
+            ]);
 
-        return response()->json($updated_holiday);
+            DB::commit();
+
+            return response()->json($updated_holiday);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to update holiday', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -93,10 +133,29 @@ class HolidayController extends Controller
             ], 404);
         }
 
-        $holiday->delete();
+        DB::beginTransaction();
+        try {
+            $oldData = $holiday->toArray();
+            $holiday->delete();
 
-        return response()->json([
-            'message' => 'Holiday deleted successfully'
-        ]);
+            // LOG-29 — Holiday: Deleted
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $id,
+                'type_of_report'   => 'Holiday',
+                'name'             => $oldData['name'],
+                'action'           => 'deleted',
+                'original_data'    => $oldData,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Holiday deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to delete holiday', 'error' => $e->getMessage()], 500);
+        }
     }
 }

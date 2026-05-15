@@ -9,9 +9,9 @@ use App\Models\RequestPremixesHistory;
 use App\Models\WarehouseRawMaterialsReport;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Redis;
-// use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class RequestPremixController extends Controller
@@ -180,34 +180,50 @@ class RequestPremixController extends Controller
             "notes"                  => "nullable|string",
         ]);
 
-        // Retrieve the request premix entry
-        $requestPremix = RequestPremix::findOrFail($request->request_premixes_id);
+        return DB::transaction(function () use ($request) {
+            // Retrieve the request premix entry
+            $requestPremix = RequestPremix::findOrFail($request->request_premixes_id);
 
-        // Ensure it's still pending before confirming
-        if ($requestPremix->status !== 'pending') {
-            return response()->json(['message' => 'This premix request is not pending.'], 400);
-        }
+            // Ensure it's still pending before confirming
+            if ($requestPremix->status !== 'pending') {
+                return response()->json(['message' => 'This premix request is not pending.'], 400);
+            }
 
-        // Update status in request_premix table
-        $requestPremix->update([
-            'status' => 'confirmed',
-        ]);
+            // Update status in request_premix table
+            $requestPremix->update([
+                'status' => 'confirmed',
+            ]);
 
-        // Create a new entry in premix_history
-        $premixHistory = RequestPremixesHistory::create([
-            "request_premixes_id"    => $requestPremix->id,
-            "branch_premix_id"       => $request->branch_premix_id, // Direct assignment
-            "changed_by"             => $request->employee_id,
-            "status"                 => "confirmed",
-            "quantity"               => $request->quantity,
-            "warehouse_id"           => $request->warehouse_id,
-            "notes"                  => $request->notes,
-        ]);
+            // Create a new entry in premix_history
+            $premixHistory = RequestPremixesHistory::create([
+                "request_premixes_id"    => $requestPremix->id,
+                "branch_premix_id"       => $request->branch_premix_id, // Direct assignment
+                "changed_by"             => $request->employee_id,
+                "status"                 => "confirmed",
+                "quantity"               => $request->quantity,
+                "warehouse_id"           => $request->warehouse_id,
+                "notes"                  => $request->notes,
+            ]);
 
-        return response()->json([
-            "message"            => "Premix request confirmed successfully.",
-            "premix_history"     => $premixHistory,
-        ]);
+            // LOG-29 — Request Premix: Confirm
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $requestPremix->id,
+                'type_of_report'   => 'Premix Request',
+                'name'             => $requestPremix->name,
+                'action'           => 'confirmed',
+                'updated_field'    => 'status',
+                'original_data'    => 'pending',
+                'updated_data'     => 'confirmed',
+                'designation'      => $request->warehouse_id,
+                'designation_type' => 'warehouse',
+            ]);
+
+            return response()->json([
+                "message"            => "Premix request confirmed successfully.",
+                "premix_history"     => $premixHistory,
+            ]);
+        });
     }
 
     public function getConfirmReports($warehouseId)
@@ -243,34 +259,50 @@ class RequestPremixController extends Controller
             "notes"                  => "nullable|string",
         ]);
 
-        // Retrieve the request premix entry
-        $requestPremix = RequestPremix::findOrFail($request->request_premixes_id);
+        return DB::transaction(function () use ($request) {
+            // Retrieve the request premix entry
+            $requestPremix = RequestPremix::findOrFail($request->request_premixes_id);
 
-        // Ensure it's still pending before confirming
-        if ($requestPremix->status !== 'confirmed') {
-            return response()->json(['message' => 'This premix request is not confirmed.'], 400);
-        }
+            // Ensure it's still pending before confirming
+            if ($requestPremix->status !== 'confirmed') {
+                return response()->json(['message' => 'This premix request is not confirmed.'], 400);
+            }
 
-        // Update status in request_premix table
-        $requestPremix->update([
-            'status' => 'process',
-        ]);
+            // Update status in request_premix table
+            $requestPremix->update([
+                'status' => 'process',
+            ]);
 
-        // Create a new entry in premix_history
-        $premixHistory = RequestPremixesHistory::create([
-            "request_premixes_id"    => $requestPremix->id,
-            "branch_premix_id"       => $request->branch_premix_id, // Direct assignment
-            "changed_by"             => $request->employee_id,
-            "status"                 => "process",
-            "quantity"               => $request->quantity,
-            "warehouse_id"           => $request->warehouse_id,
-            "notes"                  => $request->notes,
-        ]);
+            // Create a new entry in premix_history
+            $premixHistory = RequestPremixesHistory::create([
+                "request_premixes_id"    => $requestPremix->id,
+                "branch_premix_id"       => $request->branch_premix_id, // Direct assignment
+                "changed_by"             => $request->employee_id,
+                "status"                 => "process",
+                "quantity"               => $request->quantity,
+                "warehouse_id"           => $request->warehouse_id,
+                "notes"                  => $request->notes,
+            ]);
 
-        return response()->json([
-            "message" => "Premix request process successfully."
-            // "premix_history" => $premixHistory,
-        ], 200);
+            // LOG-29 — Request Premix: Process
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $requestPremix->id,
+                'type_of_report'   => 'Premix Request',
+                'name'             => $requestPremix->name,
+                'action'           => 'processed',
+                'updated_field'    => 'status',
+                'original_data'    => 'confirmed',
+                'updated_data'     => 'process',
+                'designation'      => $request->warehouse_id,
+                'designation_type' => 'warehouse',
+            ]);
+
+            return response()->json([
+                "message" => "Premix request process successfully."
+                // "premix_history" => $premixHistory,
+            ], 200);
+        });
     }
 
     public function getProcessPremix($warehouseId)
@@ -309,57 +341,111 @@ class RequestPremixController extends Controller
             "notes"                          => "nullable|string",
         ]);
 
-        // Retrieve the request premix entry
-        $requestPremix = RequestPremix::findOrFail($request->request_premixes_id);
+        return DB::transaction(function () use ($request) {
+            // Retrieve the request premix entry
+            $requestPremix = RequestPremix::findOrFail($request->request_premixes_id);
 
-        // Ensure it's still pending before confirming
-        if ($requestPremix->status !== 'process') {
-            return response()->json(['message' => 'This premix request is not process.'], 400);
-        }
+            // Ensure it's still pending before confirming
+            if ($requestPremix->status !== 'process') {
+                return response()->json(['message' => 'This premix request is not process.'], 400);
+            }
 
-        // Update status in request_premix table
-        $requestPremix->update([
-            'status' => 'completed',
-        ]);
+            // Update status in request_premix table
+            $requestPremix->update([
+                'status' => 'completed',
+            ]);
 
-        // Create a new entry in premix_history
-        $premixHistory = RequestPremixesHistory::create([
-            "request_premixes_id"    => $requestPremix->id,
-            "branch_premix_id"       => $request->branch_premix_id, // Direct assignment
-            "changed_by"             => $request->employee_id,
-            "status"                 => "completed",
-            "quantity"               => $request->quantity,
-            "warehouse_id"           => $request->warehouse_id,
-            "notes"                  => $request->notes,
-        ]);
+            // Create a new entry in premix_history
+            $premixHistory = RequestPremixesHistory::create([
+                "request_premixes_id"    => $requestPremix->id,
+                "branch_premix_id"       => $request->branch_premix_id, // Direct assignment
+                "changed_by"             => $request->employee_id,
+                "status"                 => "completed",
+                "quantity"               => $request->quantity,
+                "warehouse_id"           => $request->warehouse_id,
+                "notes"                  => $request->notes,
+            ]);
 
-        // Deduct ingredient quantities from warehouse_ingredients
-    foreach ($request->ingredients as $ingredientData) {
-        $warehouseIngredient = WarehouseRawMaterialsReport::where('warehouse_id', $request->warehouse_id)
-            ->where('raw_material_id', $ingredientData['ingredient_id'])
-            ->first();
+            // Deduct ingredient quantities from warehouse_ingredients and warehouse_rm_stocks (FIFO)
+            foreach ($request->ingredients as $ingredientData) {
+                $materialId = $ingredientData['ingredient_id'];
+                $quantityToDeduct = (float)$ingredientData['quantity'];
 
-        if (!$warehouseIngredient) {
+                // 1. Update the overall report
+                $warehouseIngredient = WarehouseRawMaterialsReport::where('warehouse_id', $request->warehouse_id)
+                    ->where('raw_material_id', $materialId)
+                    ->first();
+
+                if (!$warehouseIngredient) {
+                    return response()->json([
+                        "message"        => "Ingredient ID {$materialId} not found in this warehouse."
+                    ], 400);
+                }
+
+                // Ensure there's enough stock in the overall report
+                if ($warehouseIngredient->total_quantity < $quantityToDeduct) {
+                    return response()->json([
+                        "message"        => "Insufficient total stock for Ingredient ID {$materialId}."
+                    ], 400);
+                }
+
+                $warehouseIngredient->decrement('total_quantity', $quantityToDeduct);
+
+                // 2. FIFO Deduction from batches (WarehouseRmStocks)
+                $batches = \App\Models\WarehouseRmStocks::where('warehouse_id', $request->warehouse_id)
+                    ->where('raw_material_id', $materialId)
+                    ->where('total_grams', '>', 0)
+                    ->orderBy('created_at', 'asc')
+                    ->get();
+
+                $remainingToDeduct = $quantityToDeduct;
+
+                foreach ($batches as $batch) {
+                    if ($remainingToDeduct <= 0) break;
+
+                    $deduction = min($batch->total_grams, $remainingToDeduct);
+                    
+                    // Update batch
+                    $batch->decrement('total_grams', $deduction);
+                    
+                    // Also adjust 'quantity' (which usually represents the original unit count, e.g. bags)
+                    // if total_grams reaches 0, we can zero out everything
+                    if ($batch->total_grams <= 0) {
+                        $batch->quantity = 0;
+                        $batch->gram = 0;
+                        $batch->kilo = 0;
+                        $batch->pcs = 0;
+                        $batch->delete(); // Optional: remove empty batches to keep DB clean
+                    } else {
+                        // Optional: update unit quantity proportionally if needed, 
+                        // but total_grams is the source of truth for FIFO.
+                        // For now, keeping it simple as total_grams is primary.
+                        $batch->save();
+                    }
+
+                    $remainingToDeduct -= $deduction;
+                }
+            }
+
+            // LOG-29 — Request Premix: Completed
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $requestPremix->id,
+                'type_of_report'   => 'Premix Request',
+                'name'             => $requestPremix->name,
+                'action'           => 'completed',
+                'updated_field'    => 'status',
+                'original_data'    => 'process',
+                'updated_data'     => 'completed (stock deducted)',
+                'designation'      => $request->warehouse_id,
+                'designation_type' => 'warehouse',
+            ]);
+
             return response()->json([
-                "message"        => "Ingredient ID {$ingredientData['ingredient_id']} not found in this warehouse."
-            ], 400);
-        }
-
-        // Ensure there's enough stock
-        if ($warehouseIngredient->total_quantity < $ingredientData['quantity']) {
-            return response()->json([
-                "message"        => "Insufficient stock for Ingredient ID {$ingredientData['ingredient_id']}."
-            ], 400);
-        }
-
-        // Deduct the quantity
-        $warehouseIngredient->decrement('total_quantity', $ingredientData['quantity']);
-    }
-
-        return response()->json([
-            "message"            => "Premix request completed successfully.",
-            "premix_history"     => $premixHistory,
-        ]);
+                "message"            => "Premix request completed successfully.",
+                "premix_history"     => $premixHistory,
+            ]);
+        });
     }
 
     public function getcompletedPremix($warehouseId)
@@ -395,34 +481,50 @@ class RequestPremixController extends Controller
             "notes"                  => "nullable|string",
         ]);
 
-        // Retrieve the request premix entry
-        $requestPremix = RequestPremix::findOrFail($request->request_premixes_id);
+        return DB::transaction(function () use ($request) {
+            // Retrieve the request premix entry
+            $requestPremix = RequestPremix::findOrFail($request->request_premixes_id);
 
-        // Ensure it's still pending before confirming
-        if ($requestPremix->status !== 'completed') {
-            return response()->json(['message' => 'This premix request is not completed.'], 400);
-        }
+            // Ensure it's still pending before confirming
+            if ($requestPremix->status !== 'completed') {
+                return response()->json(['message' => 'This premix request is not completed.'], 400);
+            }
 
-        // Update status in request_premix table
-        $requestPremix->update([
-            'status' => 'to deliver',
-        ]);
+            // Update status in request_premix table
+            $requestPremix->update([
+                'status' => 'to deliver',
+            ]);
 
-        // Create a new entry in premix_history
-        $premixHistory = RequestPremixesHistory::create([
-            "request_premixes_id"    => $requestPremix->id,
-            "branch_premix_id"       => $request->branch_premix_id, // Direct assignment
-            "changed_by"             => $request->employee_id,
-            "status"                 => "to deliver",
-            "quantity"               => $request->quantity,
-            "warehouse_id"           => $request->warehouse_id,
-            "notes"                  => $request->notes,
-        ]);
+            // Create a new entry in premix_history
+            $premixHistory = RequestPremixesHistory::create([
+                "request_premixes_id"    => $requestPremix->id,
+                "branch_premix_id"       => $request->branch_premix_id, // Direct assignment
+                "changed_by"             => $request->employee_id,
+                "status"                 => "to deliver",
+                "quantity"               => $request->quantity,
+                "warehouse_id"           => $request->warehouse_id,
+                "notes"                  => $request->notes,
+            ]);
 
-        return response()->json([
-            "message"            => "Premix request to deliver successfully.",
-            "premix_history"     => $premixHistory,
-        ]);
+            // LOG-29 — Request Premix: To Deliver
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $requestPremix->id,
+                'type_of_report'   => 'Premix Request',
+                'name'             => $requestPremix->name,
+                'action'           => 'to deliver',
+                'updated_field'    => 'status',
+                'original_data'    => 'completed',
+                'updated_data'     => 'to deliver',
+                'designation'      => $request->warehouse_id,
+                'designation_type' => 'warehouse',
+            ]);
+
+            return response()->json([
+                "message"            => "Premix request to deliver successfully.",
+                "premix_history"     => $premixHistory,
+            ]);
+        });
     }
 
     public function getToDeliverPremix($warehouseId)
@@ -458,34 +560,50 @@ class RequestPremixController extends Controller
             "notes"                  => "nullable|string",
         ]);
 
-        // Retrieve the request premix entry
-        $requestPremix = RequestPremix::findOrFail($request->request_premixes_id);
+        return DB::transaction(function () use ($request) {
+            // Retrieve the request premix entry
+            $requestPremix = RequestPremix::findOrFail($request->request_premixes_id);
 
-        // Ensure it's still pending before confirming
-        if ($requestPremix->status !== 'to deliver') {
-            return response()->json(['message' => 'This premix request is not to deliver.'], 400);
-        }
+            // Ensure it's still pending before confirming
+            if ($requestPremix->status !== 'to deliver') {
+                return response()->json(['message' => 'This premix request is not to deliver.'], 400);
+            }
 
-        // Update status in request_premix table
-        $requestPremix->update([
-            'status' => 'to receive',
-        ]);
+            // Update status in request_premix table
+            $requestPremix->update([
+                'status' => 'to receive',
+            ]);
 
-        // Create a new entry in premix_history
-        $premixHistory = RequestPremixesHistory::create([
-            "request_premixes_id"    => $requestPremix->id,
-            "branch_premix_id"       => $request->branch_premix_id, // Direct assignment
-            "changed_by"             => $request->employee_id,
-            "status"                 => "to receive",
-            "quantity"               => $request->quantity,
-            "warehouse_id"           => $request->warehouse_id,
-            "notes"                  => $request->notes,
-        ]);
+            // Create a new entry in premix_history
+            $premixHistory = RequestPremixesHistory::create([
+                "request_premixes_id"    => $requestPremix->id,
+                "branch_premix_id"       => $request->branch_premix_id, // Direct assignment
+                "changed_by"             => $request->employee_id,
+                "status"                 => "to receive",
+                "quantity"               => $request->quantity,
+                "warehouse_id"           => $request->warehouse_id,
+                "notes"                  => $request->notes,
+            ]);
 
-        return response()->json([
-            "message" => "Premix request to deliver successfully.",
-            "premix_history" => $premixHistory,
-        ]);
+            // LOG-29 — Request Premix: To Receive
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $requestPremix->id,
+                'type_of_report'   => 'Premix Request',
+                'name'             => $requestPremix->name,
+                'action'           => 'to receive',
+                'updated_field'    => 'status',
+                'original_data'    => 'to deliver',
+                'updated_data'     => 'to receive',
+                'designation'      => $request->warehouse_id,
+                'designation_type' => 'warehouse',
+            ]);
+
+            return response()->json([
+                "message" => "Premix request to deliver successfully.",
+                "premix_history" => $premixHistory,
+            ]);
+        });
     }
 
     public function getToReceivePremix($warehouseId)
@@ -525,41 +643,31 @@ class RequestPremixController extends Controller
             'ingredients.*.total_quantity'   => 'required|numeric|min:0',
         ]);
 
-        $errors = []; // Store errors for ingredients
+        return DB::transaction(function () use ($validated) {
+            foreach ($validated['ingredients'] as $ingredient) {
+                $existingMaterial = BranchRawMaterialsReport::where('branch_id', $validated['branch_id'])
+                    ->where('ingredients_id', $ingredient['ingredients_id'])
+                    ->first();
 
-        foreach ($validated['ingredients'] as $ingredient) {
-            $existingMaterial = BranchRawMaterialsReport::where('branch_id', $validated['branch_id'])
-                ->where('ingredients_id', $ingredient['ingredients_id'])
-                ->first();
-
-            if ($existingMaterial) {
-                $existingMaterial->increment('total_quantity', $ingredient['total_quantity']);
-            } else {
-                $errors[] = "Ingredient ID {$ingredient['ingredients_id']} does not exist for Branch ID {$validated['branch_id']}";
+                if ($existingMaterial) {
+                    $existingMaterial->increment('total_quantity', $ingredient['total_quantity']);
+                }
             }
-        }
-        $branchPremix =  BranchPremix::where('id', $validated['branch_premix_id'])
-        ->first();
+            
+            $branchPremix = BranchPremix::where('id', $validated['branch_premix_id'])->first();
 
-        if ($branchPremix) {
-            $branchPremix->increment('available_stocks', $validated['quantity']);
-        }
+            if ($branchPremix) {
+                $branchPremix->increment('available_stocks', $validated['quantity']);
+            }
 
+            $requestPremix = RequestPremix::findOrFail($validated['request_premix_id']);
 
-        // If any ingredient validation fails, return an error response and stop further execution
-        // if (!empty($errors)) {
-        //     return response()->json(['errors' => $errors], 400);
-        // }
+            if ($requestPremix->status !== 'to receive') {
+                return response()->json(['message' => 'This premix request is not ready to be received.'], 400);
+            }
 
-        $requestPremix = RequestPremix::findOrFail($validated['request_premix_id']);
+            $requestPremix->update(['status' => 'received']);
 
-        if ($requestPremix->status !== 'to receive') {
-            return response()->json(['message' => 'This premix request is not ready to be received.'], 400);
-        }
-
-        $requestPremix->update(['status' => 'received']);
-
-        try {
             $receivePremixes = RequestPremixesHistory::create([
                 'request_premixes_id'    => $validated['request_premix_id'],
                 'branch_premix_id'       => $validated['branch_premix_id'],
@@ -570,17 +678,25 @@ class RequestPremixController extends Controller
                 'notes'                  => $validated['notes'],
             ]);
 
+            // LOG-29 — Request Premix: Received
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $requestPremix->id,
+                'type_of_report'   => 'Premix Request',
+                'name'             => $requestPremix->name,
+                'action'           => 'received',
+                'updated_field'    => 'status',
+                'original_data'    => 'to receive',
+                'updated_data'     => 'received (branch stock increased)',
+                'designation'      => $validated['branch_id'],
+                'designation_type' => 'branch',
+            ]);
+
             return response()->json([
                 'message'            => 'Branch raw materials updated successfully',
                 'receivePremixes'    => $receivePremixes
             ], 200);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'message'    => 'Error saving premix history',
-                'error'      => $e->getMessage()
-            ], 500);
-        }
+        });
     }
 
     public function getRecievePremix($warehouseId, Request $request)
@@ -625,34 +741,50 @@ class RequestPremixController extends Controller
             "notes"                  => "nullable|string",
         ]);
 
-        // Retrieve the request premix entry
-        $requestPremix = RequestPremix::findOrFail($request->request_premixes_id);
+        return DB::transaction(function () use ($request) {
+            // Retrieve the request premix entry
+            $requestPremix = RequestPremix::findOrFail($request->request_premixes_id);
 
-        // Ensure it's still pending before confirming
-        if ($requestPremix->status !== 'pending') {
-            return response()->json(['message' => 'This premix request is not pending.'], 400);
-        }
+            // Ensure it's still pending before confirming
+            if ($requestPremix->status !== 'pending') {
+                return response()->json(['message' => 'This premix request is not pending.'], 400);
+            }
 
-        // Update status in request_premix table
-        $requestPremix->update([
-            'status' => 'declined',
-        ]);
+            // Update status in request_premix table
+            $requestPremix->update([
+                'status' => 'declined',
+            ]);
 
-        // Create a new entry in premix_history
-        $premixHistory = RequestPremixesHistory::create([
-            "request_premixes_id"    => $requestPremix->id,
-            "branch_premix_id"       => $request->branch_premix_id, // Direct assignment
-            "changed_by"             => $request->employee_id,
-            "status"                 => "declined",
-            "quantity"               => $request->quantity,
-            "warehouse_id"           => $request->warehouse_id,
-            "notes"                  => $request->notes,
-        ]);
+            // Create a new entry in premix_history
+            $premixHistory = RequestPremixesHistory::create([
+                "request_premixes_id"    => $requestPremix->id,
+                "branch_premix_id"       => $request->branch_premix_id, // Direct assignment
+                "changed_by"             => $request->employee_id,
+                "status"                 => "declined",
+                "quantity"               => $request->quantity,
+                "warehouse_id"           => $request->warehouse_id,
+                "notes"                  => $request->notes,
+            ]);
 
-        return response()->json([
-            "message" => "Premix request declined successfully.",
-            "premix_history" => $premixHistory,
-        ]);
+            // LOG-29 — Request Premix: Decline
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $requestPremix->id,
+                'type_of_report'   => 'Premix Request',
+                'name'             => $requestPremix->name,
+                'action'           => 'declined',
+                'updated_field'    => 'status',
+                'original_data'    => 'pending',
+                'updated_data'     => 'declined — reason: ' . $request->notes,
+                'designation'      => $request->warehouse_id,
+                'designation_type' => 'warehouse',
+            ]);
+
+            return response()->json([
+                "message" => "Premix request declined successfully.",
+                "premix_history" => $premixHistory,
+            ]);
+        });
     }
 
     public function getDeclineReports(Request $request,$warehouseId)
@@ -788,6 +920,18 @@ class RequestPremixController extends Controller
                     'changed_by'             => $req['employee_id'],
                     'quantity'               => $req['quantity'],
                     'notes'                  => 'Initial request created.',
+                ]);
+
+                // LOG-29 — Request Premix: Initial Request
+                HistoryLogService::log([
+                    'user_id'          => Auth::id(),
+                    'report_id'        => $premixRequest->id,
+                    'type_of_report'   => 'Premix Request',
+                    'name'             => $premixRequest->name,
+                    'action'           => 'submitted',
+                    'updated_data'     => $premixRequest->toArray(),
+                    'designation'      => $req['warehouse_id'],
+                    'designation_type' => 'warehouse',
                 ]);
             }
 

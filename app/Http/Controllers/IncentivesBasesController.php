@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\IncentivesBases;
 use Illuminate\Http\Request;
+use App\Services\HistoryLogService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class IncentivesBasesController extends Controller
 {
@@ -45,9 +48,27 @@ class IncentivesBasesController extends Controller
             'hornero_incentives'     => $validateData['hornero'],
         ];
 
-        IncentivesBases::create($incentivesBases);
+        DB::beginTransaction();
+        try {
+            $incentiveBase = IncentivesBases::create($incentivesBases);
 
-        return response()->json($incentivesBases, 201);
+            // LOG-26 — Incentive Base: Created
+            HistoryLogService::log([
+                'user_id'          => Auth::id(),
+                'report_id'        => $incentiveBase->id,
+                'type_of_report'   => 'Incentive',
+                'name'             => "Incentive base created for " . $validateData['number_of_employees'] . " employees",
+                'action'           => 'created',
+                'updated_data'     => $incentiveBase->toArray(),
+            ]);
+
+            DB::commit();
+
+            return response()->json($incentiveBase, 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to create incentive base', 'error' => $e->getMessage()], 500);
+        }
 
     }
 
@@ -75,8 +96,21 @@ class IncentivesBasesController extends Controller
             ], 422);
         }
 
+        $oldValue = $incentivesBases->number_of_employees;
         $incentivesBases->update([
             'number_of_employees' => $validateData['number_of_employees']
+        ]);
+
+        // LOG-26 — Incentive Base: Updated Number of Employees
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $incentivesBases->id,
+            'type_of_report'   => 'Incentive',
+            'name'             => "Incentive base: Number of employees updated",
+            'action'           => 'updated',
+            'updated_field'    => 'number_of_employees',
+            'original_data'    => $oldValue,
+            'updated_data'     => $incentivesBases->number_of_employees,
         ]);
 
         return response()->json([
@@ -99,8 +133,21 @@ class IncentivesBasesController extends Controller
             ], 404);
         }
 
+        $oldValue = $incentiveBase->target;
         $incentiveBase->update([
             'target' => $request->target
+        ]);
+
+        // LOG-26 — Incentive Base: Updated Target
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $incentiveBase->id,
+            'type_of_report'   => 'Incentive',
+            'name'             => "Incentive base: Target updated",
+            'action'           => 'updated',
+            'updated_field'    => 'target',
+            'original_data'    => $oldValue,
+            'updated_data'     => $incentiveBase->target,
         ]);
 
         return response()->json([
@@ -121,8 +168,21 @@ class IncentivesBasesController extends Controller
             ], 404);
         }
 
+        $oldValue = $incentiveBases->baker_multiplier;
         $incentiveBases->update([
             'baker_multiplier' => $request->baker_multiplier
+        ]);
+
+        // LOG-26 — Incentive Base: Updated Baker Multiplier
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $incentiveBases->id,
+            'type_of_report'   => 'Incentive',
+            'name'             => "Incentive base: Baker multiplier updated",
+            'action'           => 'updated',
+            'updated_field'    => 'baker_multiplier',
+            'original_data'    => $oldValue,
+            'updated_data'     => $incentiveBases->baker_multiplier,
         ]);
 
         return response()->json([
@@ -145,8 +205,21 @@ class IncentivesBasesController extends Controller
             ], 404);
         }
 
+        $oldValue = $incentiveBases->lamesador_multiplier;
         $incentiveBases->update([
             'lamesador_multiplier' => $request->lamesador_multiplier
+        ]);
+
+        // LOG-26 — Incentive Base: Updated Lamesador Multiplier
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $incentiveBases->id,
+            'type_of_report'   => 'Incentive',
+            'name'             => "Incentive base: Lamesador multiplier updated",
+            'action'           => 'updated',
+            'updated_field'    => 'lamesador_multiplier',
+            'original_data'    => $oldValue,
+            'updated_data'     => $incentiveBases->lamesador_multiplier,
         ]);
 
         return response()->json([
@@ -169,8 +242,21 @@ class IncentivesBasesController extends Controller
             ], 404);
         }
 
+        $oldValue = $incentiveBases->hornero_incentives;
         $incentiveBases->update([
             'hornero_incentives' => $request->hornero_incentives
+        ]);
+
+        // LOG-26 — Incentive Base: Updated Hornero Incentives
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $incentiveBases->id,
+            'type_of_report'   => 'Incentive',
+            'name'             => "Incentive base: Hornero incentives updated",
+            'action'           => 'updated',
+            'updated_field'    => 'hornero_incentives',
+            'original_data'    => $oldValue,
+            'updated_data'     => $incentiveBases->hornero_incentives,
         ]);
 
         return response()->json([

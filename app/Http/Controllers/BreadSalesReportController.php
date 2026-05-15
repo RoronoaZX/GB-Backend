@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\BreadSalesReport;
 use App\Models\EmployeeSaleschargesReport;
-use App\Models\HistoryLog;
 use App\Models\SalesReports;
 use Illuminate\Http\Request;
+use App\Services\HistoryLogService;
 use PhpParser\Builder\Function_;
 use PHPUnit\Framework\MockObject\ReturnValueNotConfiguredException;
 
@@ -93,17 +93,10 @@ class BreadSalesReportController extends Controller
 
         private function createHistoryLog(Request $request)
         {
-            HistoryLog::create($request->only([
-                'report_id',
-                'name',
-                'original_data',
-                'updated_data',
-                'updated_field',
-                'designation',
-                'designation_type',
-                'action',
-                'type_of_report',
-                'user_id',
+            HistoryLogService::log($request->only([
+                'report_id', 'name', 'original_data', 'updated_data',
+                'updated_field', 'designation', 'designation_type',
+                'action', 'type_of_report', 'user_id'
             ]));
         }
 
@@ -155,12 +148,27 @@ class BreadSalesReportController extends Controller
 
         public function updateBreadOut(Request $request, $id)
         {
-            return $this->updateBreadField(
+            $response = $this->updateBreadField(
                 $request,
                 $id,
                 'bread_out',
                 'Bread out updated successfully'
             );
+
+            $bread = BreadSalesReport::findOrFail($id);
+            if ($bread->bread_out > 0) {
+                \App\Models\BreadOut::updateOrCreate(
+                    ['bread_sales_report_id' => $bread->id],
+                    [
+                        'branch_id' => $bread->branch_id,
+                        'product_id' => $bread->product_id,
+                        'quantity' => $bread->bread_out,
+                        'status' => 'pending'
+                    ]
+                );
+            }
+
+            return $response;
         }
 
         public function addingBreadProduction(Request $request)
@@ -185,6 +193,17 @@ class BreadSalesReportController extends Controller
             ]);
 
             $breadProduction = BreadSalesReport::create($validated);
+
+            // AUTOMATION: Create BreadOut entry for repurposing if bread_out > 0
+            if ($breadProduction->bread_out > 0) {
+                \App\Models\BreadOut::create([
+                    'bread_sales_report_id' => $breadProduction->id,
+                    'branch_id' => $breadProduction->branch_id,
+                    'product_id' => $breadProduction->product_id,
+                    'quantity' => $breadProduction->bread_out,
+                    'status' => 'pending'
+                ]);
+            }
 
             // IMPORTANT: Load realtionships
             $breadProduction->load('bread', 'handledBy');
