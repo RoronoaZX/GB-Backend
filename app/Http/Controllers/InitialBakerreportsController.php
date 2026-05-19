@@ -174,9 +174,7 @@ class InitialBakerreportsController extends Controller
             ], 422);
         }
 
-        DB::beginTransaction();
-        try {
-            foreach ($request->reports as $report) {
+        foreach ($request->reports as $report) {
             $reportValidator = Validator::make($report, [
                 'branch_id'                          => 'required|integer|exists:branches,id',
                 'user_id'                            => 'required|integer|exists:users,id',
@@ -207,7 +205,8 @@ class InitialBakerreportsController extends Controller
             }
 
             $validatedData = $reportValidator->validated();
-            $validatedData['status'] = $report['recipe_category'] === 'Filling' ? 'confirmed' : $report['status'];
+            // ⚠️ FIX: ALL reports are initially 'pending' until Sales confirms
+            $validatedData['status'] = 'pending'; 
             $bakerReport = InitialBakerreports::create($validatedData);
 
             if ($report['recipe_category'] === 'Dough') {
@@ -231,20 +230,10 @@ class InitialBakerreportsController extends Controller
                 $bakerReport->ingredientBakersReports()->createMany($validatedData['ingredients']);
             }
 
-            // ✅ Shared logic to deduct ingredients from inventory (applies to both Dough and Filling)
-            foreach ($validatedData['ingredients'] as $ingredientReport) {
-                $ingredientInventory = BranchRawMaterialsReport::where('ingredients_id', $ingredientReport['ingredients_id'])
-                    ->where('branch_id', $validatedData['branch_id'])
-                    ->lockForUpdate()
-                    ->first();
-
-                if ($ingredientInventory) {
-                    $ingredientInventory->total_quantity -= $ingredientReport['quantity'];
-                    $ingredientInventory->save();
-                }
-            }
+            // 🚫 Automatic inventory deduction removed from creation (TASK-06 Re-logic)
 
             $branchRecipe = BranchRecipe::with('recipe')->find($bakerReport->branch_recipe_id);
+
             // LOG-03 — Baker Report: Submit (Admin)
             HistoryLogService::log([
                 'user_id'          => Auth::id(),
@@ -262,20 +251,12 @@ class InitialBakerreportsController extends Controller
             ]);
         }
 
-        DB::commit();
         return response()->json([
             'status'     => 'success',
             'message'    => 'Reports stored successfully',
         ], 201);
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json([
-            'status'     => 'error',
-            'message'    => 'Failed to create report',
-            'error'      => $e->getMessage()
-        ], 500);
     }
-    }
+
 
     public function store(Request $request)
     {
@@ -294,9 +275,7 @@ class InitialBakerreportsController extends Controller
             ], 422);
         }
 
-        DB::beginTransaction();
-        try {
-            foreach ($request->reports as $report) {
+        foreach ($request->reports as $report) {
             $reportValidator = Validator::make($report, [
                 'branch_id'                      => 'required|integer|exists:branches,id',
                 'user_id'                        => 'required|integer|exists:users,id',
@@ -326,7 +305,8 @@ class InitialBakerreportsController extends Controller
             }
 
             $validatedData              = $reportValidator->validated();
-            $validatedData['status']    = $report['recipe_category'] === 'Filling' ? 'confirmed' : $report['status'];
+            // ⚠️ FIX: ALL reports are initially 'pending' until Sales confirms
+            $validatedData['status']    = 'pending';
 
             $initialReport              = InitialBakerreports::create($validatedData);
             $branchRecipe               = BranchRecipe::find($initialReport->branch_recipe_id);
@@ -354,103 +334,11 @@ class InitialBakerreportsController extends Controller
                 }
 
                 $initialReport->ingredientBakersReports()->createMany($validatedData['ingredients']);
-
-                foreach ($validatedData['ingredients'] as $ingredientReport) {
-                    // 🧩 Added FIFO Deduction Logic for Filling Category
-                    $remainingQtyToDeduct    = $ingredientReport['quantity'];
-                    $ingredientTotalCost     = 0;
-                    $grandTotal              = 0;
-                    $stockFound              = false;
-                    $recipeId                = $recipe_id;
-
-                    $branchStocks = BranchRmStocks::where('raw_material_id', $ingredientReport['ingredients_id'])
-                        ->where('branch_id', $initialReport->branch_id)
-                        ->where('quantity', '>', 0)
-                        ->orderBy('created_at', 'asc')
-                        ->lockForUpdate()
-                        ->get();
-
-                    foreach ($branchStocks as $stock) {
-                        if ($remainingQtyToDeduct <= 0) break;
-
-                        $stockFound          = true;
-                        $deductQty           = min($remainingQtyToDeduct, $stock->quantity);
-
-                        $unitPrice           = $stock->price_per_gram ?? 0;
-                        $cost                = $deductQty * $unitPrice;
-
-                        $stock->quantity     = max(0, $stock->quantity - $deductQty);
-                        $stock->save();
-
-                        RecipeCost::create([
-                            'branch_rm_stock_id'         => $stock->id,
-                            'user_id'                    => $initialReport->user_id,
-                            'branch_id'                  => $initialReport->branch_id,
-                            'recipe_id'                  => $recipeId,
-                            'recipe_category'            => $initialReport->recipe_category,
-                            'raw_material_id'            => $ingredientReport['ingredients_id'],
-                            'initial_bakerreport_id'     => $initialReport->id,
-                            'branch_recipe_id'           => $initialReport->branch_recipe_id,
-                            'quantity_used'              => $deductQty,
-                            'price_per_gram'             => $unitPrice,
-                            'total_cost'                 => $cost,
-                            'status'                     => 'confirmed',
-                            'kilo'                       => $initialReport->kilo,
-                        ]);
-
-                        $ingredientTotalCost     += $cost;
-                        $grandTotal              += $cost;
-                        $remainingQtyToDeduct    -= $deductQty;
-                    }
-
-                    // ⚠️ No stock found — record as missing
-                    if (!$stockFound) {
-                        RecipeCost::create([
-                            'branch_rm_stock_id'         => null,
-                            'user_id'                    => $initialReport->user_id,
-                            'branch_id'                  => $initialReport->branch_id,
-                            'recipe_id'                  => $recipeId,
-                            'recipe_category'            => $initialReport->recipe_category,
-                            'raw_material_id'            => $ingredientReport['ingredients_id'],
-                            'initial_bakerreport_id'     => $initialReport->id,
-                            'branch_recipe_id'           => $initialReport->branch_recipe_id,
-                            'quantity_used'              => $ingredientReport['quantity'],
-                            'price_per_gram'             => 0,
-                            'total_cost'                 => 0,
-                            'status'                     => 'missing_stock',
-                            'kilo'                       => $initialReport->kilo,
-                        ]);
-                    }
-
-                    // 🧾 Update ingredient inventory total
-                    $ingredientInventory = BranchRawMaterialsReport::where('ingredients_id', $ingredientReport['ingredients_id'])
-                        ->where('branch_id', $validatedData['branch_id'])
-                        ->lockForUpdate()
-                        ->first();
-
-                    if ($ingredientInventory) {
-                        $ingredientInventory->total_quantity -= $ingredientReport['quantity'];
-                        $ingredientInventory->save();
-                    }
-                }
             }
 
-            // LOG-03 — Baker Report: Submit
-            HistoryLogService::log([
-                'user_id'          => Auth::id(),
-                'report_id'        => $initialReport->id,
-                'type_of_report'   => 'Baker Report',
-                'name'             => ($initialReport->recipe_category ?? 'Baker') . " Report - " . ($branchRecipe->recipe->name ?? 'Unknown Recipe'),
-                'action'           => 'submitted',
-                'updated_data'     => [
-                    'kilo' => $initialReport->kilo,
-                    'breads' => $validatedData['breads'] ?? [],
-                    'ingredients' => $validatedData['ingredients'] ?? []
-                ],
-                'designation'      => $initialReport->branch_id,
-                'designation_type' => 'branch',
-            ]);
+            // 🚫 Automatic FIFO and Summary deduction removed from creation (TASK-06 Re-logic)
         }
+
 
         // Get branch_id form the first report (assuming all reports have the same branch_id)
         $branch_id = $request->reports[0]['branch_id'];
@@ -465,20 +353,12 @@ class InitialBakerreportsController extends Controller
             ]);
         }
 
-        DB::commit();
         return response()->json([
             'status'  => 'success',
             'message' => 'Reports stored successfully',
         ], 201);
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json([
-            'status'     => 'error',
-            'message'    => 'Failed to store report',
-            'error'      => $e->getMessage()
-        ], 500);
     }
-    }
+
 
 
     public function fetchDoughReports($branchId)
@@ -499,46 +379,46 @@ class InitialBakerreportsController extends Controller
     {
         // Wrap everything in a transaction to avoid race conditions
         return DB::transaction(function () use ($id) {
+            $initialReport = InitialBakerreports::with([
+                'ingredientBakersReports',
+                'breadBakersReports',
+                'fillingBakersReports'
+            ])->findOrFail($id);
 
-            $initialReport = InitialBakerreports::with('ingredientBakersReports', 'breadBakersReports.bread')
-                                ->findOrFail($id);
-
-            if (strtolower($initialReport->status) !== 'pending' ||
-                strtolower($initialReport->recipe_category) !== 'dough') {
-                return response()->json(['message' => 'Invalid report or status'], 400);
+            // 🛡️ Safety Check: Prevent double deduction
+            if ($initialReport->status === 'confirmed') {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'This report has already been confirmed.'
+                ], 400);
             }
 
-            $totalCostResponse   = []; // Collect per-ingredient totals
-            $grandTotal          = 0;
+            $branchRecipe = BranchRecipe::find($initialReport->branch_recipe_id);
+            $recipeId     = $branchRecipe->recipe_id;
 
-            // ✅ Get the actual recipe_id from branch_recipes
-            $branchRecipe        = BranchRecipe::find($initialReport->branch_recipe_id);
-            $recipeId            = $branchRecipe->recipe_id;
+            $totalCostResponse = [];
+            $grandTotal        = 0;
 
+            // 🧩 1. Deduct Ingredients (FIFO & Summary)
             foreach ($initialReport->ingredientBakersReports as $ingredientReport) {
-                $remainingQtyToDeduct    = $ingredientReport->quantity;
-                $ingredientTotalCost     = 0;
-                $stockFound              = false;
+                $remainingQtyToDeduct = $ingredientReport->quantity;
+                $ingredientTotalCost  = 0;
+                $stockFound           = false;
 
-                // Get stocks (FIFO) and lock rows for update
                 $branchStocks = BranchRmStocks::where('raw_material_id', $ingredientReport->ingredients_id)
-                                ->where('branch_id', $initialReport->branch_id)
-                                ->where('quantity', '>', 0)
-                                ->orderBy('created_at', 'asc')
-                                ->lockForUpdate()
-                                ->get();
+                    ->where('branch_id', $initialReport->branch_id)
+                    ->where('quantity', '>', 0)
+                    ->orderBy('created_at', 'asc')
+                    ->lockForUpdate()
+                    ->get();
 
                 foreach ($branchStocks as $stock) {
                     if ($remainingQtyToDeduct <= 0) break;
 
-                    $stockFound  = true;
-
-                    // Deduct as much as possible from this stock batch
-                    $deductQty   = min($remainingQtyToDeduct, $stock->quantity);
-
-                    // Calculate cost
-                    $unitPrice   = $stock->price_per_gram ?? 0;
-                    $cost        = $deductQty * $unitPrice;
+                    $stockFound = true;
+                    $deductQty  = min($remainingQtyToDeduct, $stock->quantity);
+                    $unitPrice  = $stock->price_per_gram ?? 0;
+                    $cost       = $deductQty * $unitPrice;
 
                     // Update stock record
                     $stock->quantity = max(0, $stock->quantity - $deductQty);
@@ -561,16 +441,13 @@ class InitialBakerreportsController extends Controller
                         'kilo'                       => $initialReport->kilo,
                     ]);
 
-                    // Accumulate totals
                     $ingredientTotalCost     += $cost;
                     $grandTotal              += $cost;
-
-                    // Reduce remaining quantity
                     $remainingQtyToDeduct    -= $deductQty;
                 }
 
-                 // ⚠️ If there is still quantity to deduct after checking all batches
-                 if ($remainingQtyToDeduct > 0) {
+                // ⚠️ If missing stock — record as missing_stock
+                if ($remainingQtyToDeduct > 0) {
                     RecipeCost::create([
                         'branch_rm_stock_id'         => null,
                         'user_id'                    => $initialReport->user_id,
@@ -586,10 +463,10 @@ class InitialBakerreportsController extends Controller
                         'status'                     => 'missing_stock',
                         'kilo'                       => $initialReport->kilo,
                     ]);
-                 }
+                }
 
-                 // Update branch inventory if exist
-                 $ingredientInventory = BranchRawMaterialsReport::where('ingredients_id', $ingredientReport->ingredients_id)
+                // 🧾 Update Branch Summary Inventory
+                $ingredientInventory = BranchRawMaterialsReport::where('ingredients_id', $ingredientReport->ingredients_id)
                                         ->where('branch_id', $initialReport->branch_id)
                                         ->lockForUpdate()
                                         ->first();
@@ -602,50 +479,54 @@ class InitialBakerreportsController extends Controller
                 $totalCostResponse[$ingredientReport->ingredients_id] = [
                     'quantity_used'  => $ingredientReport->quantity,
                     'total_cost'     => round($ingredientTotalCost, 2),
-                    'status'         => $stockFound ? 'confirmed' : 'missing_stock'
+                    'status'         => ($remainingQtyToDeduct <= 0) ? 'confirmed' : 'missing_stock'
                 ];
             }
 
-            // 🥖 Handle bread production and update branch product
-            foreach ($initialReport->breadBakersReports as $breadReport) {
-                BreadProductionReport::create([
-                    'branch_id'                  => $initialReport->branch_id,
-                    'user_id'                    => $initialReport->user_id,
-                    'branch_recipe_id'           => $initialReport->branch_recipe_id,
-                    'initial_bakerreports_id'    => $initialReport->id,
-                    'bread_id'                   => $breadReport->bread_id,
-                    'bread_new_production'       => $breadReport->bread_production
-                ]);
+            // 🥖 2. Handle Bread Production (Dough only)
+            if ($initialReport->recipe_category === 'Dough') {
+                foreach ($initialReport->breadBakersReports as $breadReport) {
+                    BreadProductionReport::create([
+                        'branch_id'                  => $initialReport->branch_id,
+                        'user_id'                    => $initialReport->user_id,
+                        'branch_recipe_id'           => $initialReport->branch_recipe_id,
+                        'initial_bakerreports_id'    => $initialReport->id,
+                        'bread_id'                   => $breadReport->bread_id,
+                        'bread_new_production'       => $breadReport->bread_production
+                    ]);
 
-                $branchProduct = BranchProduct::where('branches_id', $initialReport->branch_id)
-                                    ->where('product_id', $breadReport->bread_id)
-                                    ->lockForUpdate()
-                                    ->first();
+                    $branchProduct = BranchProduct::where('branches_id', $initialReport->branch_id)
+                                        ->where('product_id', $breadReport->bread_id)
+                                        ->lockForUpdate()
+                                        ->first();
 
-                if ($branchProduct) {
-                    $branchProduct->new_production   = $breadReport->bread_production;
-                    $branchProduct->total_quantity   += $breadReport->bread_production;
-                    $branchProduct->save();
+                    if ($branchProduct) {
+                        // TASK-07 FIX: Accumulate co-baker production using +=
+                        $branchProduct->new_production   += $breadReport->bread_production;
+                        $branchProduct->total_quantity   += $breadReport->bread_production;
+                        $branchProduct->save();
+                    }
                 }
             }
 
-            // ✅ Finalize
+            // ✅ 3. Finalize Status
             $initialReport->status = 'confirmed';
             $initialReport->save();
 
-            // LOG-04 — Baker Report: Confirm
+            // 📋 4. Log the action
             HistoryLogService::log([
                 'user_id'          => Auth::id(),
                 'report_id'        => $initialReport->id,
                 'type_of_report'   => 'Baker Report',
                 'name'             => ($initialReport->recipe_category ?? 'Baker') . " Report",
                 'action'           => 'confirmed',
-                'updated_data'     => "Confirmed production for report #{$initialReport->id}",
+                'updated_data'     => "Confirmed production for report #{$initialReport->id}. Stocks deducted.",
                 'designation'      => $initialReport->branch_id,
                 'designation_type' => 'branch',
             ]);
 
             return response()->json([
+                'status'             => 'success',
                 'message'            => 'Report confirmed successfully. Stocks deducted and costs recorded.',
                 'ingredient_costs'   => $totalCostResponse,
                 'grand_total'        => round($grandTotal, 2),
@@ -655,34 +536,16 @@ class InitialBakerreportsController extends Controller
 
     public function declineReport(Request $request, $id)
     {
-        $request->validate([
-            'remark' => 'required|string|max:255'
-        ]);
+        $initialReport = InitialBakerreports::findOrFail($id);
 
-        return DB::transaction(function () use ($request, $id) {
-            $initialReport = InitialBakerreports::findOrFail($id);
+        if ($initialReport->status === 'pending') {
+            $initialReport->status = 'declined';
+            $initialReport->remark = $request->remark;
+            $initialReport->save();
 
-            if ($initialReport->status === 'pending') {
-                $initialReport->status = 'declined';
-                $initialReport->remark = $request->remark;
-                $initialReport->save();
-
-                // LOG-05 — Baker Report: Decline
-                HistoryLogService::log([
-                    'user_id'          => Auth::id(),
-                    'report_id'        => $initialReport->id,
-                    'type_of_report'   => 'Baker Report',
-                    'name'             => ($initialReport->recipe_category ?? 'Baker') . " Report",
-                    'action'           => 'declined',
-                    'updated_data'     => "Reason: " . $request->remark,
-                    'designation'      => $initialReport->branch_id,
-                    'designation_type' => 'branch',
-                ]);
-
-                return response()->json(['message' => 'Report declined successfully']);
-            }
-            return response()->json(['message' => "Invalid report or status"], 400);
-        });
+            return response()->json(['message' => 'Report declined successfully']);
+        }
+        return response()->json(['message' => "Invalid report or status"], 400);
     }
     /**
      * Display the specified resource.

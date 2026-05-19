@@ -62,7 +62,8 @@ class InitialBakerreports extends Model
         }
         public function scopePendingDoughReports($query)
         {
-            return $query->where('recipe_category', 'dough')
+            // Now includes both Dough and Filling as long as they are pending (reviewable by Sales)
+            return $query->whereIn('recipe_category', ['Dough', 'Filling'])
                         ->where('status', 'pending');
         }
         public function breadBakerReports()

@@ -71,16 +71,14 @@ use App\Http\Controllers\BreadOutController;
 use App\Http\Controllers\RepurposeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-// })->middleware('auth:sanctum');
 
-Route::post('register',[ApiController::class, 'register']);
-Route::post('login',[ApiController::class, 'login']);
-Route::group([
-    "middleware" => ['auth:sanctum']
-], function(){
+Route::post('register', [ApiController::class, 'register']);
+Route::post('login', [ApiController::class, 'login']);
+
+Route::middleware('auth:sanctum')->group(function () {
     // Profile and Logout
-    Route::get('profile',[ApiController::class, 'profile']);
-    Route::get('logout',[ApiController::class, 'logout']);
+    Route::get('profile', [ApiController::class, 'profile']);
+    Route::get('logout', [ApiController::class, 'logout']);
 
     // Dashboard Analytics
     Route::prefix('dashboard')->group(function () {
@@ -119,7 +117,7 @@ Route::group([
     Route::apiResource('warehouse-raw-materials-report', WarehouseRawMaterialsReportController::class);
     Route::apiResource('selecta-stocks-added', SelectaAddedStockController::class);
     Route::apiResource('selecta-stocks-report', SelectaStocksReportController::class);
-    Route::apiResource('softdrinks-stocks-added', SoftdrinksAddedStockController::class);
+    Route::apiResource('softdrinks-stocks-added', SoftdrinksAddedStocksController::class);
     Route::apiResource('softdrinks-stocks-report', SoftdrinksStocksReportController::class);
 
     // Update Stocks & Prices
@@ -127,8 +125,6 @@ Route::group([
     Route::put('update-warehouse-rawMaterials/{id}', [WarehouseRawMaterialsReportController::class, 'updateStocks' ]);
     Route::put('update-branch-products/{id}', [BranchProductController::class, 'updatePrice' ]);
 
-    Route::apiResource('softdrinks-stocks-added', SoftdrinksAddedStocksController::class);
-    Route::apiResource('softdrinks-stocks-report', SoftdrinksStocksReportController::class);
     Route::apiResource('other-stocks-added', OtherAddedStocksController::class);
     Route::apiResource('other-stocks-report', OtherStocksReportController::class);
     Route::apiResource('warehouseRawMaterials-add-supply', WarehouseStockReportsController::class);
@@ -160,7 +156,6 @@ Route::group([
     Route::post('update-receipt-no-for-bir-report/{id}', [BirReportController::class, 'updateReceiptNoForReports']);
     Route::post('update-branch-description-for-bir-report/{id}', [BirReportController::class, 'updateBranchDescriptionForReports']);
     Route::post('saving-bir-report-admin', [BirReportController::class, 'savingBIRReportAdmin'] );
-    // Route::post('saving-vat-admin', [BirReportController::class, 'savingVATAdmin'] );
     Route::post('received-branch-product', [AddedProductsController::class, 'receiveProduct']);
     Route::post('received-branch-bread', [BreadAddedController::class, 'receivedBread']);
     Route::post('admin-sales-report', [SalesReportsController::class, 'adminStoreSalesReport']);
@@ -186,13 +181,11 @@ Route::group([
     Route::post('confirm-selecta-report/{id}', [SelectaStocksReportController::class, 'confirmReport']);
     Route::post('confirm-softdrinks-report/{id}', [SoftdrinksStocksReportController::class, 'confirmReport']);
     Route::post('confirm-otherProd-report/{id}', [OtherStocksReportController::class, 'confirmReport']);
-    // Route::post('admin-create-admin-insert-recipe-baker-report', [InitialBakerreportsController::class, 'adminCreateAdminInsertRecipeBakerReport']);
     Route::post('admin-create-baker-report', [InitialBakerreportsController::class, 'adminCreateReport']);
     Route::post('confirm-initial-baker-report/{id}', [InitialBakerreportsController::class, 'confirmReport']);
     Route::post('decline-initial-baker-report/{id}', [InitialBakerreportsController::class, 'declineReport']);
     Route::post('search-branches-by-id', [BranchProductController::class, 'searchBranchId' ]);
     Route::post('search-branch-products', [BranchProductController::class, 'searchBranchProducts' ]);
-    // Route::post('sending-branch-products', [BranchProductController::class, 'sendingBranchProducts' ]);
     Route::post('search-selecta-products', [BranchProductController::class, 'searchBranchProducts' ]);
     Route::post('search-user', [UserController::class, 'searchUser' ]);
     Route::post('search', [UserController::class, 'search' ]);
@@ -240,7 +233,6 @@ Route::group([
 
 
     Route::put('update-employee-charges/{id}', [EmployeeSaleschargesReportController::class, 'updateCharges']);
-    // Route::put('employee-charges/{id}', [SalesReportsController::class, 'updateEmployeeCharges']);
     Route::put('update-employment-type/salary/{id}', [EmploymentTypeController::class, 'updateEmployeementTypeSalary']);
     Route::put('incentives-bases/update-number-employee/{id}', [IncentivesBasesController::class, 'updateNumberEmployee']);
     Route::put('incentives-bases/update-target/{id}', [IncentivesBasesController::class, 'updateTarget']);
