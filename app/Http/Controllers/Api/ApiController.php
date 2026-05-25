@@ -97,9 +97,11 @@ class ApiController extends Controller
                 ], 401);
             }
 
-            $user    = User::where('email', $request->email)->first();
-            $device  = Device::where('uuid', $request->uuid)->first(); // Device already validated by `exists` rule
+            $user    = Auth::user();                                    // ✅ INEFF-11: no second DB query — user already cached by Auth::attempt()
+            $device  = Device::where('uuid', $request->uuid)->first();
             $role    = $user->role;
+
+            $user->tokens()->delete();                                   // ✅ BUG-27: revoke all previous tokens before issuing a new one
 
             return response()->json([
                 'status'     => true,

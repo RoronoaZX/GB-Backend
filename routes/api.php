@@ -78,7 +78,7 @@ Route::post('login', [ApiController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     // Profile and Logout
     Route::get('profile', [ApiController::class, 'profile']);
-    Route::get('logout', [ApiController::class, 'logout']);
+    Route::post('logout', [ApiController::class, 'logout']);
 
     // Dashboard Analytics
     Route::prefix('dashboard')->group(function () {
@@ -189,7 +189,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('search-selecta-products', [BranchProductController::class, 'searchBranchProducts' ]);
     Route::post('search-user', [UserController::class, 'searchUser' ]);
     Route::post('search', [UserController::class, 'search' ]);
-    Route::post('search-user-with-branchID', [BranchEmployeeController::class, 'searchUserWithBranch' ]);
+    Route::post('search-user-with-branchID', [UserController::class, 'searchUserWithID' ]);
     Route::post('search-branch-employee', [BranchEmployeeController::class, 'searchBranchEmployee' ]);
     Route::post('search-branch-rawMaterials', [BranchRawMaterialsReportController::class, 'searchBranchRawMaterials' ]);
     Route::post('search-warehouse-rawMaterials', [WarehouseRawMaterialsReportController::class, 'searchWarehouseRawMaterials' ]);
@@ -299,7 +299,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('update-otherProducst-sales-addedstocks-report/{id}', [OtherProductsController::class, 'updatedAddedStocks' ]);
     Route::put('update-expenses-sales-description-report/{id}', [ExpencesReportController::class, 'updateDescription' ]);
     Route::put('update-branch-products-total-quantity/{id}', [BranchProductController::class, 'updateTotatQuatity' ]);
-    Route::put('update-branch-products-total-quantity/{id}', [BranchProductController::class, 'updateTotatQuatity' ]);
     Route::put('update-branch-products-new-production/{id}', [BranchProductController::class, 'updateNewProduction' ]);
     Route::put('update-branch-products-beginnings/{id}', [BranchProductController::class, 'updateBeginnings' ]);
     Route::put('update/branch-baker-report/{id}', [InitialBakerreportsController::class, 'updateBakersReport']);
@@ -342,9 +341,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('fetch-drt-payroll-per-cut-off/{id}', [DailyTimeRecordController::class, 'getDtrByStructuredCutoff']);
     Route::get('warehouse/{warehouseId}/added-stocks-history', [WarehouseStockReportsController::class, 'fetchWarehouseAddedStocks']);
     Route::get('fetch-branch-data-for-bir-report/{branchId}', [BirReportController::class, 'fetchBranchDataForReports']);
-    Route::get('fetch-expenses-report/{branchId}', [BirReportController::class, 'fetchExpensesReports']);
-    Route::get('fetch-vat-bir-reports/{branchId}', [BirReportController::class, 'fetchVATBirReports']);
-    Route::get('fetch-non-vat-bir-reports/{branchId}', [BirReportController::class, 'fetchNonVATBirReports']);
     Route::get('fetch-expenses-report/{branchId}', [BirReportController::class, 'fetchExpensesReports']);
     Route::get('fetch-vat-bir-reports/{branchId}', [BirReportController::class, 'fetchVATBirReports']);
     Route::get('fetch-non-vat-bir-reports/{branchId}', [BirReportController::class, 'fetchNonVATBirReports']);

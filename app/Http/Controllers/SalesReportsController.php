@@ -92,166 +92,173 @@ class SalesReportsController extends Controller
             return response()->json(['errors' => $validator->errors()], 400);
         }
 
-        $salesReport = new SalesReports([
-            'branch_id'              => $request->branch_id,
-            'user_id'                => $request->user_id,
-            'denomination_total'     => $request->denomination_total,
-            'expenses_total'         => $request->expenses_total,
-            'products_total_sales'   => $request->products_total_sales,
-            'charges_amount'         => $request->charges_amount,
-            'over_total'             => $request->over_total,
-            'credit_total'           => $request->credit_total,
-            'created_at'             => $request->created_at,
-        ]);
-
-        $salesReport->timestamps = false; // ✅ Allow custom created_at
-        $salesReport->save();
-
-        foreach ($request->breadReports as $breadReport) {
-            $breadReport['status'] = 'confirmed';
-
-            $salesReport->breadReports()->create($breadReport);
-
-            $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
-                ->where('product_id', $breadReport['product_id'])
-                ->first();
-
-            if ($branchProduct) {
-                $branchProduct->beginnings       = $breadReport['remaining'];
-                $branchProduct->new_production   = $breadReport['branch_new_production'];
-                $branchProduct->total_quantity   = $breadReport['remaining'];
-                $branchProduct->save();
-            }
-        }
-
-        foreach ($request->selectaReports ?? [] as $selectaReport) {
-            $selectaReport['status'] = 'confirmed';
-
-            $salesReport->selectaReports()->create($selectaReport);
-
-            $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
-                ->where('product_id', $selectaReport['product_id'])
-                ->first();
-
-            if ($branchProduct) {
-                $branchProduct->beginnings       = $selectaReport['remaining'];
-                $branchProduct->new_production   = $selectaReport['new_production'];
-                $branchProduct->total_quantity   = $selectaReport['remaining'];
-                $branchProduct->save();
-            }
-        }
-
-        foreach ($request->nestleReports as $nestleReport) {
-            $nestleReport['status'] = 'confirmed';
-
-            $salesReport->nestleReports()->create($nestleReport);
-        }
-
-        foreach ($request->cakeReports ?? [] as $cakeReport) {
-
-
-            $existingCake = CakeReport::find($cakeReport['cake_report_id']);
-
-            if ($existingCake) {
-                $existingCake->sales_status = $cakeReport['sales_status'];
-                $existingCake->save();
-
-                $salesReport->cakeSalesReports()->create([
-                    'sales_report_id'    => $salesReport->id,
-                    'cake_report_id'     => $cakeReport['cake_report_id'],
-                ]);
-            } else {
-                return response()->json([
-                    'error' => "Cake report with ID {$cakeReport['cake_report_id']} not found."
-                ], 404);
-            }
-        }
-
-        foreach ($request->softdrinksReports ?? [] as $softdrinksReport) {
-            $softdrinksReport['status'] = 'confirmed';
-
-            $salesReport->softdrinksReports()->create($softdrinksReport);
-
-            $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
-                ->where('product_id', $softdrinksReport['product_id'])
-                ->first();
-
-            if ($branchProduct) {
-                $branchProduct->beginnings       = $softdrinksReport['remaining'];
-                $branchProduct->new_production   = $softdrinksReport['new_production'];
-                $branchProduct->total_quantity   = $softdrinksReport['remaining'];
-                $branchProduct->save();
-            }
-        }
-
-        foreach ($request->otherProductsReports ?? [] as $otherProductsReport) {
-            $otherProductsReport['status'] = 'confirmed';
-
-
-            $salesReport->otherProductsReports()->create($otherProductsReport);
-
-            $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
-                ->where('product_id', $otherProductsReport['product_id'])
-                ->first();
-
-            if ($branchProduct) {
-                $branchProduct->beginnings       = $otherProductsReport['remaining'];
-                $branchProduct->new_production   = $otherProductsReport['new_production'];
-                $branchProduct->total_quantity   = $otherProductsReport['remaining'];
-                $branchProduct->save();
-            }
-        }
-
-        foreach ($request->withOutReceiptExpensesReport ?? [] as $withOutReceiptExpensesReport) {
-            $salesReport->expensesReports()->create($withOutReceiptExpensesReport);
-        }
-
-        $denominationReport = $request->denominationReports;
-
-        foreach ($denominationReport as $key => $value) {
-            if (is_string($value)) {
-                $denominationReport[$key] = (int) str_replace(',', '', $value);
-            }
-        }
-
-        $salesReport->denominationReports()->create($denominationReport);
-
-        foreach ($request->creditReports ?? [] as $creditReportData) {
-            $creditReports = $salesReport->creditReports()->create([
-                'credit_user_id'     => $creditReportData['credit_user_id'],
-                'total_amount'       => $creditReportData['total_amount'],
-                'branch_id'          => $creditReportData['branch_id'],
-                'user_id'            => $creditReportData['user_id'],
+        $salesReport = null; // initialized before transaction for post-catch access
+        DB::beginTransaction();
+        try {
+            $salesReport = new SalesReports([
+                'branch_id'              => $request->branch_id,
+                'user_id'                => $request->user_id,
+                'denomination_total'     => $request->denomination_total,
+                'expenses_total'         => $request->expenses_total,
+                'products_total_sales'   => $request->products_total_sales,
+                'charges_amount'         => $request->charges_amount,
+                'over_total'             => $request->over_total,
+                'credit_total'           => $request->credit_total,
+                'created_at'             => $request->created_at,
             ]);
 
-            foreach ($creditReportData['credits'] ?? [] as $credit) {
-                $credit['credit_user_id'] = $creditReportData['credit_user_id'];
-                $creditReports->creditProducts()->create($credit);
+            $salesReport->timestamps = false; // ✅ Allow custom created_at
+            $salesReport->save();
+
+            foreach ($request->breadReports as $breadReport) {
+                $breadReport['status'] = 'confirmed';
+
+                $salesReport->breadReports()->create($breadReport);
+
+                $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
+                    ->where('product_id', $breadReport['product_id'])
+                    ->first();
+
+                if ($branchProduct) {
+                    $branchProduct->beginnings       = $breadReport['remaining'];
+                    $branchProduct->new_production   = $breadReport['branch_new_production'];
+                    $branchProduct->total_quantity   = $breadReport['remaining'];
+                    $branchProduct->save();
+                }
             }
-        }
 
-        // --- Compute Charges Distribution ---
-        $employees = $request->employee_in_shift;
+            foreach ($request->selectaReports ?? [] as $selectaReport) {
+                $selectaReport['status'] = 'confirmed';
 
-        // make sure not empty (already validated, but safe check)
-        if (count($employees) > 0) {
+                $salesReport->selectaReports()->create($selectaReport);
 
-            // Divide charges_amount equally
-            $totalCharges = floatval($request->charges_amount);
-            $employeeCount = count($employees);
-            $sharePerEmployee = $employeeCount > 0 ? round($totalCharges / $employeeCount, 2) : 0;
+                $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
+                    ->where('product_id', $selectaReport['product_id'])
+                    ->first();
 
-            // Save record for each employee
-            foreach ($employees as $shiftEmployee) {
-                EmployeeSaleschargesReport::create([
-                    'sales_report_id'    => $salesReport->id,
-                    'employee_id'        => $shiftEmployee['employee_id'],
-                    'charge_amount'      => $sharePerEmployee
+                if ($branchProduct) {
+                    $branchProduct->beginnings       = $selectaReport['remaining'];
+                    $branchProduct->new_production   = $selectaReport['new_production'];
+                    $branchProduct->total_quantity   = $selectaReport['remaining'];
+                    $branchProduct->save();
+                }
+            }
+
+            foreach ($request->nestleReports ?? [] as $nestleReport) {
+                $nestleReport['status'] = 'confirmed';
+
+                $salesReport->nestleReports()->create($nestleReport);
+            }
+
+            foreach ($request->cakeReports ?? [] as $cakeReport) {
+                $existingCake = CakeReport::find($cakeReport['cake_report_id']);
+
+                if ($existingCake) {
+                    $existingCake->sales_status = $cakeReport['sales_status'];
+                    $existingCake->save();
+
+                    $salesReport->cakeSalesReports()->create([
+                        'sales_report_id'    => $salesReport->id,
+                        'cake_report_id'     => $cakeReport['cake_report_id'],
+                    ]);
+                } else {
+                    throw new \Exception("Cake report with ID {$cakeReport['cake_report_id']} not found.");
+                }
+            }
+
+            foreach ($request->softdrinksReports ?? [] as $softdrinksReport) {
+                $softdrinksReport['status'] = 'confirmed';
+
+                $salesReport->softdrinksReports()->create($softdrinksReport);
+
+                $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
+                    ->where('product_id', $softdrinksReport['product_id'])
+                    ->first();
+
+                if ($branchProduct) {
+                    $branchProduct->beginnings       = $softdrinksReport['remaining'];
+                    $branchProduct->new_production   = $softdrinksReport['new_production'];
+                    $branchProduct->total_quantity   = $softdrinksReport['remaining'];
+                    $branchProduct->save();
+                }
+            }
+
+            foreach ($request->otherProductsReports ?? [] as $otherProductsReport) {
+                $otherProductsReport['status'] = 'confirmed';
+
+                $salesReport->otherProductsReports()->create($otherProductsReport);
+
+                $branchProduct = BranchProduct::where('branches_id', $request->branch_id)
+                    ->where('product_id', $otherProductsReport['product_id'])
+                    ->first();
+
+                if ($branchProduct) {
+                    $branchProduct->beginnings       = $otherProductsReport['remaining'];
+                    $branchProduct->new_production   = $otherProductsReport['new_production'];
+                    $branchProduct->total_quantity   = $otherProductsReport['remaining'];
+                    $branchProduct->save();
+                }
+            }
+
+            foreach ($request->withOutReceiptExpensesReport ?? [] as $withOutReceiptExpensesReport) {
+                $salesReport->expensesReports()->create($withOutReceiptExpensesReport);
+            }
+
+            $denominationReport = $request->denominationReports;
+
+            foreach ($denominationReport as $key => $value) {
+                if (is_string($value)) {
+                    $denominationReport[$key] = (int) str_replace(',', '', $value);
+                }
+            }
+
+            $salesReport->denominationReports()->create($denominationReport);
+
+            foreach ($request->creditReports ?? [] as $creditReportData) {
+                $creditReports = $salesReport->creditReports()->create([
+                    'credit_user_id'     => $creditReportData['credit_user_id'],
+                    'total_amount'       => $creditReportData['total_amount'],
+                    'branch_id'          => $creditReportData['branch_id'],
+                    'user_id'            => $creditReportData['user_id'],
                 ]);
+
+                foreach ($creditReportData['credits'] ?? [] as $credit) {
+                    $credit['credit_user_id'] = $creditReportData['credit_user_id'];
+                    $creditReports->creditProducts()->create($credit);
+                }
             }
+
+            // --- Compute Charges Distribution ---
+            $employees = $request->employee_in_shift;
+
+            // make sure not empty (already validated, but safe check)
+            if (count($employees) > 0) {
+                // Divide charges_amount equally
+                $totalCharges = floatval($request->charges_amount);
+                $employeeCount = count($employees);
+                $sharePerEmployee = $employeeCount > 0 ? round($totalCharges / $employeeCount, 2) : 0;
+
+                // Save record for each employee
+                foreach ($employees as $shiftEmployee) {
+                    EmployeeSaleschargesReport::create([
+                        'sales_report_id'    => $salesReport->id,
+                        'employee_id'        => $shiftEmployee['employee_id'],
+                        'charge_amount'      => $sharePerEmployee
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Failed to save sales report. All changes have been rolled back.',
+                'error'   => $e->getMessage(),
+            ], 500);
         }
 
-        // ✅ HISTORY LOG — Admin submitted sales report
+        // ✅ HISTORY LOG — Admin submitted sales report (runs only after confirmed commit)
         $branch      = Branch::find($request->branch_id);
         $submitter   = User::with('employee')->find($request->user_id);
         $submitterName = $submitter?->employee
@@ -273,10 +280,10 @@ class SalesReportsController extends Controller
             'designation'      => $request->branch_id,
             'designation_type' => 'branch',
             'updated_data'     => [
-                'gross_sales' => $request->products_total_sales,
-                'charges'     => $request->charges_amount,
-                'over'        => $request->over_total,
-                'submitted_by' => $submitterName
+                'gross_sales'  => $request->products_total_sales,
+                'charges'      => $request->charges_amount,
+                'over'         => $request->over_total,
+                'submitted_by' => $submitterName,
             ],
         ]);
 
@@ -313,6 +320,7 @@ class SalesReportsController extends Controller
             return response()->json(['errors' => $validator->errors()], 400);
         }
 
+        $salesReport = null; // initialized before transaction for post-catch access
         DB::beginTransaction();
         try {
             $salesReport = SalesReports::create([
@@ -419,43 +427,43 @@ class SalesReportsController extends Controller
                 }
             }
 
-            // ✅ HISTORY LOG — Cashier submitted sales report
-            $branch        = Branch::find($request->branch_id);
-            $submitter     = User::with('employee')->find($request->user_id);
-            $submitterName = $submitter?->employee
-                ? trim($submitter->employee->firstname . ' ' . $submitter->employee->lastname)
-                : ('User #' . $request->user_id);
-
-            // Determine AM or PM shift from the submission time (Asia/Manila)
-            $nowManila  = Carbon::now('Asia/Manila');
-            $reportDate = $nowManila->format('F j, Y');   // e.g. May 8, 2026
-            $hour       = (int) $nowManila->format('G');  // 0–23
-            $shift      = ($hour >= 6 && $hour < 22) ? 'AM' : 'PM';
-
-            HistoryLogService::log([
-                'user_id'          => Auth::id(),
-                'report_id'        => $salesReport->id,
-                'type_of_report'   => 'Sales Report',
-                'name'             => ($branch->name ?? 'Branch') . ' — ' . $reportDate . ' (' . $shift . ' Shift)',
-                'action'           => 'created',
-                'designation'      => $request->branch_id,
-                'designation_type' => 'branch',
-                'updated_data'     => [
-                    'gross_sales'  => $request->products_total_sales,
-                    'charges'      => $request->charges_amount,
-                    'over'         => $request->over_total,
-                    'submitted_by' => $submitterName,
-                ],
-            ]);
-
             DB::commit();
-
-            return response()->json(['message' => 'Sales report submitted successfully.'], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Failed to submit sales report.', 'error' => $e->getMessage()], 500);
         }
+
+        // ✅ HISTORY LOG — Cashier submitted sales report (runs only after confirmed commit)
+        $branch        = Branch::find($request->branch_id);
+        $submitter     = User::with('employee')->find($request->user_id);
+        $submitterName = $submitter?->employee
+            ? trim($submitter->employee->firstname . ' ' . $submitter->employee->lastname)
+            : ('User #' . $request->user_id);
+
+        // Determine AM or PM shift from the submission time (Asia/Manila)
+        $nowManila  = Carbon::now('Asia/Manila');
+        $reportDate = $nowManila->format('F j, Y');   // e.g. May 8, 2026
+        $hour       = (int) $nowManila->format('G');  // 0–23
+        $shift      = ($hour >= 6 && $hour < 22) ? 'AM' : 'PM';
+
+        HistoryLogService::log([
+            'user_id'          => Auth::id(),
+            'report_id'        => $salesReport->id,
+            'type_of_report'   => 'Sales Report',
+            'name'             => ($branch->name ?? 'Branch') . ' — ' . $reportDate . ' (' . $shift . ' Shift)',
+            'action'           => 'created',
+            'designation'      => $request->branch_id,
+            'designation_type' => 'branch',
+            'updated_data'     => [
+                'gross_sales'  => $request->products_total_sales,
+                'charges'      => $request->charges_amount,
+                'over'         => $request->over_total,
+                'submitted_by' => $submitterName,
+            ],
+        ]);
+
+        return response()->json(['message' => 'Sales report submitted successfully.'], 201);
     }
 
     public function fetchBranchSalesReport($branchId)

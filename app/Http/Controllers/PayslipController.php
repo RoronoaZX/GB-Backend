@@ -157,7 +157,6 @@ class PayslipController extends Controller
             'payslip_deductions.payslip_deduction_ca'           => 'nullable|array',
             'payslip_deductions.payslip_deduction_charges'      => 'nullable|array',
             'payslip_deductions.payslip_deduction_credits'      => 'nullable|array',
-            'payslip_deductions.payslip_deduction_uniforms'     => 'nullable',
 
             // Payslip Deduction Benefits
             'payslip_deductions.payslip_deduction_benefits.hdmf'    => 'nullable|numeric|min:0',
@@ -181,29 +180,31 @@ class PayslipController extends Controller
             'payslip_deductions.payslip_deduction_charges.*.charge_amount'              => 'required|numeric|min:0',
 
             // Payslip Deduction Uniforms
-            'payslip_deductions.payslip_deduction_uniforms.id'                   => 'nullable|integer',
-            'payslip_deductions.payslip_deduction_uniforms.date'                 => 'nullable|date',
-            'payslip_deductions.payslip_deduction_uniforms.employee_id'          => 'nullable|integer',
-            'payslip_deductions.payslip_deduction_uniforms.numberOfPayments'     => 'nullable|integer|min:0',
-            'payslip_deductions.payslip_deduction_uniforms.paymentsPerPayroll'   => 'nullable|numeric|min:0',
-            'payslip_deductions.payslip_deduction_uniforms.reason'               => 'nullable|string',
-            'payslip_deductions.payslip_deduction_uniforms.remainingPayments'    => 'nullable|numeric|min:0',
-            'payslip_deductions.payslip_deduction_uniforms.pants'                => 'nullable|array',
-            'payslip_deductions.payslip_deduction_uniforms.t_shirt'             => 'nullable|array',
+            'payslip_deductions.payslip_deduction_uniforms'                      => 'nullable|array',
+            'payslip_deductions.payslip_deduction_uniforms.*.id'                 => 'nullable|integer|exists:uniforms,id',
+            'payslip_deductions.payslip_deduction_uniforms.*.date'               => 'nullable|date',
+            'payslip_deductions.payslip_deduction_uniforms.*.employee_id'        => 'nullable|integer|exists:employees,id',
+            'payslip_deductions.payslip_deduction_uniforms.*.number_of_payments' => 'nullable|integer|min:0',
+            'payslip_deductions.payslip_deduction_uniforms.*.payments_per_payroll'=> 'nullable|numeric|min:0',
+            'payslip_deductions.payslip_deduction_uniforms.*.reason'             => 'nullable|string',
+            'payslip_deductions.payslip_deduction_uniforms.*.remaining_payments' => 'nullable|numeric|min:0',
+            'payslip_deductions.payslip_deduction_uniforms.*.total_amount'       => 'nullable|numeric|min:0',
+            'payslip_deductions.payslip_deduction_uniforms.*.pants'              => 'nullable|array',
+            'payslip_deductions.payslip_deduction_uniforms.*.t_shirt'            => 'nullable|array',
 
             // Payslip Deduction Uniform Pants
-            'payslip_deductions.payslip_deduction_uniforms.pants.*.id'             => 'nullable|integer|exists:uniform_pants,id',
-            'payslip_deductions.payslip_deduction_uniforms.pants.*.created_at'     => 'nullable|date',
-            'payslip_deductions.payslip_deduction_uniforms.pants.*.pcs'            => 'nullable|integer|min:0',
-            'payslip_deductions.payslip_deduction_uniforms.pants.*.price'          => 'nullable|numeric|min:0',
-            'payslip_deductions.payslip_deduction_uniforms.pants.*.size'           => 'nullable|string',
+            'payslip_deductions.payslip_deduction_uniforms.*.pants.*.id'           => 'nullable|integer|exists:uniform_pants,id',
+            'payslip_deductions.payslip_deduction_uniforms.*.pants.*.created_at'   => 'nullable|date',
+            'payslip_deductions.payslip_deduction_uniforms.*.pants.*.pcs'          => 'nullable|integer|min:0',
+            'payslip_deductions.payslip_deduction_uniforms.*.pants.*.price'        => 'nullable|numeric|min:0',
+            'payslip_deductions.payslip_deduction_uniforms.*.pants.*.size'         => 'nullable|string',
 
             // Payslip Deduction Uniform T-Shirts
-            'payslip_deductions.payslip_deduction_uniforms.t_shirts.*.id'             => 'nullable|integer|exists:uniform_tshirts,id',
-            'payslip_deductions.payslip_deduction_uniforms.t_shirts.*.created_at'     => 'nullable|date',
-            'payslip_deductions.payslip_deduction_uniforms.t_shirts.*.pcs'            => 'nullable|integer|min:0',
-            'payslip_deductions.payslip_deduction_uniforms.t_shirts.*.price'          => 'nullable|numeric|min:0',
-            'payslip_deductions.payslip_deduction_uniforms.t_shirts.*.size'           => 'nullable|string',
+            'payslip_deductions.payslip_deduction_uniforms.*.t_shirt.*.id'         => 'nullable|integer|exists:uniform_tshirts,id',
+            'payslip_deductions.payslip_deduction_uniforms.*.t_shirt.*.created_at' => 'nullable|date',
+            'payslip_deductions.payslip_deduction_uniforms.*.t_shirt.*.pcs'        => 'nullable|integer|min:0',
+            'payslip_deductions.payslip_deduction_uniforms.*.t_shirt.*.price'      => 'nullable|numeric|min:0',
+            'payslip_deductions.payslip_deduction_uniforms.*.t_shirt.*.size'       => 'nullable|string',
 
             // Payslip Deduction Credit
             'payslip_deductions.payslip_deduction_credits.*.id'                    => 'nullable|integer|exists:employee_credit_products,id',
@@ -338,23 +339,23 @@ class PayslipController extends Controller
                     'device_uuid_in'        => $record['device_uuid_in'],
                     'device_uuid_out'       => $record['device_uuid_out'],
                     'employee_id'           => $record['employee_id'],
-                    'employee_allowance'    => $record['employee_allowance'],
+                    'employee_allowance'    => $record['employee_allowance'] ?? 0,
                     'time_in'               => $record['time_in'],
                     'time_out'              => $record['time_out'],
-                    'lunch_break_start'     => $record['lunch_break_start'],
-                    'lunch_break_end'       => $record['lunch_break_end'],
-                    'break_start'           => $record['break_start'],
-                    'break_end'             => $record['break_end'],
-                    'overtime_start'        => $record['overtime_start'],
-                    'overtime_end'          => $record['overtime_end'],
-                    'overtime_reason'       => $record['overtime_reason'],
-                    'ot_status'             => $record['ot_status'],
-                    'approved_by'           => $record['approved_by'],
-                    'declined_reason'       => $record['declined_reason'],
-                    'half_day_reason'       => $record['half_day_reason'],
-                    'shift_status'          => $record['shift_status'],
-                    'schedule_in'           => $record['schedule_in'],
-                    'schedule_out'          => $record['schedule_out'],
+                    'lunch_break_start'     => $record['lunch_break_start'] ?? null,
+                    'lunch_break_end'       => $record['lunch_break_end'] ?? null,
+                    'break_start'           => $record['break_start'] ?? null,
+                    'break_end'             => $record['break_end'] ?? null,
+                    'overtime_start'        => $record['overtime_start'] ?? null,
+                    'overtime_end'          => $record['overtime_end'] ?? null,
+                    'overtime_reason'       => $record['overtime_reason'] ?? null,
+                    'ot_status'             => $record['ot_status'] ?? null,
+                    'approved_by'           => $record['approved_by'] ?? null,
+                    'declined_reason'       => $record['declined_reason'] ?? null,
+                    'half_day_reason'       => $record['half_day_reason'] ?? null,
+                    'shift_status'          => $record['shift_status'] ?? null,
+                    'schedule_in'           => $record['schedule_in'] ?? null,
+                    'schedule_out'          => $record['schedule_out'] ?? null,
                 ]);
             }
 
@@ -441,58 +442,62 @@ class PayslipController extends Controller
             // Payslip Deductions Uniforms
             $deductionUniforms = $request->input('payslip_deductions.payslip_deduction_uniforms', []);
 
-            foreach ($deductionUniforms as $deductionUniform) {
-                $uniforms = Uniform::find($deductionUniform['id']);
+            if (is_array($deductionUniforms)) {
+                foreach ($deductionUniforms as $deductionUniform) {
+                    if (is_array($deductionUniform) && !empty($deductionUniform)) {
+                        $uniforms = Uniform::find($deductionUniform['id']);
 
-                if (is_array($deductionUniform) && !empty($deductionUniform)) {
+                        if ($uniforms) {
+                            $paymentsPerPayroll = $deductionUniform['payments_per_payroll'] ?? $uniforms->payments_per_payroll;
+                            $newRemainingPayments = $uniforms->remaining_payments - $paymentsPerPayroll;
 
-                    $newRemainingPayments = $uniforms->remaining_payments - $uniforms->payments_per_payroll;
+                            $uniforms->remaining_payments = max(0, $newRemainingPayments);
+                            $uniforms->save();
 
-                    $uniforms->remaining_payments = max(0, $newRemainingPayments);
-                    $uniforms->save();
-
-                    $payslipUniforms = PayslipDeductionUniforms::create([
-                        'payslip_deduction_id'      => $payslipDeductions->id,
-                        'uniform_id'                => $deductionUniform['id'],
-                        'employee_id'               => $deductionUniform['employee_id'],
-                        'date'                      => !empty($deductionUniform['created_at'])
-                                                        ? Carbon::parse($deductionUniform['created_at'])->timezone('Asia/Manila')
-                                                        : null,
-                        'number_of_payments'        => $deductionUniform['number_of_payments'],
-                        'payments_per_payroll'      => $deductionUniform['payments_per_payroll'],
-                        'remaining_payments'        => $deductionUniform['remaining_payments'],
-                        'total_amount'              => $deductionUniform['total_amount'],
-                    ]);
-
-                    // Pants
-                     $deductionUniformsPants = $deductionUniform['pants'] ?? [];
-                        if (is_array($deductionUniformsPants) && !empty($deductionUniformsPants)) {
-                            foreach ($deductionUniformsPants as $pants) {
-                                PayslipDeductionUniformPants::create([
-                                    'payslip_deduction_uniform_id'  => $payslipUniforms->id,
-                                    'uniform_pant_id'               => $pants['id'],
-                                    'date'                          => Carbon::parse($pants['created_at'])->timezone('Asia/Manila'),
-                                    'pcs'                           => $pants['pcs'],
-                                    'price'                         => $pants['price'],
-                                    'size'                          => $pants['size'],
-                                ]);
-                            }
-                        }
-
-                    // T-Shirts
-                    $deductionUniformsTShirts = $deductionUniform['t_shirt'] ?? [];
-                    if (!empty($deductionUniformsTShirts)) {
-                        foreach ($deductionUniformsTShirts as $tShirt) {
-                            PayslipDeductionUniformTshirt::create([
-                                'payslip_deduction_uniform_id' => $payslipUniforms->id,
-                                'uniform_tshirt_id'            => $tShirt['id'] ?? null,
-                                'date'                         => !empty($tShirt['created_at'])
-                                                                    ? Carbon::parse($tShirt['created_at'])->timezone('Asia/Manila')
-                                                                    : null,
-                                'pcs'                          => $tShirt['pcs'] ?? null,
-                                'price'                        => $tShirt['price'] ?? null,
-                                'size'                         => $tShirt['size'] ?? null,
+                            $payslipUniforms = PayslipDeductionUniforms::create([
+                                'payslip_deduction_id'      => $payslipDeductions->id,
+                                'uniform_id'                => $deductionUniform['id'],
+                                'employee_id'               => $deductionUniform['employee_id'],
+                                'date'                      => !empty($deductionUniform['created_at'])
+                                                                ? Carbon::parse($deductionUniform['created_at'])->timezone('Asia/Manila')
+                                                                : (!empty($deductionUniform['date']) ? Carbon::parse($deductionUniform['date'])->timezone('Asia/Manila') : null),
+                                'number_of_payments'        => $deductionUniform['number_of_payments'] ?? 0,
+                                'payments_per_payroll'      => $paymentsPerPayroll,
+                                'remaining_payments'        => max(0, $newRemainingPayments),
+                                'total_amount'              => $deductionUniform['total_amount'] ?? 0,
                             ]);
+
+                            // Pants
+                            $deductionUniformsPants = $deductionUniform['pants'] ?? [];
+                            if (is_array($deductionUniformsPants) && !empty($deductionUniformsPants)) {
+                                foreach ($deductionUniformsPants as $pants) {
+                                    PayslipDeductionUniformPants::create([
+                                        'payslip_deduction_uniform_id'  => $payslipUniforms->id,
+                                        'uniform_pant_id'               => $pants['id'],
+                                        'date'                          => Carbon::parse($pants['created_at'])->timezone('Asia/Manila'),
+                                        'pcs'                           => $pants['pcs'],
+                                        'price'                         => $pants['price'],
+                                        'size'                          => $pants['size'],
+                                    ]);
+                                }
+                            }
+
+                            // T-Shirts
+                            $deductionUniformsTShirts = $deductionUniform['t_shirt'] ?? [];
+                            if (is_array($deductionUniformsTShirts) && !empty($deductionUniformsTShirts)) {
+                                foreach ($deductionUniformsTShirts as $tShirt) {
+                                    PayslipDeductionUniformTshirt::create([
+                                        'payslip_deduction_uniform_id' => $payslipUniforms->id,
+                                        'uniform_tshirt_id'            => $tShirt['id'] ?? null,
+                                        'date'                         => !empty($tShirt['created_at'])
+                                                                            ? Carbon::parse($tShirt['created_at'])->timezone('Asia/Manila')
+                                                                            : null,
+                                        'pcs'                          => $tShirt['pcs'] ?? null,
+                                        'price'                        => $tShirt['price'] ?? null,
+                                        'size'                         => $tShirt['size'] ?? null,
+                                    ]);
+                                }
+                            }
                         }
                     }
                 }

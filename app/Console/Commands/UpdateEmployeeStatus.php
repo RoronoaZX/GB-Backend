@@ -28,10 +28,10 @@ class UpdateEmployeeStatus extends Command
      */
     public function handle()
     {
-        $today = Carbon::today();
+        $today = Carbon::today('Asia/Manila');
 
         // Set employees ON-LEAVE
-        $onLeaves = EmployeeOnLeave::where('status', 'Approved')
+        $onLeaves = EmployeeOnLeave::where('status', 'approved')
                     ->whereDate('start_date', '<=', $today)
                     ->whereDate('end_date', '>=', $today)
                     ->get();
@@ -42,7 +42,7 @@ class UpdateEmployeeStatus extends Command
         }
 
         // Set employees back to ACTIVE
-        $endedLeaves = EmployeeOnLeave::where('status', 'Approved')
+        $endedLeaves = EmployeeOnLeave::where('status', 'approved')
                 ->whereDate('end_date', '<', $today)
                 ->get();
 

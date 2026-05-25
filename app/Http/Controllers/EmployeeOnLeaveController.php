@@ -24,7 +24,7 @@ class EmployeeOnLeaveController extends Controller
         }
 
         if ($request->has('year')) {
-            $query->whereYear('created_at', $request->year);
+            $query->whereYear(DB::raw('CONVERT_TZ(created_at, "+00:00", "+08:00")'), $request->year);
         }
 
         if ($request->has('status')) {

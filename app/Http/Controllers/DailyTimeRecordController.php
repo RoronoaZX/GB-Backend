@@ -343,7 +343,7 @@ class DailyTimeRecordController extends Controller
             // Send back in Manila time for UI
             'data'       => [
                         'id'         => $dtr->id,
-                        'time_in'    => $dtr->time_out->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
+                        'time_out'    => $dtr->time_out->setTimezone('Asia/Manila')->format('M. d, Y, h:i A'),
                     ]
         ]);
     }
@@ -719,7 +719,7 @@ class DailyTimeRecordController extends Controller
 
         $dtr = DailyTimeRecord::find($request->id);
 
-        if ($dtr->ot_status !== 'pending' && $dtr->ot_status !== 'NULL') {
+        if ($dtr->ot_status !== 'pending' && !is_null($dtr->ot_status)) {
             return response()->json([
                 'message' => 'Overtime request is not pending or has already been processed.'
             ], 400);
@@ -743,7 +743,7 @@ class DailyTimeRecordController extends Controller
 
         $dtr = DailyTimeRecord::find($request->id);
 
-        if ($dtr->ot_status !== 'pending' && $dtr->ot_status !== 'NULL') {
+        if ($dtr->ot_status !== 'pending' && !is_null($dtr->ot_status)) {
             return response()->json([
                 'message' => 'Overtime request is not pending or has already been processed.'
             ], 400);

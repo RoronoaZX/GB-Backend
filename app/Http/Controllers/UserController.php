@@ -149,14 +149,33 @@ class UserController extends Controller
 
         if (empty($keyword)) {
             // If the keyword is empty, fetch all users
-            $results = User::orderBy('created_at', 'desc')->get();
+            $results = User::with('employee')->orderBy('created_at', 'desc')->get();
         } else {
             // Perform the search using a search method or query
-            $results = User::where('name', 'LIKE', '%' . $keyword . '%')
-                            ->orWhere('email', 'LIKE', '%' . $keyword . '%')
-                            ->orderBy('created_at', 'desc')
-                            ->get();
+            $results = User::with('employee')
+                ->where(function($query) use ($keyword) {
+                    $query->whereHas('employee', function($q) use ($keyword) {
+                        $q->where(DB::raw("CONCAT(firstname, ' ', lastname)"), 'LIKE', '%' . $keyword . '%');
+                    })->orWhere('email', 'LIKE', '%' . $keyword . '%');
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
         }
+
+        $results = $results->map(function($user){
+            if ($user->employee) {
+                $user->employee_id   = $user->employee->id;
+                $user->firstname     = $user->employee->firstname;
+                $user->middlename    = $user->employee->middlename;
+                $user->lastname      = $user->employee->lastname;
+                $user->birthdate     = $user->employee->birthdate;
+                $user->phone         = $user->employee->phone;
+                $user->address       = $user->employee->address;
+                $user->position      = $user->employee->position;
+            }
+            unset($user->employee);
+            return $user;
+        });
 
         return response()->json($results);
     }
@@ -176,26 +195,48 @@ class UserController extends Controller
         $branchId    = $request->input('branch_id');
 
         $request->validate([
-            'keyword'    => 'required|string|max:255',
-            'branch_id'  => 'required|integer|exist:branches,id'
+            'keyword'    => 'nullable|string|max:255',
+            'branch_id'  => 'required|integer|exists:branches,id'
         ]);
 
         if (empty($keyword)) {
             // If the keyword is an empty string, fetch all users
-            $results = User::where('branch_id', $branchId)
-                    ->orderBy('created_at', 'desc')
-                    ->get();
+            $results = User::with(['employee', 'branchEmployee'])
+                ->whereHas('branchEmployee', function($query) use ($branchId) {
+                    $query->where('branch_id', $branchId);
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
         } else {
             // Otherwise, perform the search
-            $results = User::where('branch_id', $branchId)
-                    ->where(function($query) use ($keyword) {
-                        $query->where('name', 'LIKE', '%' . $keyword . '%')
-                        ->orWhere('email', 'LIKE', '%' . $keyword . '%')
-                        ->orWhere('phone', 'LIKE', '%' . $keyword . '%');
-                    })
-                    ->orderBy('created_at', 'desc')
-                    ->get();
+            $results = User::with(['employee', 'branchEmployee'])
+                ->whereHas('branchEmployee', function($query) use ($branchId) {
+                    $query->where('branch_id', $branchId);
+                })
+                ->where(function($query) use ($keyword) {
+                    $query->whereHas('employee', function($q) use ($keyword) {
+                        $q->where(DB::raw("CONCAT(firstname, ' ', lastname)"), 'LIKE', '%' . $keyword . '%')
+                          ->orWhere('phone', 'LIKE', '%' . $keyword . '%');
+                    })->orWhere('email', 'LIKE', '%' . $keyword . '%');
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
         }
+
+        $results = $results->map(function($user){
+            if ($user->employee) {
+                $user->employee_id   = $user->employee->id;
+                $user->firstname     = $user->employee->firstname;
+                $user->middlename    = $user->employee->middlename;
+                $user->lastname      = $user->employee->lastname;
+                $user->birthdate     = $user->employee->birthdate;
+                $user->phone         = $user->employee->phone;
+                $user->address       = $user->employee->address;
+                $user->position      = $user->employee->position;
+            }
+            unset($user->employee);
+            return $user;
+        });
 
         return response()->json($results);
 

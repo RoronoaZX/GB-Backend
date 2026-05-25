@@ -38,6 +38,18 @@ class User extends Authenticatable
         return $this->hasOne(Employee::class, 'id', 'employee_id');
     }
 
+    public function branchEmployee()
+    {
+        return $this->hasOneThrough(
+            BranchEmployee::class,
+            Employee::class,
+            'id',
+            'employee_id',
+            'employee_id',
+            'id'
+        );
+    }
+
     public function salesReports()
     {
         return $this->hasMany(SalesReports::class);

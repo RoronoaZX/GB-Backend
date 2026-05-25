@@ -20,8 +20,6 @@ use Carbon\Carbon;
 use Illuminate\Http\Client\ResponseSequence;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
-use PHPUnit\Framework\MockObject\ReturnValueNotConfiguredException;
-
 class BranchReportController extends Controller
 {
     /**
@@ -567,7 +565,7 @@ class BranchReportController extends Controller
             'employee_id'    => 'required|integer',
             'branches_id'    => 'required|integer|exists:branches,id',
             'remaining'      => 'required|integer|min:0',
-            'type'           => 'required|string|in:bread,selecta,softdrinks,other',
+            'type'           => 'required|string|in:bread,selecta,nestle,softdrinks,other',
             'reason'         => 'required|string',
             'status'         => 'required|string|in:confirmed,declined',
         ]);
@@ -578,6 +576,7 @@ class BranchReportController extends Controller
         $modelMap = [
             'bread'          => BreadSalesReport::class,
             'selecta'        => SelectaSalesReport::class,
+            'nestle'         => NestleSalesReport::class,
             'softdrinks'     => SoftdrinksSalesReport::class,
             'other'          => OtherProducts::class,
         ];
@@ -621,7 +620,7 @@ class BranchReportController extends Controller
             }
 
             $branchName  = optional(Branch::find($request->branches_id))->name ?? 'Branch';
-            $productName = optional($report->bread ?? $report->selecta ?? $report->softdrinks ?? $report->otherProducts)->name ?? 'Product #' . $report->product_id;
+            $productName = optional($report->bread ?? $report->selecta ?? $report->nestle ?? $report->softdrinks ?? $report->otherProducts)->name ?? 'Product #' . $report->product_id;
 
             // Resolve the correct user_id from the employee who took this action.
             // employee_id and user_id are different tables — must NOT use employee_id as user_id.

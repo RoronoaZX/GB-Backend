@@ -8,7 +8,6 @@ use App\Models\RequestPremix;
 use App\Models\RequestPremixesHistory;
 use App\Models\WarehouseRawMaterialsReport;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 use App\Services\HistoryLogService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -703,8 +702,9 @@ class RequestPremixController extends Controller
     {
         $page = $request->get('page', 1);
         $perPage = $request->get('per_page', 5);
-        // Retrieve all receive premix requests for the specified warehouse
-        $receivePremixes = RequestPremix::where('status', 'received')
+        
+        // Retrieve receive premix requests for the specified warehouse using database-level pagination
+        $paginate = RequestPremix::where('status', 'received')
             ->where('warehouse_id', $warehouseId) // Filter by warehouse
             ->with([
                 'branchPremix',
@@ -717,15 +717,7 @@ class RequestPremixController extends Controller
                 }
             ])
             ->orderBy('updated_at', 'desc') // Sort by latest update
-            ->get();
-
-        $paginate = new LengthAwarePaginator(
-            $receivePremixes->forPage($page, $perPage)->values(),
-            $receivePremixes->count(),
-            $perPage,
-            $page,
-            ['path' => url()->current()]
-        );
+            ->paginate($perPage, ['*'], 'page', $page);
 
         return response()->json($paginate);
     }
