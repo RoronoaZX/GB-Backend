@@ -87,6 +87,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('predictive-stocking', [DashboardInventoryController::class, 'getPredictiveStocking']);
         Route::get('recipe-cost-metrics', [DashboardInventoryController::class, 'getRecipeCostMetrics']);
         Route::get('profit-margins', [ProfitMarginController::class, 'getProductMargins']);
+        Route::get('waste-metrics', [DashboardInventoryController::class, 'getWasteMetrics']);
     });
 
     // Core Resources

@@ -380,4 +380,100 @@ class DashboardInventoryController extends Controller
             ], 500);
         }
     }
+
+    public function getWasteMetrics(Request $request)
+    {
+        try {
+            $branchId = $request->query('branch_id');
+            $days = (int)$request->query('days', 30);
+            $startDate = Carbon::now()->subDays($days);
+
+            $query = DB::table('spoilage_logs')
+                ->join('bread_outs', 'spoilage_logs.bread_out_id', '=', 'bread_outs.id')
+                ->join('branch_products', function($join) {
+                    $join->on('bread_outs.product_id', '=', 'branch_products.product_id')
+                         ->on('bread_outs.branch_id', '=', 'branch_products.branches_id');
+                })
+                ->join('products', 'bread_outs.product_id', '=', 'products.id')
+                ->where('spoilage_logs.created_at', '>=', $startDate);
+
+            if ($branchId && $branchId !== 'global') {
+                if (str_starts_with($branchId, 'warehouse-')) {
+                    // Warehouses don't track bread spoilage, return empty set
+                    return response()->json([
+                        'success' => true,
+                        'summary' => ['total_lost_revenue' => 0, 'total_units_lost' => 0],
+                        'trend' => ['labels' => [], 'data' => []],
+                        'top_wasted_products' => [],
+                        'reason_breakdown' => []
+                    ]);
+                }
+                $query->where('bread_outs.branch_id', $branchId);
+            }
+
+            // Summary Calculations
+            $rawRecords = $query->select(
+                'spoilage_logs.quantity',
+                'branch_products.price',
+                'products.name as product_name',
+                'spoilage_logs.reason',
+                DB::raw('DATE(spoilage_logs.created_at) as date')
+            )->get();
+
+            $totalLostRevenue = $rawRecords->sum(fn($r) => $r->quantity * ($r->price ?? 0));
+            $totalUnitsLost = $rawRecords->sum('quantity');
+
+            // Trend calculations
+            $trendGroup = $rawRecords->groupBy('date');
+            $trendLabels = [];
+            $trendData = [];
+            for ($i = $days - 1; $i >= 0; $i--) {
+                $dateStr = Carbon::now()->subDays($i)->format('Y-m-d');
+                $dateLabel = Carbon::now()->subDays($i)->format('M d');
+                $trendLabels[] = $dateLabel;
+                $dayRecords = $trendGroup->get($dateStr) ?? collect();
+                $trendData[] = (float)$dayRecords->sum(fn($r) => $r->quantity * ($r->price ?? 0));
+            }
+
+            // Top Wasted Products
+            $topProducts = $rawRecords->groupBy('product_name')
+                ->map(function ($items, $name) {
+                    return [
+                        'name' => $name,
+                        'units' => $items->sum('quantity'),
+                        'lost_revenue' => round($items->sum(fn($r) => $r->quantity * ($r->price ?? 0)), 2)
+                    ];
+                })
+                ->sortByDesc('lost_revenue')
+                ->take(5)
+                ->values();
+
+            // Reason Breakdown
+            $reasons = $rawRecords->groupBy('reason')
+                ->map(function ($items, $reason) {
+                    return [
+                        'reason' => $reason ?: 'Unspecified',
+                        'lost_revenue' => round($items->sum(fn($r) => $r->quantity * ($r->price ?? 0)), 2)
+                    ];
+                })
+                ->values();
+
+            return response()->json([
+                'success' => true,
+                'summary' => [
+                    'total_lost_revenue' => round($totalLostRevenue, 2),
+                    'total_units_lost' => $totalUnitsLost,
+                ],
+                'trend' => [
+                    'labels' => $trendLabels,
+                    'data' => $trendData
+                ],
+                'top_wasted_products' => $topProducts,
+                'reason_breakdown' => $reasons
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
 }
