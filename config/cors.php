@@ -23,6 +23,7 @@ return [
         'https://gbakeshop.com',
         'https://gbebakeshop.com',
         'http://localhost',
+        'https://localhost',
         'http://localhost:9000',
         'http://localhost:8000',
         'http://localhost:3000',
