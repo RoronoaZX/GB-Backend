@@ -21,9 +21,12 @@ return [
 
     'allowed_origins' => [
         'https://gbakeshop.com',
+        'https://gbebakeshop.com',
+        'http://localhost',
         'http://localhost:9000',
         'http://localhost:8000',
         'http://localhost:3000',
+        'capacitor://localhost',
     ],
 
     'allowed_origins_patterns' => [],
