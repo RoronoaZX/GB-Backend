@@ -1016,12 +1016,20 @@ class RawMaterialsDeliveryController extends Controller
             $item = DeliveryStocksUnit::findOrFail($validated['item_id']);
 
             // ✅ Get old and new quantity
-            $oldQuantity = $item->quantity ?? 0;
-            $newQuantity = $validated['quantity'] ?? $item->quantity ?? 0;
+            $oldQuantity = (float)($item->quantity ?? 0);
+            $newQuantity = (float)($validated['quantity'] ?? $item->quantity ?? 0);
 
-            // ✅ Get old and new grams
-            $oldTotalGrams = $item->gram ?? 0;
-            $newTotalGrams = $validated['gram'] ?? $item->gram ?? 0;
+            // ✅ Get old and new category
+            $oldCategory = strtolower($item->category ?? '');
+            $newCategory = strtolower($validated['category'] ?? $item->category ?? '');
+
+            // ✅ Get old and new grams conversion factor
+            $oldGramConv = (float)($item->gram ?? 0);
+            $newGramConv = (float)($validated['gram'] ?? $item->gram ?? 0);
+
+            // ✅ Compute total grams for old and new
+            $oldTotalGrams = ($oldCategory === 'gram') ? $oldQuantity : ($oldQuantity * $oldGramConv);
+            $newTotalGrams = ($newCategory === 'gram') ? $newQuantity : ($newQuantity * $newGramConv);
 
             // ✅ Compute difference
             $quantityDifference  = $oldQuantity - $newQuantity;
@@ -1038,7 +1046,7 @@ class RawMaterialsDeliveryController extends Controller
             // ✅ 3. Update item fields
             $item->update([
                 'quantity'           => $validated['quantity'] ?? $item->quantity,
-                'gram'               => $newTotalGrams,
+                'gram'               => $newGramConv,
                 'kilo'               => $validated['kilo'] ?? $item->kilo,
                 'pcs'                => $validated['pcs'] ?? $item->pcs,
                 'price_per_unit'     => $validated['price_per_unit'] ?? $item->price_per_unit,
@@ -1046,6 +1054,25 @@ class RawMaterialsDeliveryController extends Controller
                 'category'           => $validated['category'] ?? $item->category,
                 'unit_type'          => $validated['unit_type'] ?? $item->unit_type,
             ]);
+
+            // ✅ Update SupplierIngredient if exists
+            $supplierRecord = SupplierRecord::where('rm_delivery_id', $item->rm_delivery_id)->first();
+            if ($supplierRecord) {
+                $supplierIngredient = SupplierIngredient::where('supplier_record_id', $supplierRecord->id)
+                    ->where('raw_material_id', $item->raw_material_id)
+                    ->first();
+                if ($supplierIngredient) {
+                    $supplierIngredient->update([
+                        'quantity'           => $validated['quantity'] ?? $supplierIngredient->quantity,
+                        'gram'               => $newGramConv,
+                        'kilo'               => $validated['kilo'] ?? $supplierIngredient->kilo,
+                        'pcs'                => $validated['pcs'] ?? $supplierIngredient->pcs,
+                        'price_per_unit'     => $validated['price_per_unit'] ?? $supplierIngredient->price_per_unit,
+                        'price_per_gram'     => $validated['price_per_gram'] ?? $supplierIngredient->price_per_gram,
+                        'category'           => $validated['category'] ?? $supplierIngredient->category,
+                    ]);
+                }
+            }
 
             // ✅ Adjust stock based on to_designation
             if ($validated['to_designation'] === 'Branch') {
