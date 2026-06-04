@@ -341,7 +341,7 @@ class BranchProductController extends Controller
     public function updatePrice(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'price' => 'required|integer',
+            'price' => 'required|numeric|min:0',
         ]);
     
         return DB::transaction(function () use ($validatedData, $id) {

@@ -7,8 +7,7 @@ use App\Models\WarehouseRawMaterialsReport;
 use App\Models\WarehouseStockReports;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
-use PhpParser\Node\Stmt\TryCatch;
+
 
 class WarehouseStockReportsController extends Controller
 {
@@ -30,35 +29,25 @@ class WarehouseStockReportsController extends Controller
 
     public function fetchWarehouseAddedStocks($warehouseId, Request $request)
     {
-        $page        = $request->get('page', 1);
-        $perPage     = $request->get('per_page', 5);
+        $perPage = (int) $request->input('per_page', 5);
 
-        $warehouseStockReports = WarehouseStockReports::with(['warehouseAddedStocks', 'employee'])
+        $query = WarehouseStockReports::with(['warehouseAddedStocks', 'employee'])
                                 ->where('warehouse_id', $warehouseId)
-                                ->orderBy('created_at', 'desc')
-                                ->get();
-
+                                ->orderBy('created_at', 'desc');
 
         if ($perPage == 0) {
+            $warehouseStockReports = $query->get();
             return response()->json([
                 'data'           => $warehouseStockReports,
-                'total'          => count($warehouseStockReports),
-                'per_page'       => count($warehouseStockReports),
+                'total'          => $warehouseStockReports->count(),
+                'per_page'       => $warehouseStockReports->count(),
                 'current_page'   => 1,
                 'last_page'      => 1
             ]);
         } else {
-
-            // Paginate manually
-            $paginate = new LengthAwarePaginator(
-                $warehouseStockReports->forPage($page, $perPage)->values(),
-                $warehouseStockReports->count(),
-                $perPage,
-                $page,
-                ['path' => url()->current()]
-            );
+            $paginate = $query->paginate($perPage);
+            return response()->json($paginate);
         }
-        return response()->json($paginate);
     }
 
     public function store(Request $request)
