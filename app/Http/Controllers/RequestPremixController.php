@@ -643,26 +643,78 @@ class RequestPremixController extends Controller
         ]);
 
         return DB::transaction(function () use ($validated) {
+            $requestPremix = RequestPremix::where('id', $validated['request_premix_id'])
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($requestPremix->status !== 'to receive') {
+                abort(400, 'This premix request is not ready to be received.');
+            }
+
             foreach ($validated['ingredients'] as $ingredient) {
-                $existingMaterial = BranchRawMaterialsReport::where('branch_id', $validated['branch_id'])
-                    ->where('ingredients_id', $ingredient['ingredients_id'])
+                // 1. Resolve price per gram and delivery_su_id for the FIFO batch detail
+                $warehouseStock = \App\Models\WarehouseRmStocks::where('raw_material_id', $ingredient['ingredients_id'])
+                    ->where('warehouse_id', $validated['warehouse_id'])
                     ->first();
 
-                if ($existingMaterial) {
-                    $existingMaterial->increment('total_quantity', $ingredient['total_quantity']);
+                $pricePerGram = $warehouseStock ? $warehouseStock->price_per_gram : null;
+                $deliverySuId = $warehouseStock ? $warehouseStock->delivery_su_id : null;
+
+                if (is_null($pricePerGram)) {
+                    $branchStock = \App\Models\BranchRmStocks::where('raw_material_id', $ingredient['ingredients_id'])
+                        ->where('branch_id', $validated['branch_id'])
+                        ->first();
+                    $pricePerGram = $branchStock ? $branchStock->price_per_gram : null;
+                    $deliverySuId = $branchStock ? $branchStock->delivery_su_id : null;
                 }
+
+                if (is_null($pricePerGram)) {
+                    $fallbackStock = \App\Models\WarehouseRmStocks::where('raw_material_id', $ingredient['ingredients_id'])
+                        ->first();
+                    $pricePerGram = $fallbackStock ? $fallbackStock->price_per_gram : 0;
+                    $deliverySuId = $fallbackStock ? $fallbackStock->delivery_su_id : null;
+                }
+
+                if (is_null($deliverySuId)) {
+                    $deliverySuId = \App\Models\DeliveryStocksUnit::where('raw_material_id', $ingredient['ingredients_id'])
+                        ->orderBy('created_at', 'desc')
+                        ->value('id');
+                }
+
+                // 2. Insert or update BranchRmStocks batch
+                $stock = \App\Models\BranchRmStocks::where([
+                    'branch_id'       => $validated['branch_id'],
+                    'raw_material_id' => $ingredient['ingredients_id'],
+                    'price_per_gram'  => $pricePerGram
+                ])->first();
+
+                if ($stock) {
+                    $stock->increment('quantity', $ingredient['total_quantity']);
+                } else {
+                    \App\Models\BranchRmStocks::create([
+                        'branch_id'       => $validated['branch_id'],
+                        'raw_material_id' => $ingredient['ingredients_id'],
+                        'price_per_gram'  => $pricePerGram,
+                        'quantity'        => $ingredient['total_quantity'],
+                        'delivery_su_id'  => $deliverySuId
+                    ]);
+                }
+
+                // 3. Update or create BranchRawMaterialsReport summary
+                $existingMaterial = BranchRawMaterialsReport::firstOrCreate(
+                    [
+                        'branch_id'      => $validated['branch_id'],
+                        'ingredients_id' => $ingredient['ingredients_id']
+                    ],
+                    ['total_quantity' => 0]
+                );
+                $existingMaterial->increment('total_quantity', $ingredient['total_quantity']);
             }
             
             $branchPremix = BranchPremix::where('id', $validated['branch_premix_id'])->first();
 
             if ($branchPremix) {
                 $branchPremix->increment('available_stocks', $validated['quantity']);
-            }
-
-            $requestPremix = RequestPremix::findOrFail($validated['request_premix_id']);
-
-            if ($requestPremix->status !== 'to receive') {
-                return response()->json(['message' => 'This premix request is not ready to be received.'], 400);
             }
 
             $requestPremix->update(['status' => 'received']);

@@ -46,35 +46,22 @@ class SoftdrinksStocksReportController extends Controller
 
     public function getpendingReports($branchId, Request $request)
     {
-        // Validate the category parameter, if provided
         $validatedData = $request->validate([
             'status' => 'nullable|string'
         ]);
 
-         // Set category to 'pending' by default, if not provided
          $status     = $request->query('status', 'pending');
-         $page       = $request->get('page', 1);
          $perPage    = $request->get('per_page', 5);
 
-         // Fetch the SoftdrinksStocksReport with the related SoftdrinksAddedStock and filter by category and branch_id
-        $softdrinksStockReports = SoftdrinksStocksReport::where('branches_id', $branchId)
-                                    ->where('status', $status) // Assuming 'status' is the column representing 'pending' or other states
+        $paginated = SoftdrinksStocksReport::where('branches_id', $branchId)
+                                    ->where('status', $status)
                                     ->with(['branch','employee',
                                         'softdrinksAddedStocks' => function ($query) {
-                                            $query->where('added_stocks', '>', 0); // Optional: Only fetch added stocks greater than 0
+                                            $query->where('added_stocks', '>', 0);
                                         }
                                     ])
                                     ->orderBy('created_at', 'desc')
-                                    ->get();
-
-        // Paginate manually
-        $paginated = new LengthAwarePaginator(
-                        $softdrinksStockReports->forPage($page, $perPage)->values(),
-                        $softdrinksStockReports->count(),
-                        $perPage,
-                        $page,
-                        ['page' => url()->current()]
-                    );
+                                    ->paginate($perPage);
 
         return response()->json($paginated);
     }
@@ -114,30 +101,18 @@ class SoftdrinksStocksReportController extends Controller
             'status' => 'nullable|string'
         ]);
 
-        // Set category to 'pending' by default, if not provided
         $status      = $request->query('status', 'confirmed');
-        $page        = $request->get('page',1);
         $perPage     = $request->get('per_page', 5);
 
-         // Fetch the SoftdrinksStocksReport with the related SoftdrinksAddedStock and filter by category and branch_id
-         $softdrinksStockReport = SoftdrinksStocksReport::where('branches_id', $branchId)
-                                    ->where('status', $status) // Assuming 'status' is the column representing 'pending' or other states
+         $paginated = SoftdrinksStocksReport::where('branches_id', $branchId)
+                                    ->where('status', $status)
                                     ->with(['branch','employee',
                                         'softdrinksAddedStocks' => function ($query) {
-                                            $query->where('added_stocks', '>', 0); // Optional: Only fetch added stocks greater than 0
+                                            $query->where('added_stocks', '>', 0);
                                         }
                                     ])
                                     ->orderBy('created_at', 'desc')
-                                    ->get();
-
-        // Paginate manually
-        $paginated = new LengthAwarePaginator(
-                        $softdrinksStockReport->forPage($page, $perPage)->values(),
-                        $softdrinksStockReport->count(),
-                        $perPage,
-                        $page,
-                        ['path' => url()->current()]
-                    );
+                                    ->paginate($perPage);
 
         return response()->json($paginated);
     }
@@ -192,27 +167,15 @@ class SoftdrinksStocksReportController extends Controller
             'status' => 'nullable|string'
         ]);
 
-        // Set category to 'pending' by default, if not provided
         $status      = $request->query('status', 'declined');
-        $page        = $request->get('page', 1);
         $perPage     = $request->get('per_page', 5);
 
-        // Fetch the SelectaStocksReport with the related SelectaAddedStock and filter by category and branch_id
-        $softdrinksStockReport = SoftdrinksStocksReport::where('branches_id', $branchId)
+        $paginated = SoftdrinksStocksReport::where('branches_id', $branchId)
                                     ->where('status', $status)
                                     ->with(['branch', 'employee', 'softdrinksAddedStocks' => function($query){
                                         $query->where('added_stocks', '>', 0);
                                     }])
-                                    ->get();
-
-            // Paginate manually
-            $paginated= new LengthAwarePaginator(
-                            $softdrinksStockReport->forPage($page, $perPage)->values(),
-                            $softdrinksStockReport->count(),
-                            $perPage,
-                            $page,
-                            ['path' => url()->current()]
-                        );
+                                    ->paginate($perPage);
 
             return response()->json($paginated);
     }

@@ -48,35 +48,22 @@ class SelectaStocksReportController extends Controller
 
     public function getPendingReports($branchId, Request $request)
     {
-        // Validate the category parameter, if provided
         $validatedData = $request->validate([
             'status' => 'nullable|string'
         ]);
 
-        // Set category to 'pending' by default, if not provided
         $status      = $request->query('status', 'pending');
-        $page        = $request->get('page', 1);
         $perPage     = $request->get('per_page', 5);
 
-        // Fetch the SelectaStocksReport with the related SelectaAddedStock and filter by category and branch_id
-        $selectaStocksReports = SelectaStocksReport::where('branches_id', $branchId)
-                                    ->where('status', $status) // Assuming 'status' is the column representing 'pending' or other states
+        $paginated = SelectaStocksReport::where('branches_id', $branchId)
+                                    ->where('status', $status)
                                     ->with(['branch','employee',
                                         'selectaAddedStocks' => function ($query) {
-                                            $query->where('added_stocks', '>', 0); // Optional: Only fetch added stocks greater than 0
+                                            $query->where('added_stocks', '>', 0);
                                         }
                                     ])
-                                    ->orderBy('created_at', 'desc') // Ensures the newest reports appear first
-                                    ->get();
-
-        // Paginate manually
-        $paginated =new LengthAwarePaginator(
-                        $selectaStocksReports->forPage($page, $perPage)->values(),
-                        $selectaStocksReports->count(),
-                        $perPage,
-                        $page,
-                        ['path' => url()->current()]
-                    );
+                                    ->orderBy('created_at', 'desc')
+                                    ->paginate($perPage);
 
         return response()->json($paginated);
     }
@@ -119,13 +106,10 @@ class SelectaStocksReportController extends Controller
             'status' => 'nullable|string',
         ]);
 
-        // Set status to 'confirmed' by default
         $status      = $request->query('status', 'confirmed');
-        $page        = $request->get('page', 1);
         $perPage     = $request->get('per_page', 5);
 
-        // Fetch all matching records
-        $selectaStocksReports = SelectaStocksReport::where('branches_id', $branchId)
+        $paginated = SelectaStocksReport::where('branches_id', $branchId)
                                     ->where('status', $status)
                                     ->with([
                                         'branch', 'employee',
@@ -134,16 +118,7 @@ class SelectaStocksReportController extends Controller
                                         }
                                     ])
                                     ->orderBy('created_at', 'desc')
-                                    ->get();
-
-        // Paginate manually
-        $paginated = new LengthAwarePaginator(
-                            $selectaStocksReports->forPage($page, $perPage)->values(),
-                            $selectaStocksReports->count(),
-                            $perPage,
-                            $page,
-                            ['path' => url()->current()]
-                        );
+                                    ->paginate($perPage);
 
         return response()->json($paginated);
     }
@@ -207,29 +182,18 @@ class SelectaStocksReportController extends Controller
             'status' => 'nullable|string'
         ]);
 
-        // Set category to 'pending' by default, if not provided
         $status      = $request->query('status', 'declined');
-        $page        = $request->get('page', 1);
         $perPage     = $request->get('per_page', 5);
 
-        // Fetch the SelectaStocksReport with the related SelectaAddedStock and filter by category and branch_id
-        $selectaStocksReports = SelectaStocksReport::where('branches_id', $branchId)
-                                    ->where('status', $status) // Assuming 'status' is the column representing 'pending' or other states
+        $paginated = SelectaStocksReport::where('branches_id', $branchId)
+                                    ->where('status', $status)
                                     ->with(['branch','employee',
                                         'selectaAddedStocks' => function ($query) {
-                                            $query->where('added_stocks', '>', 0); // Optional: Only fetch added stocks greater than 0
+                                            $query->where('added_stocks', '>', 0);
                                         }
                                     ])
-                                    ->orderBy('created_at', 'desc') // Ensures the newest reports appear first
-                                    ->get();
-
-        $paginated = new LengthAwarePaginator(
-                        $selectaStocksReports->forPage($page, $perPage)->values(),
-                        $selectaStocksReports->count(),
-                        $perPage,
-                        $page,
-                        ['path' => url()->current()]
-                    );
+                                    ->orderBy('created_at', 'desc')
+                                    ->paginate($perPage);
 
         return response()->json($paginated);
     }

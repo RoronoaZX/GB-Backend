@@ -396,6 +396,15 @@ class InitialBakerreportsController extends Controller
             $branchRecipe = BranchRecipe::find($initialReport->branch_recipe_id);
             $recipeId     = $branchRecipe->recipe_id;
 
+            // Decrement branch pre-mix stock if it exists for this recipe
+            $branchPremix = \App\Models\BranchPremix::where('branch_id', $initialReport->branch_id)
+                ->where('branch_recipe_id', $initialReport->branch_recipe_id)
+                ->first();
+
+            if ($branchPremix) {
+                $branchPremix->decrement('available_stocks', $initialReport->kilo);
+            }
+
             $totalCostResponse = [];
             $grandTotal        = 0;
 

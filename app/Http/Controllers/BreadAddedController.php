@@ -26,8 +26,7 @@ class BreadAddedController extends Controller
             'branch_id' => 'required|integer',
         ]);
 
-        $page        = $request->get('page', 1);
-        $perPage     = $request->get('per_page', 5);
+        $perPage     = (int) $request->get('per_page', 5);
         $search      = $request->get('search');
 
         // Build base query
@@ -45,9 +44,8 @@ class BreadAddedController extends Controller
             });
         }
 
-        $allPending = $query->get();
-
         if ($perPage == 0) {
+            $allPending = $query->get();
             return response()->json([
                 'data'           => $allPending,
                 'total'          => $allPending->count(),
@@ -57,14 +55,7 @@ class BreadAddedController extends Controller
             ]);
         }
 
-        // Manual pagination
-        $paginated = new LengthAwarePaginator(
-            $allPending->forPage($page, $perPage)->values(),
-            $allPending->count(),
-            $perPage,
-            $page,
-            ['path' => url()->current()]
-        );
+        $paginated = $query->paginate($perPage);
 
         return response()->json($paginated);
     }
@@ -123,39 +114,28 @@ class BreadAddedController extends Controller
 
     public function getSentBreadBranchProduct(Request $request, $branchId)
     {
+        $perPage = (int) $request->get('per_page', 5);
 
-            $page        = $request->get('page', 1);
-            $perPage     = $request->get('per_page', 5);
+        $query = BreadAdded::with(['employee', 'product', 'fromBranch', 'toBranch'])
+                                ->where(function ($query) use ($branchId) {
+                                    $query->where('from_branch_id', $branchId)
+                                        ->orWhere('to_branch_id', $branchId);
+                                })
+                                ->orderBy('created_at', 'desc');
 
+        if ($perPage == 0) {
+            $sentBreadProducts = $query->get();
+            return response()->json([
+                'data'           => $sentBreadProducts,
+                'total'          => count($sentBreadProducts),
+                'per_page'       => count($sentBreadProducts),
+                'current_page'   => 1,
+                'last_page'      => 1
+            ]);
+        }
 
-            $sentBreadProducts = BreadAdded::with(['employee', 'product', 'fromBranch', 'toBranch'])
-                                    ->where(function ($query) use ($branchId) {
-                                        $query->where('from_branch_id', $branchId)
-                                            ->orWhere('to_branch_id', $branchId);
-                                    })
-                                    ->orderBy('created_at', 'desc')
-                                    ->get();
-
-            if ($perPage == 0) {
-                return response()->json([
-                    'data'           => $sentBreadProducts,
-                    'total'          => count($sentBreadProducts),
-                    'per_page'       => count($sentBreadProducts),
-                    'current_page'   => 1,
-                    'last_page'      => 1
-                ]);
-            } else {
-                $paginate = new LengthAwarePaginator(
-                    $sentBreadProducts->forPage($page, $perPage)->values(),
-                    $sentBreadProducts->count(),
-                    $perPage,
-                    $page,
-                    ['path' => url()->current()]
-
-                );
-            }
-            return response()->json($paginate);
-
+        $paginate = $query->paginate($perPage);
+        return response()->json($paginate);
     }
 
     /**
