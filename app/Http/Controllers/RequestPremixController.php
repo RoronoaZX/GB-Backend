@@ -160,7 +160,7 @@ class RequestPremixController extends Controller
 
          $pendingPremix  = RequestPremix::where('warehouse_id', $warehouseId)
                                 ->where('status', $status)
-                                ->with('branchPremix', 'employee')
+                                ->with('branchPremix', 'employee', 'creator')
                                 ->latest()
                                 ->get();
 
@@ -234,6 +234,7 @@ class RequestPremixController extends Controller
                                     'branchPremix',
                                     'employee',
                                     'warehouse',
+                                    'creator',
                                     'history' => function ($query) { // Fetch only confirmed history records
                                         $query->where('status', 'confirmed')
                                             ->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
@@ -313,6 +314,7 @@ class RequestPremixController extends Controller
                                     'branchPremix',
                                     'employee',
                                     'warehouse',
+                                    'creator',
                                     'history' => function ($query) { // Fetch only confirmed history records
                                         $query->where('status', 'process')
                                             ->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
@@ -456,6 +458,7 @@ class RequestPremixController extends Controller
                 'branchPremix',
                 'employee',
                 'warehouse',
+                'creator',
                 'history' => function ($query) { // Fetch only confirmed history records
                     $query->where('status', 'completed')
                         ->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
@@ -535,6 +538,7 @@ class RequestPremixController extends Controller
                 'branchPremix',
                 'employee',
                 'warehouse',
+                'creator',
                 'history' => function ($query) { // Fetch only confirmed history records
                     $query->where('status', 'to deliver')
                         ->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
@@ -614,6 +618,7 @@ class RequestPremixController extends Controller
                 'branchPremix',
                 'employee',
                 'warehouse',
+                'creator',
                 'history' => function ($query) { // Fetch only confirmed history records
                     $query->where('status', 'to receive')
                         ->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
@@ -679,6 +684,38 @@ class RequestPremixController extends Controller
                     $deliverySuId = \App\Models\DeliveryStocksUnit::where('raw_material_id', $ingredient['ingredients_id'])
                         ->orderBy('created_at', 'desc')
                         ->value('id');
+                }
+
+                if (is_null($deliverySuId)) {
+                    $dummyDelivery = \App\Models\RawMaterialsDelivery::firstOrCreate(
+                        ['remarks' => 'System Auto-Generated for Premix Stocking'],
+                        [
+                            'employee_id' => $validated['employee_id'],
+                            'from_id' => $validated['warehouse_id'],
+                            'from_designation' => 'Warehouse',
+                            'from_name' => 'Main Warehouse',
+                            'to_id' => $validated['branch_id'],
+                            'to_designation' => 'Branch',
+                            'status' => 'confirmed',
+                        ]
+                    );
+
+                    $rawMaterial = \App\Models\RawMaterial::find($ingredient['ingredients_id']);
+                    $unitType = $rawMaterial ? $rawMaterial->unit : 'Grams';
+
+                    $dummySu = \App\Models\DeliveryStocksUnit::create([
+                        'rm_delivery_id' => $dummyDelivery->id,
+                        'raw_material_id' => $ingredient['ingredients_id'],
+                        'unit_type' => $unitType,
+                        'category' => 'premix',
+                        'quantity' => $ingredient['total_quantity'],
+                        'price_per_unit' => 0,
+                        'price_per_gram' => $pricePerGram,
+                        'gram' => 1,
+                        'pcs' => 0,
+                        'kilo' => 0,
+                    ]);
+                    $deliverySuId = $dummySu->id;
                 }
 
                 // 2. Insert or update BranchRmStocks batch
@@ -762,6 +799,7 @@ class RequestPremixController extends Controller
                 'branchPremix',
                 'employee',
                 'warehouse',
+                'creator',
                 'history' => function ($query) { // Fetch only confirmed history records
                     $query->where('status', 'received')
                         ->select('id', 'request_premixes_id', 'changed_by', 'status', 'updated_at')
@@ -843,6 +881,7 @@ class RequestPremixController extends Controller
                 'branchPremix',
                 'employee',
                 'warehouse',
+                'creator',
                 'history' => function ($query) {
                     // Fetch only confirmed history records
                     $query->where('status', 'declined')
@@ -934,6 +973,11 @@ class RequestPremixController extends Controller
             'requests.*.status'              => 'required|string',
             'requests.*.warehouse_id'        => 'required|exists:warehouses,id',
             'requests.*.employee_id'         => 'required|exists:employees,id',
+            
+            // Scaler Created Fields
+            'requests.*.created_by'          => 'nullable|exists:employees,id',
+            'requests.*.is_scaler_created'   => 'nullable|boolean',
+            'requests.*.notes'               => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -944,6 +988,10 @@ class RequestPremixController extends Controller
 
         try {
             foreach ($request->requests as $req) {
+                $scalerCreated = $req['is_scaler_created'] ?? false;
+                $createdBy     = $req['created_by'] ?? $req['employee_id'];
+                $notes         = $req['notes'] ?? 'Initial request created.';
+
                 // Create the premix request
                 $premixRequest = RequestPremix::create([
                     'branch_premix_id'   => $req['branch_premix_id'],
@@ -953,6 +1001,9 @@ class RequestPremixController extends Controller
                     'status'             => $req['status'],
                     'warehouse_id'       => $req['warehouse_id'],
                     'employee_id'        => $req['employee_id'],
+                    'created_by'         => $createdBy,
+                    'is_scaler_created'  => $scalerCreated,
+                    'notes'              => $notes,
                 ]);
 
                 // Create the request history for each entry
@@ -961,9 +1012,11 @@ class RequestPremixController extends Controller
                     'branch_premix_id'       => $req['branch_premix_id'],
                     'warehouse_id'           => $req['warehouse_id'],
                     'status'                 => $req['status'],
-                    'changed_by'             => $req['employee_id'],
+                    'changed_by'             => $createdBy,
                     'quantity'               => $req['quantity'],
-                    'notes'                  => 'Initial request created.',
+                    'notes'                  => $scalerCreated 
+                                                ? "Created by Scaler: {$notes}" 
+                                                : "Initial request created.",
                 ]);
 
                 // LOG-29 — Request Premix: Initial Request
@@ -971,7 +1024,7 @@ class RequestPremixController extends Controller
                     'user_id'          => Auth::id(),
                     'report_id'        => $premixRequest->id,
                     'type_of_report'   => 'Premix Request',
-                    'name'             => $premixRequest->name,
+                    'name'             => $premixRequest->name . ($scalerCreated ? ' (Scaler Created)' : ''),
                     'action'           => 'submitted',
                     'updated_data'     => $premixRequest->toArray(),
                     'designation'      => $req['warehouse_id'],

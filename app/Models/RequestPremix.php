@@ -17,6 +17,9 @@ class RequestPremix extends Model
         'category',
         'status',
         'quantity',
+        'created_by',
+        'is_scaler_created',
+        'notes',
     ];
 
     public function branchPremix()
@@ -31,6 +34,10 @@ class RequestPremix extends Model
     public function employee()
     {
         return $this->belongsTo(Employee::class, 'employee_id');
+    }
+    public function creator()
+    {
+        return $this->belongsTo(Employee::class, 'created_by');
     }
     public function history()
     {
