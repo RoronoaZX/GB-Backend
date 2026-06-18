@@ -322,29 +322,40 @@ class DashboardInventoryController extends Controller
         }
     }
 
-    public function getRecipeCostMetrics()
+    public function getRecipeCostMetrics(Request $request)
     {
         try {
-            $cachedData = \Illuminate\Support\Facades\Cache::remember('recipe_cost_metrics_v5', 3600, function () {
+            $branchId = $request->query('branch_id');
+            $cacheKey = ($branchId && $branchId !== 'global') ? "rc_metrics_b_{$branchId}" : 'rc_metrics_g';
+
+            $cachedData = \Illuminate\Support\Facades\Cache::remember($cacheKey, 3600, function () use ($branchId) {
                 // 1. Average Cost per Recipe Production
-                $recipeRuns = RecipeCost::select('initial_bakerreport_id', DB::raw('SUM(total_cost) as run_cost'))
-                    ->groupBy('initial_bakerreport_id')
-                    ->get();
+                $recipeRunsQuery = RecipeCost::select('initial_bakerreport_id', DB::raw('SUM(total_cost) as run_cost'));
+                if ($branchId && $branchId !== 'global') {
+                    $recipeRunsQuery->where('branch_id', $branchId);
+                }
+                $recipeRuns = $recipeRunsQuery->groupBy('initial_bakerreport_id')->get();
 
                 $avgCost = $recipeRuns->avg('run_cost') ?: 0;
 
-                // 2. Top 5 Most Expensive Recipes (Global Average)
-                $topRecipes = DB::table('recipe_costs')
+                // 2. Top 5 Most Expensive Recipes (Global or Branch Average)
+                $topRecipesQuery = DB::table('recipe_costs')
                     ->join('recipes', 'recipe_costs.recipe_id', '=', 'recipes.id')
-                    ->select('recipes.name as recipe_name', DB::raw('SUM(recipe_costs.total_cost) / COUNT(DISTINCT recipe_costs.initial_bakerreport_id) as avg_cost'))
-                    ->groupBy('recipes.id', 'recipes.name')
+                    ->select('recipes.name as recipe_name', DB::raw('SUM(recipe_costs.total_cost) / COUNT(DISTINCT recipe_costs.initial_bakerreport_id) as avg_cost'));
+                if ($branchId && $branchId !== 'global') {
+                    $topRecipesQuery->where('recipe_costs.branch_id', $branchId);
+                }
+                $topRecipes = $topRecipesQuery->groupBy('recipes.id', 'recipes.name')
                     ->orderByDesc('avg_cost')
                     ->take(5)
                     ->get();
 
                 // 3. Recent Cost Changes (The Audit Log)
-                $recentChanges = RecipeCostChangeLog::with(['user.employee', 'recipeCost.recipe', 'recipeCost.rawMaterial'])
-                    ->orderBy('created_at', 'desc')
+                $recentChangesQuery = RecipeCostChangeLog::with(['user.employee', 'recipeCost.recipe', 'recipeCost.rawMaterial']);
+                if ($branchId && $branchId !== 'global') {
+                    $recentChangesQuery->where('branch_id', $branchId);
+                }
+                $recentChanges = $recentChangesQuery->orderBy('created_at', 'desc')
                     ->limit(10)
                     ->get()
                     ->map(function ($log) {
